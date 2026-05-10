@@ -156,8 +156,8 @@ Internet / Lab Network
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/sandeepmothukuri/advanced-soc-forge.git
-cd advanced-soc-lab-v2
+git clone https://github.com/sandeepmothukuri/advanced-soc-lab-v2.0.git
+cd advanced-soc-lab-v2.0
 ```
 
 ### Step 2 — Make Scripts Executable
@@ -331,6 +331,10 @@ Simulates bulk file collection, cloud upload exfiltration, and log deletion.
 ---
 
 ## Service URLs
+
+> ⚠️ **SECURITY — Change ALL default passwords before starting any service.**  
+> Run `grep -n "changeme\|admin" .env` to find every default credential.  
+> Never expose any lab port to the internet with default credentials.
 
 | Service | URL | Credentials |
 |---|---|---|
@@ -531,3 +535,7 @@ Built as a hands-on SOC training environment for blue team skill development, th
 | [soc-lab-free](https://github.com/sandeepmothukuri/soc-lab-free) | Free SOC lab — OpenVAS, Wazuh, pfSense, Proxmox Mail, Lynis |
 | [soc-lab](https://github.com/sandeepmothukuri/soc-lab) | SOC analyst home lab — Wazuh SIEM, Sysmon, MITRE ATT&CK mapping |
 | [cyberblue](https://github.com/sandeepmothukuri/cyberblue) | Containerised blue team platform — SIEM, DFIR, CTI, SOAR, Network Analysis |
+
+
+---
+⭐ **Star this repo if it helped you — it helps other SOC analysts find it!**
