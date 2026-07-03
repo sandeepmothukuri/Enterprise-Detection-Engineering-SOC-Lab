@@ -1,4 +1,4 @@
-# Advanced SOC Lab v2.0
+# Enterprise Detection Engineering SOC Lab
 
 [![CI](https://github.com/sandeepmothukuri/advanced-soc-lab-v2.0/actions/workflows/soc-lab-ci.yml/badge.svg)](https://github.com/sandeepmothukuri/advanced-soc-lab-v2.0/actions) [![Website](https://img.shields.io/badge/Website-cybertechnology.in-blue)](https://cybertechnology.in) [![MITRE ATT&CK](https://img.shields.io/badge/MITRE-ATT%26CK-red)](https://attack.mitre.org/)
 
