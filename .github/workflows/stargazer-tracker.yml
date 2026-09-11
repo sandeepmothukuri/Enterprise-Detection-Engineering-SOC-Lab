@@ -1,0 +1,69 @@
+name: Stargazer Tracker
+
+on:
+  watch:
+    types: [started]   # fires when someone stars the repo
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"   # weekly full refresh on Mondays at 07:00 UTC
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  log-stargazer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refresh STARGAZERS.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+          TODAY="$(date -u +'%Y-%m-%d %H:%M UTC')"
+
+          # Pull full stargazer list (paginated) with starred_at timestamps
+          gh api -H "Accept: application/vnd.github.star+json" \
+            --paginate "/repos/${REPO}/stargazers" \
+            | jq -r '.[] | "\(.starred_at)|\(.user.login)|\(.user.html_url)"' \
+            > /tmp/stars.txt || true
+
+          {
+            echo "# ⭐ Stargazers — ${REPO}"
+            echo ""
+            echo "_Auto-updated ${TODAY}. Most recent first._"
+            echo ""
+            echo "| Date | User | Profile |"
+            echo "|---|---|---|"
+            sort -r /tmp/stars.txt \
+              | awk -F'|' '{printf "| %s | @%s | <%s> |\n", substr($1,1,10), $2, $3}'
+          } > STARGAZERS.md
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet STARGAZERS.md 2>/dev/null; then
+            git add STARGAZERS.md
+            git commit -m "chore: refresh stargazer log"
+            git push
+          else
+            echo "No stargazer changes."
+          fi
+
+      - name: Open issue welcoming the new stargazer
+        if: github.event_name == 'watch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USER="${{ github.event.sender.login }}"
+          # Skip if it's the repo owner self-starring
+          if [ "$USER" = "${{ github.repository_owner }}" ]; then
+            echo "Owner self-star — skipping notification."
+            exit 0
+          fi
+          gh issue create \
+            --title "⭐ New stargazer: @${USER}" \
+            --body "[@${USER}](https://github.com/${USER}) just starred this repo.\n\nProfile: https://github.com/${USER}\n\n_This issue is auto-created. Close after reviewing — useful for recruiter / hiring-manager tracking._" \
+            --label "stargazer" || echo "Label may not exist; skipping label."
