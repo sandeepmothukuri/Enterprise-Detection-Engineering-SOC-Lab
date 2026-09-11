@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.py[cod]
+venv/
+.DS_Store
+Thumbs.db
+dfir/evidence_collection/*/
+*.log
+*.pcap

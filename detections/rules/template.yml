@@ -1,0 +1,21 @@
+title: [Rule Title]
+id: ca66dde0-d6df-4a5c-b37c-e76668a18d5e
+description: [Clear explanation]
+status: test
+author: Sandeep Mothukuri
+date: 2026/09/11
+logsource:
+  category: process_creation
+  product: sysmon
+detection:
+  selection:
+    EventID: 1
+  condition: selection
+falsepositives: [Legitimate scripts]
+level: high
+lab_metadata:
+  data_source: Sysmon
+  test_procedure: Execute test command
+  expected_output: Alert generated
+  response: Isolate host
+  tuning_notes: Add exceptions

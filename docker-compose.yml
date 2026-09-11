@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: soc_lab_opensearch
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    networks: [telemetry_net, management_net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits: {cpus: '2.0', memory: 2G}
+networks:
+  management_net: {driver: bridge, ipam: {config: [{subnet: 10.0.1.0/24}]}}
+  telemetry_net: {driver: bridge, ipam: {config: [{subnet: 10.0.2.0/24}]}}
+  emulation_net: {driver: bridge, internal: true, ipam: {config: [{subnet: 10.0.3.0/24}]}}
+volumes:
+  opensearch_data:
