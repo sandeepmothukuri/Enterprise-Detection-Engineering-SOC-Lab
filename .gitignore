@@ -1,6 +1,8 @@
 # Environment — NEVER commit secrets
 .env
+.env.*
 *.env.local
+!.env.example
 
 # Docker volumes data
 data/
@@ -8,7 +10,7 @@ volumes/
 opensearch-data*/
 responder-logs/
 
-# Velociraptor keys (auto-generated)
+# Velociraptor keys/config — auto-generated
 config/velociraptor/*.key
 config/velociraptor/server.config.yaml
 config/velociraptor/client.config.yaml
@@ -49,7 +51,17 @@ config/caldera/plugins/*/data/
 config/misp/*.pem
 config/misp/gpg/
 
-# Captured hashes (red team — sensitive)
+# Captured hashes — red team / sensitive
 config/responder/logs/
 responder-logs/NTLMv2*
 responder-logs/NTLMv1*
+
+# Certificates / private keys
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Local secrets / credentials
+secrets/
+credentials/
