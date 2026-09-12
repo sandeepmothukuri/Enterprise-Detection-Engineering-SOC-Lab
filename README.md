@@ -283,7 +283,6 @@ This repository is maintained as a practical security engineering environment fo
 | [PromptSentinel](https://github.com/sandeepmothukuri/PromptSentinel) | Enterprise-grade prompt injection detection and AI firewall for LLM applications |
 | [PromptShield](https://github.com/sandeepmothukuri/PromptShield) | AI Security + SOC Detection Engineering Lab with prompt-security telemetry, detections and response |
 | [sentinel-detection-engine](https://github.com/sandeepmothukuri/sentinel-detection-engine) | Detection-as-code for Microsoft Sentinel and Defender XDR with KQL, SOAR and ATT&CK coverage |
-| [awesome-lists](https://github.com/sandeepmothukuri/awesome-lists) | SOC/DFIR detection lists, threat-hunting references and security research resources |
 
 ---
 
