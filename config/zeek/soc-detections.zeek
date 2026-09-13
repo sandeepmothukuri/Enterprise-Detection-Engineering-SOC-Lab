@@ -2,10 +2,9 @@
 # Custom Zeek detections — SOC Lab
 # MITRE ATT&CK: T1046 Network Service Scanning
 #
-# The detector is intentionally based on completed connections so it
-# works with both live traffic and replayed PCAPs. It separates:
-#   - vertical scans: one source -> one destination, many ports
-#   - horizontal scans: one source -> many destinations, one service
+# Detection is based on completed connections so the same logic works
+# with live traffic and replayed PCAPs. Vertical and horizontal scans
+# are tracked independently within a bounded observation window.
 # ================================================================
 
 @load base/frameworks/notice
@@ -24,53 +23,49 @@ export {
     const scan_window: interval = 60secs &redef;
 }
 
-type VerticalState: record {
-    first_seen: time;
-    ports: set[port];
-};
-
-type HorizontalState: record {
-    first_seen: time;
-    destinations: set[addr];
-};
-
-global vertical_state: table[addr, addr] of VerticalState &create_expire=1min;
-global horizontal_state: table[addr] of HorizontalState &create_expire=1min;
+global vertical_first_seen: table[addr, addr] of time &create_expire=1min;
+global vertical_ports: table[addr, addr] of set[port] &create_expire=1min;
+global horizontal_first_seen: table[addr] of time &create_expire=1min;
+global horizontal_destinations: table[addr] of set[addr] &create_expire=1min;
 
 event connection_state_remove(c: connection) {
     if ( c$id$orig_h == 0.0.0.0 || c$id$resp_h == 0.0.0.0 )
         return;
 
     local now_ts = network_time();
+    local orig = c$id$orig_h;
+    local resp = c$id$resp_h;
 
-    # Vertical scan: one originator contacting many destination ports on
-    # the same host inside a bounded observation window.
-    local vkey = [c$id$orig_h, c$id$resp_h];
-    if ( vkey !in vertical_state || now_ts - vertical_state[vkey]$first_seen > scan_window ) {
-        vertical_state[vkey] = [$first_seen=now_ts, $ports=set()];
+    # Vertical scan: one originator -> one destination -> many ports.
+    if ( [orig, resp] !in vertical_first_seen || now_ts - vertical_first_seen[orig, resp] > scan_window ) {
+        vertical_first_seen[orig, resp] = now_ts;
+        vertical_ports[orig, resp] = set();
     }
 
-    add vertical_state[vkey]$ports[c$id$resp_p];
-    if ( |vertical_state[vkey]$ports| >= port_scan_threshold ) {
+    add vertical_ports[orig, resp][c$id$resp_p];
+    if ( |vertical_ports[orig, resp]| >= port_scan_threshold ) {
         NOTICE([$note=Port_Scan,
-                $msg=fmt("T1046 network port scan detected from %s: %d unique destination ports contacted", c$id$orig_h, |vertical_state[vkey]$ports|),
-                $src=c$id$orig_h,
-                $dst=c$id$resp_h,
-                $identifier=fmt("vertical-%s-%s", c$id$orig_h, c$id$resp_h)]);
-        delete vertical_state[vkey];
+                $msg=fmt("T1046 network port scan detected from %s: %d unique destination ports contacted", orig, |vertical_ports[orig, resp]|),
+                $src=orig,
+                $dst=resp,
+                $identifier=fmt("vertical-%s-%s", orig, resp)]);
+        delete vertical_first_seen[orig, resp];
+        delete vertical_ports[orig, resp];
     }
 
-    # Horizontal scan: one originator contacting many destination hosts.
-    if ( c$id$orig_h !in horizontal_state || now_ts - horizontal_state[c$id$orig_h]$first_seen > scan_window ) {
-        horizontal_state[c$id$orig_h] = [$first_seen=now_ts, $destinations=set()];
+    # Horizontal scan: one originator -> many destination hosts.
+    if ( orig !in horizontal_first_seen || now_ts - horizontal_first_seen[orig] > scan_window ) {
+        horizontal_first_seen[orig] = now_ts;
+        horizontal_destinations[orig] = set();
     }
 
-    add horizontal_state[c$id$orig_h]$destinations[c$id$resp_h];
-    if ( |horizontal_state[c$id$orig_h]$destinations| >= address_scan_threshold ) {
+    add horizontal_destinations[orig][resp];
+    if ( |horizontal_destinations[orig]| >= address_scan_threshold ) {
         NOTICE([$note=Address_Scan,
-                $msg=fmt("T1046 network host scan detected from %s: %d unique destination hosts contacted", c$id$orig_h, |horizontal_state[c$id$orig_h]$destinations|),
-                $src=c$id$orig_h,
-                $identifier=fmt("horizontal-%s", c$id$orig_h)]);
-        delete horizontal_state[c$id$orig_h];
+                $msg=fmt("T1046 network host scan detected from %s: %d unique destination hosts contacted", orig, |horizontal_destinations[orig]|),
+                $src=orig,
+                $identifier=fmt("horizontal-%s", orig)]);
+        delete horizontal_first_seen[orig];
+        delete horizontal_destinations[orig];
     }
 }
