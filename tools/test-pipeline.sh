@@ -17,8 +17,9 @@ import sys
 from datetime import datetime, timezone
 
 marker = sys.argv[1]
+timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 message = (
-    f"<134>1 {datetime.now(timezone.utc).isoformat()}Z soc-test - - - "
+    f"<134>1 {timestamp} soc-test - - - "
     f"SOC_PIPELINE_TEST marker={marker} event_type=authentication_failure "
     f"source_ip=10.10.10.51"
 )
@@ -31,7 +32,9 @@ PY
 
 for _ in $(seq 1 30); do
   found=$(curl -sk -u "admin:${PASS}" \
-    "http://127.0.0.1:9200/${INDEX}/_search?q=message:${MARKER}&size=1" \
+    -H 'Content-Type: application/json' \
+    -X POST "http://127.0.0.1:9200/${INDEX}/_search" \
+    -d "{\"size\":1,\"query\":{\"match\":{\"message\":\"${MARKER}\"}}}" \
     | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("hits",{}).get("total",{}).get("value",0))' 2>/dev/null || echo 0)
   if [[ "$found" != 0 ]]; then
     echo "PASS: Vector -> OpenSearch pipeline delivered ${MARKER}"
