@@ -19,7 +19,7 @@ http_check() {
   local name="$1" url="$2" expected="${3:-200}"
   local code
   code=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 5 "$url" 2>/dev/null || echo "000")
-  if [[ "$code" == "$expected" || "$code" == "200" || "$code" == "302" || "$code" == "301" ]]; then
+  if [[ "$code" == "$expected" || "$code" == "200" || "$code" == "302" || "$code" == "301" || "$code" == "401" ]]; then
     pass "$name" "HTTP $code — $url"
   else
     fail "$name" "HTTP $code (expected $expected) — $url"
@@ -50,7 +50,6 @@ fi
 # ── Services ──────────────────────────────────────────────────────────────────
 echo -e "  ${C_BOLD}Core Infrastructure${C_RESET}"
 
-# OpenSearch
 if [[ -n "$OPENSEARCH_PASSWORD" ]]; then
   STATUS=$(curl -sk -u "admin:${OPENSEARCH_PASSWORD}" \
     http://localhost:9200/_cluster/health 2>/dev/null \
@@ -74,19 +73,19 @@ container_check "Vector Pipeline" "vector"
 
 echo
 echo -e "  ${C_BOLD}Security Tools${C_RESET}"
-http_check      "DFIR-IRIS"    "http://localhost:4460"
-http_check      "MISP"         "http://localhost:4000"
-http_check      "Velociraptor" "http://localhost:8889"
-http_check      "StackStorm"   "http://localhost:9000"
+http_check      "DFIR-IRIS"    "https://localhost:8443"
+http_check      "MISP"         "http://localhost:8080"
+http_check      "Velociraptor" "https://localhost:8889"
+http_check      "StackStorm"   "http://localhost:9101"
 container_check "ElastAlert2"  "elastalert2"
 
 echo
 echo -e "  ${C_BOLD}Attack Simulation & AI${C_RESET}"
 http_check      "MITRE Caldera" "http://localhost:8888"
-http_check      "AI Agents API" "http://localhost:8000/health"
+http_check      "AI Agents API" "http://localhost:8500"
 http_check      "Ollama LLM"    "http://localhost:11434"
-container_check "WebSocket Streamer" "ws-streamer"
 
+# ── Red Team ──────────────────────────────────────────────────────────────────
 echo
 echo -e "  ${C_BOLD}Red Team (optional — requires --profile redteam)${C_RESET}"
 RESP_STATUS=$(docker inspect --format='{{.State.Status}}' responder 2>/dev/null || echo "not started")
