@@ -65,7 +65,12 @@ services:
     networks:
       soc-net: { ipv4_address: 172.20.0.10 }
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf -u admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD} http://localhost:9200/_cluster/health | grep -Eq '\"status\":\"(green|yellow)\"'"]
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf -u "admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+          http://localhost:9200/_cluster/health |
+          grep -Eq '\"status\":\"(green|yellow)\"'
       interval: 30s
       timeout: 10s
       retries: 10
