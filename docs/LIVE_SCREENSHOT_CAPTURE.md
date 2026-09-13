@@ -36,7 +36,7 @@ Then install the screenshot dependencies and capture:
 ./tools/capture-live-screenshots.sh
 ```
 
-The script uses a fixed 1600×1000 Chromium viewport and saves PNG evidence under `dashboards/screenshots/`. Playwright supports full-page and element screenshots and can disable animations for repeatable evidence captures. citeturn0search0turn0search6
+The script uses a fixed 1600×1000 Chromium viewport and saves PNG evidence under `dashboards/screenshots/`. Playwright supports full-page screenshots and repeatable captures with animations disabled.
 
 ### Capture only selected tools
 
@@ -83,4 +83,4 @@ Do not replace a native-tool screenshot with an AI-generated image or a fabricat
 
 ## CI / artifact option
 
-The capture utility is intentionally local-first because the Docker SOC lab and its telemetry are normally running on the analyst's machine. If a self-hosted runner is later used, the generated PNGs and manifest can also be uploaded as GitHub Actions artifacts. GitHub documents screenshots as a standard workflow-artifact use case. citeturn0search1
+The capture utility is intentionally local-first because the Docker SOC lab and its telemetry are normally running on the analyst's machine. If a self-hosted runner is later used, the generated PNGs and manifest can also be uploaded as GitHub Actions artifacts.
