@@ -1,7 +1,6 @@
 # ================================================================
-#  Advanced SOC Lab v2 — Complete 12-Tool Stack
-#  🛡 SOC Level 3 | SIEM + NSM + SOAR + DFIR + TI + AI + Red Team
-#  All tools 100% FREE and open-source
+# Enterprise Detection Engineering SOC Lab
+# SOC Level 3 | SIEM + NSM + SOAR + DFIR + TI + AI + Red Team
 # ================================================================
 
 x-logging: &logging
@@ -34,14 +33,12 @@ volumes:
   vector-data:
   zeek-logs:
   suricata-logs:
+  responder-logs:
   st-packs:
   st-configs:
   st-db:
   st-mq:
 
-# ================================================================
-# LAYER 1 — OPENSEARCH SIEM (Nodes + Dashboards)
-# ================================================================
 services:
   opensearch-node1:
     image: opensearchproject/opensearch:2.13.0
@@ -59,7 +56,7 @@ services:
       - plugins.security.ssl.http.enabled=false
     ulimits:
       memlock: { soft: -1, hard: -1 }
-      nofile:  { soft: 65536, hard: 65536 }
+      nofile: { soft: 65536, hard: 65536 }
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
       - ./config/opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
@@ -68,10 +65,10 @@ services:
     networks:
       soc-net: { ipv4_address: 172.20.0.10 }
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\\|yellow\"'"]
+      test: ["CMD-SHELL", "curl -sf -u admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD} http://localhost:9200/_cluster/health | grep -Eq '\"status\":\"(green|yellow)\"'"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10
     logging: *logging
 
   opensearch-node2:
@@ -90,9 +87,10 @@ services:
       - plugins.security.ssl.http.enabled=false
     ulimits:
       memlock: { soft: -1, hard: -1 }
-      nofile:  { soft: 65536, hard: 65536 }
+      nofile: { soft: 65536, hard: 65536 }
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
+      - ./config/opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.11 }
     logging: *logging
@@ -107,7 +105,7 @@ services:
     ports:
       - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
     environment:
-      OPENSEARCH_HOSTS: '["http://opensearch-node1:9200","http://opensearch-node2:9200"]'
+      OPENSEARCH_HOSTS: '["http://opensearch-node1:9200", "http://opensearch-node2:9200"]'
       OPENSEARCH_USERNAME: admin
       OPENSEARCH_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       SERVER_NAME: soc-dashboards
@@ -117,22 +115,23 @@ services:
       soc-net: { ipv4_address: 172.20.0.12 }
     logging: *logging
 
-# ================================================================
-# LAYER 2 — SECURITY ONION LAYER (Zeek + Suricata)
-# ================================================================
   zeek:
-    image: zeekurity/zeek:6.0
+    image: zeek/zeek:8.2.2
     container_name: soc-zeek
     hostname: zeek
     <<: *restart
-    network_mode: host           # needs raw packet access
+    network_mode: host
     cap_add: [NET_ADMIN, NET_RAW]
     environment:
-      - ZEEK_INTERFACE=${ZEEK_INTERFACE:-eth0}
+      - ZEEK_INTERFACE=${ZEEK_INTERFACE:-auto}
+      - SOC_NETWORK=${SOC_NETWORK:-172.20.0.0/16}
+    command: ["/bin/sh", "/opt/zeek/zeek-entrypoint.sh"]
     volumes:
       - zeek-logs:/opt/zeek/logs
       - ./config/zeek/local.zeek:/opt/zeek/share/zeek/site/local.zeek:ro
+      - ./config/zeek/soc-detections.zeek:/opt/zeek/share/zeek/site/soc-detections.zeek:ro
       - ./config/zeek/zeekctl.cfg:/opt/zeek/etc/zeekctl.cfg:ro
+      - ./tools/zeek-entrypoint.sh:/opt/zeek/zeek-entrypoint.sh:ro
     logging: *logging
 
   suricata:
@@ -150,14 +149,14 @@ services:
       - ./detection-rules/suricata:/etc/suricata/rules/custom:ro
     logging: *logging
 
-# ================================================================
-# LAYER 3 — VECTOR LOG PIPELINE
-# ================================================================
   vector:
     image: timberio/vector:0.38.0-debian
     container_name: soc-vector
     hostname: vector
     <<: *restart
+    command: ["--config", "/etc/vector/vector.toml"]
+    environment:
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     ports:
       - "${VECTOR_API_PORT:-8686}:8686"
       - "${VECTOR_SYSLOG_UDP:-514}:514/udp"
@@ -178,9 +177,6 @@ services:
       soc-net: { ipv4_address: 172.20.0.30 }
     logging: *logging
 
-# ================================================================
-# LAYER 4 — ELASTALERT2 DETECTION ENGINE
-# ================================================================
   elastalert2:
     image: jertel/elastalert2:2.19.1
     container_name: soc-elastalert2
@@ -190,7 +186,11 @@ services:
       opensearch-node1: { condition: service_healthy }
     environment:
       - TZ=UTC
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - SLACK_WEBHOOK_URL=${ELASTALERT_SLACK_WEBHOOK:-}
+      - ELASTALERT_EMAIL_TO=${ELASTALERT_EMAIL_TO:-}
+      - ELASTALERT_EMAIL_SMTP=${ELASTALERT_EMAIL_SMTP:-}
+      - ELASTALERT_EMAIL_FROM=${ELASTALERT_EMAIL_FROM:-}
     volumes:
       - ./config/elastalert2/config.yml:/opt/elastalert/config.yml:ro
       - ./config/elastalert2/rules:/opt/elastalert/rules:ro
@@ -198,9 +198,6 @@ services:
       soc-net: { ipv4_address: 172.20.0.40 }
     logging: *logging
 
-# ================================================================
-# LAYER 5 — STACKSTORM SOAR
-# ================================================================
   stackstorm:
     image: stackstorm/stackstorm:3.8.1
     container_name: soc-stackstorm
@@ -236,9 +233,6 @@ services:
     networks:
       soc-net: { ipv4_address: 172.20.0.52 }
 
-# ================================================================
-# LAYER 6 — DFIR-IRIS CASE MANAGEMENT
-# ================================================================
   dfir-iris:
     image: ghcr.io/dfir-iris/irisdockerproject:v2.4.9
     container_name: soc-dfir-iris
@@ -276,9 +270,6 @@ services:
     networks:
       soc-net: { ipv4_address: 172.20.0.61 }
 
-# ================================================================
-# LAYER 7 — MISP THREAT INTELLIGENCE
-# ================================================================
   misp:
     image: ghcr.io/misp/misp-docker/misp-core:latest
     container_name: soc-misp
@@ -320,9 +311,6 @@ services:
     networks:
       soc-net: { ipv4_address: 172.20.0.72 }
 
-# ================================================================
-# LAYER 8 — VELOCIRAPTOR DFIR
-# ================================================================
   velociraptor:
     image: wlambert/velociraptor:latest
     container_name: soc-velociraptor
@@ -334,14 +322,10 @@ services:
       - "8000:8000"
     volumes:
       - velociraptor-data:/velociraptor
-      - ./config/velociraptor:/etc/velociraptor:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.80 }
     logging: *logging
 
-# ================================================================
-# LAYER 9 — MITRE CALDERA ATTACK SIMULATION
-# ================================================================
   caldera:
     image: mitre/caldera:latest
     container_name: soc-caldera
@@ -354,34 +338,26 @@ services:
     volumes:
       - caldera-data:/app/data
       - ./config/caldera/local.yml:/app/conf/local.yml:ro
-      - ./attack-simulation/caldera/operations:/app/data/operations:ro
-      - ./attack-simulation/caldera/adversaries:/app/data/adversaries:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.90 }
     logging: *logging
 
-# ================================================================
-# LAYER 10 — RESPONDER (Red-Team Credential Capture)
-# ================================================================
   responder:
     build:
       context: ./config/responder
       dockerfile: Dockerfile
     container_name: soc-responder
     hostname: responder
-    network_mode: host           # needs raw network for LLMNR/NBT-NS
+    network_mode: host
     cap_add: [NET_ADMIN, NET_RAW]
     environment:
       - RESPONDER_INTERFACE=${RESPONDER_INTERFACE:-eth0}
     volumes:
       - ./config/responder/Responder.conf:/opt/Responder/Responder.conf:ro
-      - ./attack-simulation/responder/logs:/opt/Responder/logs
-    profiles: ["redteam"]        # only starts with: docker compose --profile redteam up
+      - responder-logs:/opt/Responder/logs
+    profiles: ["redteam"]
     logging: *logging
 
-# ================================================================
-# LAYER 11 — OLLAMA + CREWAI AI AGENTS
-# ================================================================
   ollama:
     image: ollama/ollama:latest
     container_name: soc-ollama
@@ -395,12 +371,6 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       soc-net: { ipv4_address: 172.20.0.100 }
-    # GPU (NVIDIA): uncomment deploy block below
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: [gpu]
     logging: *logging
 
   crewai-soc:
@@ -412,26 +382,23 @@ services:
     <<: *restart
     depends_on: [ollama, opensearch-node1]
     ports:
-      - "${CREWAI_API_PORT:-8500}:8500"
+      - "${CREWAI_API_PORT:-8500}:8000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
-      - OPENSEARCH_URL=http://opensearch-node1:9200
+      - OPENSEARCH_HOST=opensearch-node1
+      - OPENSEARCH_PORT=9200
+      - OPENSEARCH_USER=admin
       - OPENSEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - IRIS_URL=https://dfir-iris:443
       - MISP_URL=http://misp:80
       - MISP_KEY=${MISP_ADMIN_PASSWORD}
       - ST2_URL=http://stackstorm:9101
       - ST2_TOKEN=${ST2_AUTH_TOKEN}
-    volumes:
-      - ./ai-agents:/app:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.101 }
     logging: *logging
 
-# ================================================================
-# LAYER 12 — WEBSOCKET REAL-TIME ALERT STREAMER
-# ================================================================
   ws-streamer:
     build:
       context: ./ws-streamer
@@ -444,24 +411,26 @@ services:
     ports:
       - "${WS_PORT:-8765}:8765"
     environment:
-      - OPENSEARCH_URL=http://opensearch-node1:9200
+      - OPENSEARCH_HOST=opensearch-node1
+      - OPENSEARCH_PORT=9200
+      - OPENSEARCH_USER=admin
       - OPENSEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - WS_PORT=8765
     networks:
       soc-net: { ipv4_address: 172.20.0.110 }
     logging: *logging
 
-  # SOC Portal / Reverse Proxy
   nginx:
-    image: nginx:1.26-alpine
+    image: nginx:1.27-alpine
     container_name: soc-nginx
     hostname: nginx
     <<: *restart
-    depends_on: [opensearch-dashboards, dfir-iris, misp, velociraptor, caldera]
-    ports: ["80:80", "443:443"]
+    depends_on: [opensearch-dashboards]
+    ports:
+      - "${NGINX_PORT:-8081}:80"
     volumes:
+      - ./dashboards:/usr/share/nginx/html:ro
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./config/nginx/certs:/etc/nginx/certs:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.200 }
     logging: *logging
