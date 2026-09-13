@@ -21,7 +21,7 @@ fi
 echo "SOC Lab Zeek capture interface: ${INTERFACE}"
 
 exec zeek \
-    -i "$INTERFACE" \
+    -i "af_packet::$INTERFACE" \
     -C \
     local \
     /usr/local/zeek/share/zeek/policy/tuning/json-logs.zeek

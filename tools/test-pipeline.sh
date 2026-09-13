@@ -17,10 +17,11 @@ import sys
 from datetime import datetime, timezone
 
 marker = sys.argv[1]
-timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+timestamp = datetime.now(timezone.utc)
+timestamp_text = timestamp.strftime("%b %d %H:%M:%S")
 message = (
-    f"<134>1 {timestamp} soc-test - - - "
-    f"SOC_PIPELINE_TEST marker={marker} event_type=authentication_failure "
+    f"<134>{timestamp_text} soc-test SOC_PIPELINE_TEST "
+    f"marker={marker} event_type=authentication_failure "
     f"source_ip=10.10.10.51"
 )
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,9 +32,12 @@ print(f"sent marker={marker}")
 PY
 
 for _ in $(seq 1 30); do
-  found=$(curl -sk -u "admin:${PASS}" \
+  found=$(curl -sk \
+    --cert "$ROOT_DIR/config/opensearch/certs/opensearch-admin.pem" \
+    --key "$ROOT_DIR/config/opensearch/certs/opensearch-admin-key.pem" \
+    --cacert "$ROOT_DIR/config/opensearch/certs/root-ca.pem" \
     -H 'Content-Type: application/json' \
-    -X POST "http://127.0.0.1:9200/${INDEX}/_search" \
+    -X POST "https://127.0.0.1:9200/${INDEX}/_search" \
     -d "{\"size\":1,\"query\":{\"match\":{\"message\":\"${MARKER}\"}}}" \
     | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("hits",{}).get("total",{}).get("value",0))' 2>/dev/null || echo 0)
   if [[ "$found" != 0 ]]; then

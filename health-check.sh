@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Enterprise Detection Engineering SOC Lab — Health Check
-# Validates the services that are configured and running.
+# Advanced SOC Lab v2.0 — Health Check
+# Validates all services and reports status.
 # =============================================================================
-set -u
+set -euo pipefail
 
 C_RESET='\033[0m'; C_BOLD='\033[1m'
 C_GREEN='\033[0;32m'; C_RED='\033[0;31m'; C_YELLOW='\033[1;33m'
@@ -16,41 +16,55 @@ fail() { echo -e "  ${C_RED}✗${C_RESET}  ${C_BOLD}$1${C_RESET} — $2"; FAIL=$
 warn() { echo -e "  ${C_YELLOW}⚠${C_RESET}  ${C_BOLD}$1${C_RESET} — $2"; WARN=$((WARN + 1)); }
 
 http_check() {
-  local name="$1" url="$2"
+  local name="$1" url="$2" expected="${3:-200}"
   local code
-  code=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 8 "$url" 2>/dev/null || true)
-  case "$code" in
-    200|201|204|301|302|401|403) pass "$name" "HTTP $code — $url" ;;
-    *) fail "$name" "HTTP ${code:-000} — $url" ;;
-  esac
+  code=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 5 "$url" 2>/dev/null || echo "000")
+  if [[ "$code" == "$expected" || "$code" == "200" || "$code" == "302" || "$code" == "301" || "$code" == "401" ]]; then
+    pass "$name" "HTTP $code — $url"
+  else
+    fail "$name" "HTTP $code (expected $expected) — $url"
+  fi
 }
 
 container_check() {
   local name="$1" service="$2"
-  local status
-  status=$(docker compose ps --status running -q "$service" 2>/dev/null || true)
-  if [[ -n "$status" ]]; then
-    pass "$name" "service ${service} is running"
+  local container status
+
+  container=$(docker compose ps -q "$service" 2>/dev/null || true)
+
+  if [[ -z "$container" ]]; then
+    fail "$name" "service not running — $service"
+    return
+  fi
+
+  status=$(docker inspect --format='{{.State.Status}}' "$container" 2>/dev/null || echo "not found")
+
+  if [[ "$status" == "running" ]]; then
+    pass "$name" "container running — $service"
   else
-    fail "$name" "service ${service} is not running"
+    fail "$name" "container status: $status — $service"
   fi
 }
 
-echo -e "\n${C_BOLD}${C_CYAN}  Enterprise Detection Engineering SOC Lab — Health Check${C_RESET}"
+# ── Banner ────────────────────────────────────────────────────────────────────
+echo -e "\n${C_BOLD}${C_CYAN}  Advanced SOC Lab v2.0 — Health Check${C_RESET}"
 echo -e "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n"
 
+# ── Load .env ─────────────────────────────────────────────────────────────────
 OPENSEARCH_PASSWORD=""
 if [[ -f .env ]]; then
-  OPENSEARCH_PASSWORD=$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2- || true)
+  OPENSEARCH_PASSWORD=$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2)
 fi
 
-# Core SIEM
+# ── Services ──────────────────────────────────────────────────────────────────
+echo -e "  ${C_BOLD}Core Infrastructure${C_RESET}"
+
 if [[ -n "$OPENSEARCH_PASSWORD" ]]; then
   STATUS=$(curl -sk -u "admin:${OPENSEARCH_PASSWORD}" \
-    http://localhost:9200/_cluster/health 2>/dev/null \
-    | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null || echo "error")
+    https://localhost:9200/_cluster/health 2>/dev/null \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','unknown'))" 2>/dev/null || echo "error")
   DOC_COUNT=$(curl -sk -u "admin:${OPENSEARCH_PASSWORD}" \
-    http://localhost:9200/soc-logs-*/_count 2>/dev/null \
+    "https://localhost:9200/soc-logs-*/_count" 2>/dev/null \
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('count',0))" 2>/dev/null || echo "?")
   if [[ "$STATUS" == "green" || "$STATUS" == "yellow" ]]; then
     pass "OpenSearch" "cluster:${STATUS} · ${DOC_COUNT} documents"
@@ -58,54 +72,52 @@ if [[ -n "$OPENSEARCH_PASSWORD" ]]; then
     fail "OpenSearch" "cluster:${STATUS}"
   fi
 else
-  http_check "OpenSearch" "http://localhost:9200"
+  http_check "OpenSearch" "https://localhost:9200" "401"
 fi
 
-container_check "OpenSearch Node 1" opensearch-node1
-container_check "OpenSearch Node 2" opensearch-node2
-container_check "Vector Pipeline" vector
-http_check "OpenSearch Dashboards" "http://localhost:5601"
-
-# Detection and network sensors
-container_check "ElastAlert2" elastalert2
-container_check "Zeek" zeek
-container_check "Suricata" suricata
-
-# Optional platform services: report status without making the whole check unusable
-for item in \
-  "DFIR-IRIS|dfir-iris|https://localhost:8443" \
-  "MISP|misp|http://localhost:8080" \
-  "Velociraptor|velociraptor|https://localhost:8889" \
-  "StackStorm|stackstorm|http://localhost:9101" \
-  "MITRE Caldera|caldera|http://localhost:8888" \
-  "AI Agents|crewai-soc|http://localhost:8500/health" \
-  "Ollama|ollama|http://localhost:11434/api/tags" \
-  "WebSocket Streamer|ws-streamer|http://localhost:8765"; do
-  IFS='|' read -r name service url <<< "$item"
-  if docker compose ps --status running -q "$service" >/dev/null 2>&1 && [[ -n "$(docker compose ps --status running -q "$service" 2>/dev/null)" ]]; then
-    http_check "$name" "$url"
-  else
-    warn "$name" "service ${service} is not running"
-  fi
-done
-
-# Red-team profile is intentionally optional.
-if docker compose ps --status running -q responder 2>/dev/null | grep -q .; then
-  pass "Responder" "red-team profile is running"
-else
-  warn "Responder" "optional red-team profile is not running"
-fi
+container_check "OpenSearch Node 1" "opensearch-node1"
+container_check "OpenSearch Node 2" "opensearch-node2"
+http_check      "OpenSearch Dashboards" "http://localhost:5601"
+container_check "Vector Pipeline" "vector"
 
 echo
-echo -e "  ${C_BOLD}Results: ${C_GREEN}${PASS} passed${C_RESET}  ${C_RED}${FAIL} failed${C_RESET}  ${C_YELLOW}${WARN} warnings${C_RESET}"
+echo -e "  ${C_BOLD}Security Tools${C_RESET}"
+http_check      "DFIR-IRIS"    "https://localhost:8443"
+http_check      "MISP"         "http://localhost:8080"
+http_check      "Velociraptor" "https://localhost:8889"
+http_check      "StackStorm"   "http://localhost:9101"
+container_check "ElastAlert2"  "elastalert2"
 
-if [[ $FAIL -gt 0 ]]; then
-  echo -e "\n  ${C_YELLOW}${C_BOLD}Core remediation:${C_RESET}"
-  echo -e "  ${C_DIM}Validate Compose:${C_RESET} docker compose config --quiet"
-  echo -e "  ${C_DIM}Core startup:${C_RESET}    docker compose up -d opensearch-node1 opensearch-node2 vector elastalert2 zeek suricata"
-  echo -e "  ${C_DIM}Inspect logs:${C_RESET}     docker compose logs --tail=100 <service>"
-  exit 1
+echo
+echo -e "  ${C_BOLD}Attack Simulation & AI${C_RESET}"
+http_check      "MITRE Caldera" "http://localhost:8888"
+http_check      "AI Agents API" "http://localhost:8500"
+http_check      "Ollama LLM"    "http://localhost:11434"
+
+# ── Red Team ──────────────────────────────────────────────────────────────────
+echo
+echo -e "  ${C_BOLD}Red Team (optional — requires --profile redteam)${C_RESET}"
+RESP_STATUS=$(docker inspect --format='{{.State.Status}}' responder 2>/dev/null || echo "not started")
+if [[ "$RESP_STATUS" == "running" ]]; then
+  pass "Responder" "container running"
+else
+  warn "Responder" "not running — start with: docker compose --profile redteam up -d"
 fi
 
-echo -e "\n  ${C_GREEN}${C_BOLD}Core lab checks passed.${C_RESET}\n"
-exit 0
+# ── Summary ───────────────────────────────────────────────────────────────────
+TOTAL=$((PASS + FAIL + WARN))
+echo
+echo -e "  ${C_BOLD}Results: ${C_GREEN}${PASS} passed${C_RESET}  ${C_RED}${FAIL} failed${C_RESET}  ${C_YELLOW}${WARN} warnings${C_RESET}  (${TOTAL} checks)"
+echo
+
+if [[ $FAIL -gt 0 ]]; then
+  echo -e "  ${C_YELLOW}Common fixes:${C_RESET}"
+  echo -e "  ${C_DIM}OpenSearch not responding:${C_RESET}  sysctl -w vm.max_map_count=262144"
+  echo -e "  ${C_DIM}Service not running:${C_RESET}        docker compose up -d <service-name>"
+  echo -e "  ${C_DIM}View logs:${C_RESET}                  docker compose logs -f <service-name>"
+  echo
+  exit 1
+else
+  echo -e "  ${C_GREEN}${C_BOLD}All critical services healthy.${C_RESET}"
+  echo
+fi
