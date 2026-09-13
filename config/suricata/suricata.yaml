@@ -1,12 +1,12 @@
 %YAML 1.1
 ---
 # ================================================================
-#  Suricata 7.0 — Network IDS/IPS
-#  Security Onion core detection engine
+# Suricata 7 — Network IDS/IPS
+# Security Onion layer for the SOC lab
 # ================================================================
 vars:
   address-groups:
-    HOME_NET: "${SURICATA_HOME_NET}"
+    HOME_NET: "[10.0.0.0/8,172.16.0.0/12,192.168.0.0/16]"
     EXTERNAL_NET: "!$HOME_NET"
     HTTP_SERVERS: "$HOME_NET"
     SMTP_SERVERS: "$HOME_NET"
