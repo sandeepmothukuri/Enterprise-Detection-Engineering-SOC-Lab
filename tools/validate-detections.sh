@@ -5,21 +5,25 @@ set -euo pipefail
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+ENV_FILE=".env.example"
+
 echo "[1/4] Compose syntax"
-docker compose config --quiet
+docker compose --env-file "$ENV_FILE" config --quiet
 echo "PASS: docker-compose.yml"
 
 echo "[2/4] Sigma YAML"
 python3 - <<'PY'
 from pathlib import Path
 import yaml
-for path in sorted(Path("detection-rules/sigma").rglob("*.yml")):
+files = sorted(Path("detection-rules/sigma").rglob("*.yml"))
+if not files:
+    raise SystemExit("FAIL: no Sigma rules found")
+for path in files:
     data = yaml.safe_load(path.read_text())
     for key in ("title", "logsource", "detection"):
         if key not in data:
-            raise SystemExit(f"FAIL: {path}: missing {key}
-")
-print("PASS: all Sigma rules parsed")
+            raise SystemExit(f"FAIL: {path}: missing {key}")
+print(f"PASS: {len(files)} Sigma rules parsed")
 PY
 
 echo "[3/4] Zeek compile"
