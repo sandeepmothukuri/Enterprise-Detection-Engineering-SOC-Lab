@@ -1,21 +1,9 @@
-# ================================================================
-# Custom Zeek detections — SOC Lab
-# MITRE ATT&CK: T1046 Network Service Scanning
-#
-# Detection is based on completed connections so the same logic works
-# with live traffic and replayed PCAPs. Vertical and horizontal scans
-# are tracked independently within a bounded observation window.
-# ================================================================
-
-@load base/frameworks/notice
-@load base/protocols/conn
-
 module Scan;
 
 export {
     redef enum Notice::Type += {
         Port_Scan,
-        Address_Scan
+        Address_Scan,
     };
 
     const port_scan_threshold: count = 20 &redef;
@@ -23,49 +11,99 @@ export {
     const scan_window: interval = 60secs &redef;
 }
 
-global vertical_first_seen: table[addr, addr] of time &create_expire=1min;
-global vertical_ports: table[addr, addr] of set[port] &create_expire=1min;
-global horizontal_first_seen: table[addr] of time &create_expire=1min;
-global horizontal_destinations: table[addr] of set[addr] &create_expire=1min;
+type VerticalState: record {
+    first_seen: time;
+    ports: set[port];
+    alerted: bool &default=F;
+};
 
-event connection_state_remove(c: connection) {
-    if ( c$id$orig_h == 0.0.0.0 || c$id$resp_h == 0.0.0.0 )
+type HorizontalState: record {
+    first_seen: time;
+    hosts: set[addr];
+    alerted: bool &default=F;
+};
+
+global vertical_state: table[addr, addr] of VerticalState
+    &write_expire=scan_window;
+
+global horizontal_state: table[addr] of HorizontalState
+    &write_expire=scan_window;
+
+event new_connection(c: connection)
+    {
+    if ( c$id$orig_h == 0.0.0.0 ||
+         c$id$resp_h == 0.0.0.0 )
         return;
 
-    local now_ts = network_time();
-    local orig = c$id$orig_h;
-    local resp = c$id$resp_h;
+    local orig_h = c$id$orig_h;
+    local resp_h = c$id$resp_h;
+    local resp_p = c$id$resp_p;
+    local now = network_time();
 
-    # Vertical scan: one originator -> one destination -> many ports.
-    if ( [orig, resp] !in vertical_first_seen || now_ts - vertical_first_seen[orig, resp] > scan_window ) {
-        vertical_first_seen[orig, resp] = now_ts;
-        vertical_ports[orig, resp] = set();
-    }
+    # Vertical scan: one source contacting many ports on one destination.
+    if ( [orig_h, resp_h] !in vertical_state )
+        vertical_state[orig_h, resp_h] = VerticalState(
+            $first_seen=now,
+            $ports=set()
+        );
 
-    add vertical_ports[orig, resp][c$id$resp_p];
-    if ( |vertical_ports[orig, resp]| >= port_scan_threshold ) {
-        NOTICE([$note=Port_Scan,
-                $msg=fmt("T1046 network port scan detected from %s: %d unique destination ports contacted", orig, |vertical_ports[orig, resp]|),
-                $src=orig,
-                $dst=resp,
-                $identifier=fmt("vertical-%s-%s", orig, resp)]);
-        delete vertical_first_seen[orig, resp];
-        delete vertical_ports[orig, resp];
-    }
+    local vstate = vertical_state[orig_h, resp_h];
 
-    # Horizontal scan: one originator -> many destination hosts.
-    if ( orig !in horizontal_first_seen || now_ts - horizontal_first_seen[orig] > scan_window ) {
-        horizontal_first_seen[orig] = now_ts;
-        horizontal_destinations[orig] = set();
-    }
+    if ( now - vstate$first_seen > scan_window )
+        {
+        vstate = VerticalState(
+            $first_seen=now,
+            $ports=set()
+        );
+        }
 
-    add horizontal_destinations[orig][resp];
-    if ( |horizontal_destinations[orig]| >= address_scan_threshold ) {
-        NOTICE([$note=Address_Scan,
-                $msg=fmt("T1046 network host scan detected from %s: %d unique destination hosts contacted", orig, |horizontal_destinations[orig]|),
-                $src=orig,
-                $identifier=fmt("horizontal-%s", orig)]);
-        delete horizontal_first_seen[orig];
-        delete horizontal_destinations[orig];
+    add vstate$ports[resp_p];
+
+    if ( !vstate$alerted &&
+         |vstate$ports| >= port_scan_threshold )
+        {
+        NOTICE([$note=Scan::Port_Scan,
+                $msg=fmt("T1046 network port scan detected from %s to %s: %d unique destination ports contacted",
+                         orig_h, resp_h, |vstate$ports|),
+                $src=orig_h,
+                $dst=resp_h,
+                $identifier=fmt("%s:%s:port-scan", orig_h, resp_h)]);
+
+        vstate$alerted = T;
+        }
+
+    vertical_state[orig_h, resp_h] = vstate;
+
+    # Horizontal scan: one source contacting many destination hosts.
+    if ( orig_h !in horizontal_state )
+        horizontal_state[orig_h] = HorizontalState(
+            $first_seen=now,
+            $hosts=set()
+        );
+
+    local hstate = horizontal_state[orig_h];
+
+    if ( now - hstate$first_seen > scan_window )
+        {
+        hstate = HorizontalState(
+            $first_seen=now,
+            $hosts=set()
+        );
+        }
+
+    add hstate$hosts[resp_h];
+
+    if ( !hstate$alerted &&
+         |hstate$hosts| >= address_scan_threshold )
+        {
+        NOTICE([$note=Scan::Address_Scan,
+                $msg=fmt("T1046 network address scan detected from %s: %d unique destination hosts contacted",
+                         orig_h, |hstate$hosts|),
+                $src=orig_h,
+                $identifier=fmt("%s:address-scan", orig_h)]);
+
+        hstate$alerted = T;
+        }
+
+    horizontal_state[orig_h] = hstate;
     }
-}

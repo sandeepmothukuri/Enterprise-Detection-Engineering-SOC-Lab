@@ -1,143 +1,186 @@
 # ================================================================
-# Vector 0.38 — SOC Log Pipeline
-# Sources: Windows + Linux + Cloud + Zeek + Suricata + Syslog
-# Transforms: Parse, Enrich, MITRE-tag
-# Sink: OpenSearch SIEM cluster
+#  Vector 0.38 — SOC Log Pipeline
+#  Sources: Windows + Linux + Cloud + Zeek + Suricata + Syslog
+#  Transforms: Parse, Enrich, MITRE-tag
+#  Sink: OpenSearch SIEM cluster
 # ================================================================
 data_dir = "/var/lib/vector"
 
-[sources.internal_metrics]
-  type = "internal_metrics"
+# ─── SOURCES ────────────────────────────────────────────────────
 
 [sources.windows_sysmon]
-  type = "socket"
-  mode = "tcp"
+  type    = "socket"
+  mode    = "tcp"
   address = "0.0.0.0:6000"
 
 [sources.linux_auditd]
-  type = "socket"
-  mode = "tcp"
+  type    = "socket"
+  mode    = "tcp"
   address = "0.0.0.0:6001"
 
 [sources.cloud_logs]
-  type = "http_server"
+  type    = "http_server"
   address = "0.0.0.0:6002"
   decoding.codec = "json"
 
 [sources.zeek_logs]
-  type = "socket"
-  mode = "tcp"
-  address = "0.0.0.0:6003"
+  type                = "file"
+  include             = [
+    "/zeek-logs/conn.log",
+    "/zeek-logs/http.log",
+    "/zeek-logs/files.log",
+    "/zeek-logs/software.log",
+    "/zeek-logs/telemetry.log"
+  ]
+  read_from           = "beginning"
+  ignore_older_secs   = 86400
+  fingerprint.strategy = "device_and_inode"
+  data_dir            = "/var/lib/vector"
 
 [sources.suricata_eve]
-  type = "socket"
-  mode = "tcp"
+  type    = "socket"
+  mode    = "tcp"
   address = "0.0.0.0:6004"
 
 [sources.beats_input]
-  type = "logstash"
+  type    = "logstash"
   address = "0.0.0.0:5044"
 
 [sources.syslog_udp]
-  type = "syslog"
-  mode = "udp"
+  type    = "syslog"
+  mode    = "udp"
   address = "0.0.0.0:514"
 
+[sources.internal_metrics]
+  type = "internal_metrics"
+
+
+# ─── TRANSFORMS ─────────────────────────────────────────────────
+
 [transforms.parse_windows]
-  type = "remap"
+  type   = "remap"
   inputs = ["windows_sysmon"]
   source = '''
     . = parse_json!(.message)
-    .log_source = "windows"
-    .log_type = "sysmon"
-    .@timestamp = now()
+    .log_source       = "windows"
+    .log_type         = "sysmon"
+    .@timestamp       = now()
     .pipeline.version = "soc-lab-v2"
-    .mitre.technique = if exists(.EventID) {
+    .mitre.technique  = if exists(.EventID) {
       eid = to_int!(.EventID)
-      if eid == 1 { "T1059 — Command and Script Interpreter" }
-      else if eid == 3 { "T1071 — Application Layer Protocol" }
-      else if eid == 7 { "T1055 — Process Injection (ImageLoad)" }
-      else if eid == 8 { "T1055 — CreateRemoteThread" }
-      else if eid == 10 { "T1003 — OS Credential Dumping" }
-      else if eid == 11 { "T1074 — Data Staged" }
-      else if eid == 13 { "T1112 — Modify Registry" }
-      else if eid == 22 { "T1071.004 — DNS" }
-      else { "Unknown" }
+      if eid == 1 {
+        "T1059 — Command and Script Interpreter"
+      } else {
+        if eid == 3 {
+          "T1071 — Application Layer Protocol"
+        } else {
+          if eid == 7 {
+            "T1055 — Process Injection (ImageLoad)"
+          } else {
+            if eid == 8 {
+              "T1055 — CreateRemoteThread"
+            } else {
+              if eid == 10 {
+                "T1003 — OS Credential Dumping"
+              } else {
+                if eid == 11 {
+                  "T1074 — Data Staged"
+                } else {
+                  if eid == 13 {
+                    "T1112 — Modify Registry"
+                  } else {
+                    if eid == 22 {
+                      "T1071.004 — DNS"
+                    } else {
+                      "Unknown"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     } else { "N/A" }
   '''
 
 [transforms.parse_linux]
-  type = "remap"
+  type   = "remap"
   inputs = ["linux_auditd"]
   source = '''
-    parsed, err = parse_syslog(.message)
-    if err == null { . = parsed }
+    . = parse_syslog!(.message)
     .log_source = "linux"
-    .log_type = "auditd"
+    .log_type   = "auditd"
     .@timestamp = now()
   '''
 
 [transforms.parse_zeek]
-  type = "remap"
+  type   = "remap"
   inputs = ["zeek_logs"]
   source = '''
     . = parse_json!(.message)
-    .log_source = "network"
-    .log_type = "zeek"
-    .sensor_type = "security-onion-layer"
-    .@timestamp = now()
+    .log_source    = "network"
+    .log_type      = "zeek"
+    .sensor_type   = "security-onion-layer"
+    .@timestamp    = now()
   '''
 
 [transforms.parse_suricata]
-  type = "remap"
+  type   = "remap"
   inputs = ["suricata_eve"]
   source = '''
     . = parse_json!(.message)
-    .log_source = "network"
-    .log_type = "suricata"
+    .log_source  = "network"
+    .log_type    = "suricata"
     .sensor_type = "security-onion-layer"
-    .@timestamp = now()
+    .@timestamp  = now()
+    # Promote Suricata alert fields
     if exists(.alert) {
-      .rule.name = .alert.signature
-      .rule.id = .alert.signature_id
+      .rule.name     = .alert.signature
+      .rule.id       = .alert.signature_id
       .rule.severity = .alert.severity
       .rule.category = .alert.category
     }
   '''
 
 [transforms.parse_cloud]
-  type = "remap"
+  type   = "remap"
   inputs = ["cloud_logs"]
   source = '''
-    provider = if exists(.cloud_provider) { del(.cloud_provider) } else { "cloud" }
-    .cloud_provider = provider
-    .log_source = "cloud"
-    .log_type = "cloudlog"
+    .log_source = if exists(.cloud_provider) {
+      del(.cloud_provider)
+    } else {
+      "cloud"
+    }
+    .log_type   = "cloudlog"
     .@timestamp = now()
   '''
 
 [transforms.merge_all]
-  type = "remap"
-  inputs = ["parse_windows", "parse_linux", "parse_zeek", "parse_suricata", "parse_cloud", "beats_input", "syslog_udp"]
+  type   = "remap"
+  inputs = ["parse_windows","parse_linux","parse_zeek","parse_suricata","parse_cloud","beats_input","syslog_udp"]
   source = '''
     .pipeline.ingested_at = now()
-    .pipeline.name = "soc-lab-v2"
+    .pipeline.name        = "soc-lab-v2"
   '''
 
+# ─── SINKS ──────────────────────────────────────────────────────
+
 [sinks.opensearch_main]
-  type = "elasticsearch"
-  inputs = ["merge_all"]
-  endpoints = ["http://opensearch-node1:9200"]
+  type     = "elasticsearch"
+  inputs   = ["merge_all"]
+  endpoint = "https://opensearch-node1:9200"
   api_version = "v8"
-  mode = "bulk"
-  auth.strategy = "basic"
-  auth.user = "admin"
-  auth.password = "${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+  mode     = "bulk"
+  tls.verify_certificate = true
+  tls.ca_file             = "/etc/vector/root-ca.pem"
+  tls.crt_file            = "/etc/vector/opensearch-admin.pem"
+  tls.key_file            = "/etc/vector/opensearch-admin-key.pem"
   bulk.action = "index"
   bulk.index = "soc-logs-%Y.%m.%d"
   compression = "none"
 
 [sinks.vector_prom]
-  type = "prometheus_exporter"
-  inputs = ["internal_metrics"]
+  type    = "prometheus_exporter"
+  inputs  = ["internal_metrics"]
   address = "0.0.0.0:9598"

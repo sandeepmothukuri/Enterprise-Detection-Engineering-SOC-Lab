@@ -1,5 +1,6 @@
 # ================================================================
-# Zeek Local Configuration — Enterprise Detection Engineering SOC Lab
+#  Zeek Local Configuration — SOC Lab
+#  Network Security Monitoring (Security Onion core engine)
 # ================================================================
 @load base/frameworks/intel
 @load base/frameworks/notice
@@ -16,13 +17,21 @@
 @load misc/capture-loss
 @load misc/stats
 @load policy/frameworks/analyzer/detect-protocols
+
+# JSON output for Vector pipeline
+
+# MITRE ATT&CK enrichment scripts
 @load policy/integration/collective-intel
+
+# Custom SOC detection scripts
 @load ./soc-detections
 
 module SOC;
 
-# Keep the sensor output stable for downstream Vector ingestion.
+# Log all connections to OpenSearch via Vector
 redef Log::default_rotation_interval = 1hrs;
+
+# Track C2 beacon intervals (MITRE T1071)
 redef HTTP::max_pending_requests = 100;
 
 event zeek_init() {

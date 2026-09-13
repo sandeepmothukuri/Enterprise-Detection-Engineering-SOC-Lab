@@ -1,0 +1,37 @@
+cluster.name: soc-cluster
+network.host: 0.0.0.0
+http.port: 9200
+
+discovery.seed_hosts: ["opensearch-node1", "opensearch-node2"]
+cluster.initial_master_nodes: ["opensearch-node1", "opensearch-node2"]
+
+bootstrap.memory_lock: true
+
+# HTTP TLS is enabled for the OpenSearch Security administration API.
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: opensearch-node2.pem
+plugins.security.ssl.http.pemkey_filepath: opensearch-node2-key.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.pem
+
+# Transport TLS is required for secure node-to-node communication.
+plugins.security.ssl.transport.enabled: true
+plugins.security.ssl.transport.pemcert_filepath: opensearch-node2.pem
+plugins.security.ssl.transport.pemkey_filepath: opensearch-node2-key.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
+plugins.security.ssl.transport.enforce_hostname_verification: false
+
+plugins.security.allow_unsafe_democertificates: true
+plugins.security.allow_default_init_securityindex: true
+
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+
+# OpenSearch Security: trusted cluster-node certificate DNs
+plugins.security.nodes_dn:
+  - "CN=opensearch-node1,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"
+  - "CN=opensearch-node2,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"
+
+# OpenSearch Security: certificate DN authorized for security administration
+plugins.security.authcz.admin_dn:
+  - "CN=opensearch-admin,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"

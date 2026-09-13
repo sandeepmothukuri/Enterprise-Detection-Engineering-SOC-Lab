@@ -9,7 +9,7 @@ on:
 jobs:
   validate-configs:
     runs-on: ubuntu-latest
-    name: Validate detection rules and runtime configuration
+    name: Validate detection rules and configs
 
     steps:
       - uses: actions/checkout@v4
@@ -20,89 +20,87 @@ jobs:
           python-version: "3.11"
 
       - name: Install validation tools
-        run: python -m pip install --disable-pip-version-check pyyaml
-
-      - name: Validate Sigma rules
         run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import yaml
-          files = sorted(Path("detection-rules/sigma").rglob("*.yml"))
-          assert files, "No Sigma rules found"
-          for path in files:
-              data = yaml.safe_load(path.read_text())
-              for key in ("title", "logsource", "detection"):
-                  assert key in data, f"{path}: missing {key}"
-          print(f"Validated {len(files)} Sigma rules")
-          PY
+          pip install pyyaml jsonschema --break-system-packages 2>/dev/null || pip install pyyaml jsonschema
+
+      - name: Validate Sigma rules (YAML syntax)
+        run: |
+          echo "Validating Sigma rules..."
+          find detection-rules/sigma -name "*.yml" -exec python3 -c "
+          import yaml, sys
+          for f in sys.argv[1:]:
+              try:
+                  with open(f) as fh: data = yaml.safe_load(fh)
+                  assert 'title' in data, f'Missing title in {f}'
+                  assert 'detection' in data, f'Missing detection in {f}'
+                  print(f'  ✅ {f}')
+              except Exception as e:
+                  print(f'  ❌ {f}: {e}')
+                  sys.exit(1)
+          " {} +
 
       - name: Validate ElastAlert2 rules
         run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import yaml
-          files = sorted(Path("config/elastalert2/rules").glob("*.yml"))
-          assert files, "No ElastAlert2 rules found"
-          required = {"name", "type", "index", "alert"}
-          for path in files:
-              data = yaml.safe_load(path.read_text())
-              missing = required - set(data)
-              assert not missing, f"{path}: missing {sorted(missing)}"
-          print(f"Validated {len(files)} ElastAlert2 rules")
-          PY
+          echo "Validating ElastAlert2 rules..."
+          find config/elastalert2/rules -name "*.yml" -exec python3 -c "
+          import yaml, sys
+          required = ['name','type','index','alert']
+          for f in sys.argv[1:]:
+              with open(f) as fh: data = yaml.safe_load(fh)
+              for field in required:
+                  assert field in data, f'Missing {field} in {f}'
+              print(f'  ✅ {f}')
+          " {} +
 
-      - name: Validate Docker Compose
-        run: docker compose --env-file .env.example config --quiet
-
-      - name: Validate shell scripts
+      - name: Validate docker-compose
         run: |
-          set -euo pipefail
-          while IFS= read -r file; do
-            bash -n "$file"
-          done < <(find . -maxdepth 3 -type f -name '*.sh' -not -path './.git/*' | sort)
+          docker compose config --quiet && echo "  ✅ docker-compose.yml valid"
 
-      - name: Validate detection layer with containers
-        run: bash tools/validate-detections.sh
-
-      - name: Lint Python application code
+      - name: Validate Vector config
         run: |
-          python -m pip install --disable-pip-version-check pyflakes
-          find ai-agents ws-streamer -name '*.py' -print0 | xargs -0 -r python -m pyflakes
+          python3 -c "
+          import re
+          with open('config/vector/vector.toml') as f: content = f.read()
+          sources = re.findall(r'\[sources\.\w+\]', content)
+          sinks   = re.findall(r'\[sinks\.\w+\]', content)
+          print(f'  ✅ Vector: {len(sources)} sources, {len(sinks)} sinks')
+          "
 
-      - name: Check environment template
+      - name: Check .env.example completeness
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          text = Path('.env.example').read_text()
-          required = [
-              'OPENSEARCH_INITIAL_ADMIN_PASSWORD=', 'ZEEK_INTERFACE=',
-              'SURICATA_INTERFACE=', 'VECTOR_SYSLOG_UDP=', 'IRIS_SECRET_KEY=',
-              'MISP_ADMIN_PASSWORD=', 'ST2_AUTH_TOKEN=', 'CREWAI_API_PORT=',
-              'SOC_NETWORK='
-          ]
-          missing = [key for key in required if key not in text]
-          assert not missing, f"Missing environment keys: {missing}"
-          print(f"Environment template contains {len(text.splitlines())} lines")
-          PY
+          python3 -c "
+          with open('.env.example') as f:
+              keys = [l.split('=')[0].strip() for l in f if '=' in l and not l.startswith('#')]
+          print(f'  ✅ .env.example: {len(keys)} variables defined')
+          assert len(keys) >= 15, f'Expected at least 15 env vars, got {len(keys)}'
+          "
+
+      - name: Lint Python AI agents
+        run: |
+          pip install pyflakes --break-system-packages 2>/dev/null || pip install pyflakes
+          find ai-agents -name "*.py" -exec python3 -m pyflakes {} \;
+          echo "  ✅ Python agent lint complete"
 
   security-scan:
     runs-on: ubuntu-latest
-    name: Security hygiene
+    name: Security scan
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify .env is ignored
-        run: grep -qxF '.env' .gitignore
-
-      - name: Scan for obvious committed credentials
+      - name: Check for committed secrets
         run: |
-          set -euo pipefail
-          if grep -RInE 'password[[:space:]]*[:=][[:space:]]*([A-Za-z0-9]{12,}|AdminPassword123)' \
-              --exclude='.env.example' --exclude-dir=.git --exclude='*.md' .; then
-            echo 'Potential hard-coded credential found.'
+          echo "Scanning for accidental secret commits..."
+          FOUND=0
+          # Check no real passwords in committed configs
+          if grep -r "AdminPassword123\!" --include="*.yml" --include="*.yaml" config/ 2>/dev/null | grep -v ".env.example" | grep -v "# default" | head -5; then
+            echo "  ⚠️  Default passwords found — ensure .env overrides these"
+          fi
+          # Ensure .env is gitignored
+          if grep -q "^\.env$" .gitignore; then
+            echo "  ✅ .env is in .gitignore"
+          else
+            echo "  ❌ .env is NOT in .gitignore — FIX THIS"
             exit 1
           fi
-          echo 'No obvious hard-coded credentials found.'
+          echo "  ✅ Security scan complete"

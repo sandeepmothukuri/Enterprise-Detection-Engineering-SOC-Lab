@@ -64,4 +64,4 @@ responder-logs/NTLMv1*
 
 # Local secrets / credentials
 secrets/
-credentials/
+credentials/config/opensearch/certs/*-key.pem
