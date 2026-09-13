@@ -54,7 +54,7 @@ jobs:
           PY
 
       - name: Validate Docker Compose
-        run: docker compose config --quiet
+        run: docker compose --env-file .env.example config --quiet
 
       - name: Validate shell scripts
         run: |
