@@ -1,19 +1,25 @@
 title: WMI Remote Code Execution
-id: b3e7c1d4-5a2f-4b9e-c7d2-3f9e1a7c4b2d
-status: production
-description: Detects WMI usage for remote execution — common APT lateral movement
+id: 6f5e4d3c-2b1a-4098-b7c6-d5e4f3a2b1c0
+status: test
+description: Detects WMIC usage for remote process execution.
 author: SOC Lab
-tags: [attack.execution, attack.t1047, attack.lateral_movement]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1047/
+tags:
+  - attack.execution
+  - attack.t1047
+  - attack.lateral_movement
 logsource:
   category: process_creation
   product: windows
 detection:
   selection:
-    Image|endswith: '\wmic.exe'
+    Image|endswith: '\\wmic.exe'
     CommandLine|contains:
       - '/node:'
       - 'process call create'
-  parent_selection:
-    ParentImage|endswith: ['\cmd.exe', '\powershell.exe']
-  condition: selection or parent_selection
+  condition: selection
+falsepositives:
+  - Administrative WMI tooling used for approved remote management
 level: high
