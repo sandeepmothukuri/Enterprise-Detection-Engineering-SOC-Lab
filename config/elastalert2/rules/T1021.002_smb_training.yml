@@ -1,0 +1,10 @@
+name: T1021.002 — SMB Lateral Movement Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1021.002
+alert:
+  - debug
+realert:
+  minutes: 5
