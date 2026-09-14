@@ -1,0 +1,10 @@
+name: T1003.001 — LSASS Credential Dumping Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1003.001
+alert:
+  - debug
+realert:
+  minutes: 5
