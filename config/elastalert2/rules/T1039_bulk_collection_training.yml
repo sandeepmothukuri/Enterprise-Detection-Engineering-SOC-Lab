@@ -1,0 +1,10 @@
+name: T1039 — Bulk File Collection Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1039
+alert:
+  - debug
+realert:
+  minutes: 5
