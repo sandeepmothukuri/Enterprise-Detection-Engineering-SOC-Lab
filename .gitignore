@@ -4,13 +4,20 @@
 *.env.local
 !.env.example
 
-# Docker volumes data
+# Docker volumes / local runtime data
 data/
 volumes/
 opensearch-data*/
 responder-logs/
+logs/
 
-# Velociraptor keys/config — auto-generated
+t1046-test.pcap
+
+# Generated OpenSearch / local TLS material
+config/opensearch/certs/
+config/nginx/certs/
+
+# Velociraptor generated keys/config
 config/velociraptor/*.key
 config/velociraptor/server.config.yaml
 config/velociraptor/client.config.yaml
@@ -32,7 +39,6 @@ ai-agents/*.db
 
 # Logs
 *.log
-logs/
 
 # OS
 .DS_Store
@@ -46,6 +52,7 @@ Thumbs.db
 # Caldera data
 config/caldera/data/
 config/caldera/plugins/*/data/
+config/caldera/local.yml
 
 # MISP keys
 config/misp/*.pem
@@ -64,4 +71,3 @@ responder-logs/NTLMv1*
 
 # Local secrets / credentials
 secrets/
-credentials/config/opensearch/certs/*-key.pem
