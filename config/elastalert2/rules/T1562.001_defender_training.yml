@@ -1,0 +1,10 @@
+name: T1562.001 — Defender Disable Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1562.001
+alert:
+  - debug
+realert:
+  minutes: 5
