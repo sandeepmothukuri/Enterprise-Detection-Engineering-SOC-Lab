@@ -17,6 +17,7 @@ Audit date: 2026-09-14
 | MEDIUM | Publicly published service ports and the AI API's wildcard CORS are appropriate for a local lab but unsafe on an untrusted network. | Remaining blocker; restrict host bindings and configure an allowlist before shared deployment. |
 | HIGH | StackStorm `block_ip` interpolated the requested IP into `shell=True`, did not validate direction/duration, and scheduled only inbound cleanup. | Fixed with IP validation, argv-based commands, rollback, and complete cleanup scheduling; covered by `tools/test-block-ip-action.py`. |
 | LOW | The repository has no full-service integration test because it requires Docker, generated certificates, and all external images. | Targeted static checks remain available in CI and `tools/validate-detections.sh`. |
+| MEDIUM | Vector validation previously did not mount or validate the repository configuration, and the live Zeek test retried a stopped container until timeout. | Fixed: validator mounts `config/vector/vector.toml`; Zeek test checks service/container state before traffic generation. |
 
 ## Scope and validation
 

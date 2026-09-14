@@ -15,6 +15,10 @@ else
   DOCKER_PATH_PREFIX=""
 fi
 
+if [[ -n "$DOCKER_PATH_PREFIX" ]]; then
+  export MSYS_NO_PATHCONV=1
+fi
+
 echo "[1/4] Compose syntax"
 docker compose --env-file "$ENV_FILE" config --quiet
 echo "PASS: docker-compose.yml"
@@ -34,10 +38,18 @@ for path in files:
 print(f"PASS: {len(files)} Sigma rules parsed")
 PY
 
-echo "[3/4] Zeek compile"
-if [[ -n "$DOCKER_PATH_PREFIX" ]]; then
-  export MSYS_NO_PATHCONV=1
-fi
+echo "[3/5] Vector configuration"
+docker run --rm \
+  -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=validation-placeholder \
+  -e ELASTALERT_EMAIL_TO=soc@example.invalid \
+  -e ELASTALERT_EMAIL_SMTP=smtp.example.invalid \
+  -e ELASTALERT_EMAIL_FROM=soc@example.invalid \
+  -v "$DOCKER_ROOT/config/vector/vector.toml:/etc/vector/vector.toml:ro" \
+  timberio/vector:0.38.0-debian \
+  validate --no-environment /etc/vector/vector.toml
+echo "PASS: Vector configuration validates"
+
+echo "[4/5] Zeek compile"
 docker run --rm \
   -v "$DOCKER_ROOT/config/zeek:/opt/zeek/share/zeek/site:ro" \
   zeek/zeek:8.2.2 \
@@ -45,7 +57,7 @@ docker run --rm \
 grep -q "SOC Lab Zeek NSM started" /tmp/soc-zeek-validation.log
 echo "PASS: Zeek 8 configuration compiles"
 
-echo "[4/4] Suricata rule/config test"
+echo "[5/5] Suricata rule/config test"
 docker run --rm \
   -e SURICATA_HOME_NET='[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]' \
   -v "$DOCKER_ROOT/config/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro" \
