@@ -1,363 +1,106 @@
 #!/usr/bin/env bash
-# =============================================================================
-# Advanced SOC Lab v2.0 — Attack Simulation
-# Injects realistic events into OpenSearch for SOC analyst training.
-# Usage: ./simulate-attack.sh [apt29|bruteforce|insider|verify]
-# =============================================================================
+# Enterprise Detection Engineering SOC Lab — controlled training telemetry.
 set -euo pipefail
 
-C_RESET='\033[0m'; C_BOLD='\033[1m'
-C_GREEN='\033[0;32m'; C_RED='\033[0;31m'; C_YELLOW='\033[1;33m'
-C_CYAN='\033[0;36m'; C_DIM='\033[2m'
-
-ok()   { echo -e "  ${C_GREEN}✔${C_RESET}  $*"; }
-info() { echo -e "  ${C_CYAN}→${C_RESET}  $*"; }
-warn() { echo -e "  ${C_YELLOW}⚠${C_RESET}  $*"; }
-fail() { echo -e "  ${C_RED}✗${C_RESET}  $*" >&2; exit 1; }
-step() { echo -e "\n${C_BOLD}${C_CYAN}── $* ──${C_RESET}"; }
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+cd "$ROOT_DIR"
 
 SCENARIO="${1:-apt29}"
-OS_PASS="${OPENSEARCH_PASSWORD:-}"
+[[ -f .env ]] || { echo "ERROR: .env is missing; run ./setup.sh first." >&2; exit 1; }
+set -a
+# shellcheck disable=SC1091
+. ./.env
+set +a
 
-# Load password from .env if not in environment
-if [[ -z "$OS_PASS" && -f .env ]]; then
-  OS_PASS=$(grep '^OPENSEARCH_PASSWORD=' .env | cut -d= -f2 || true)
-fi
+CA="config/opensearch/certs/root-ca.pem"
+CERT="config/opensearch/certs/opensearch-admin.pem"
+KEY="config/opensearch/certs/opensearch-admin-key.pem"
+[[ -s "$CA" && -s "$CERT" && -s "$KEY" ]] || { echo "ERROR: OpenSearch TLS material is missing; run ./setup.sh." >&2; exit 1; }
 
-OS_URL="http://localhost:9200"
-OS_AUTH=""
-if [[ -n "$OS_PASS" ]]; then
-  OS_AUTH="-u admin:${OS_PASS}"
-fi
+OS_URL="https://127.0.0.1:${OPENSEARCH_PORT:-9200}"
+INDEX="soc-logs-$(date -u +%Y.%m.%d)"
 
-# ── Helper: inject a single event ─────────────────────────────────────────────
-inject_event() {
-  local label="$1"
-  local payload="$2"
-  local index="soc-logs-$(date -u +%Y.%m.%d)"
-
-  if curl -sk $OS_AUTH -X POST "${OS_URL}/${index}/_doc" \
-      -H "Content-Type: application/json" \
-      -d "$payload" >/dev/null 2>&1; then
-    ok "$label"
+post_event() {
+  local label="$1" technique="$2" tactic="$3" severity="$4" sensor="$5" description="$6"
+  local payload
+  payload=$(python3 - "$technique" "$tactic" "$severity" "$sensor" "$description" <<'PY'
+import json, sys
+from datetime import datetime, timezone
+technique, tactic, severity, sensor, description = sys.argv[1:]
+print(json.dumps({
+    "@timestamp": datetime.now(timezone.utc).isoformat(),
+    "event_type": "training_detection_test",
+    "mitre_technique": technique,
+    "mitre_tactic": tactic,
+    "severity": severity,
+    "sensor": sensor,
+    "rule_name": technique.replace('.', '_'),
+    "description": description,
+}))
+PY
+)
+  if curl -sS --fail --cacert "$CA" --cert "$CERT" --key "$KEY" \
+      -X POST "$OS_URL/$INDEX/_doc" -H 'Content-Type: application/json' -d "$payload" >/dev/null; then
+    echo "PASS: $label"
   else
-    warn "$label (inject failed — is OpenSearch running?)"
+    echo "FAIL: $label" >&2
+    exit 1
   fi
-  sleep 0.5
 }
 
-# =============================================================================
-# Scenario 1: APT-29 Cozy Bear — 13-step kill chain
-# =============================================================================
 run_apt29() {
-  step "APT-29 Simulation — 13 MITRE ATT&CK techniques"
-  info "Injecting kill chain events into OpenSearch index soc-logs-*"
-  echo
-
-  inject_event "T1566.001 · Spearphishing attachment" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1566.001","mitre_tactic":"initial-access",
-    "severity":"high","sensor":"email-gateway",
-    "src_ip":"185.220.101.45","dst_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1566_spearphish_attachment",
-    "description":"Malicious Office macro attachment delivered to finance@corp.local"}'
-
-  inject_event "T1059.001 · PowerShell execution" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1059.001","mitre_tactic":"execution",
-    "severity":"high","sensor":"sysmon",
-    "src_ip":"10.0.1.50","dst_ip":"185.220.101.45",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1059_powershell_encoded",
-    "description":"Encoded PowerShell command executed: IEX (New-Object Net.WebClient).DownloadString"}'
-
-  inject_event "T1053.005 · Scheduled task persistence" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1053.005","mitre_tactic":"persistence",
-    "severity":"medium","sensor":"sysmon",
-    "src_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1053_scheduled_task_created",
-    "description":"New scheduled task WindowsUpdaterSvc created running C:\\ProgramData\\svc.exe"}'
-
-  inject_event "T1547.001 · Registry run key" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1547.001","mitre_tactic":"persistence",
-    "severity":"medium","sensor":"sysmon",
-    "src_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1547_registry_run_key",
-    "description":"Registry key HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run modified"}'
-
-  inject_event "T1003.001 · LSASS memory dump" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1003.001","mitre_tactic":"credential-access",
-    "severity":"critical","sensor":"sysmon",
-    "src_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1003_lsass_dump",
-    "description":"Process lsass.exe accessed by rundll32.exe — credential dumping suspected"}'
-
-  inject_event "T1110.001 · Brute force — password spray" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1110.001","mitre_tactic":"credential-access",
-    "severity":"high","sensor":"windows-security",
-    "src_ip":"10.0.1.50","dst_ip":"10.0.0.10",
-    "host.name":"DC-CORP-01",
-    "rule_name":"T1110_password_spray",
-    "description":"247 failed logon attempts (EventID 4625) across 38 accounts in 60 seconds"}'
-
-  inject_event "T1557.001 · LLMNR/NBT-NS poisoning" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1557.001","mitre_tactic":"credential-access",
-    "severity":"high","sensor":"zeek",
-    "src_ip":"10.0.1.200","dst_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1557_llmnr_poisoning",
-    "description":"LLMNR query response spoofed — NTLMv2 hash captured from CORP\\jsmith"}'
-
-  inject_event "T1021.002 · SMB lateral movement" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1021.002","mitre_tactic":"lateral-movement",
-    "severity":"critical","sensor":"zeek",
-    "src_ip":"10.0.1.50","dst_ip":"10.0.2.20",
-    "host.name":"SRV-HR-02",
-    "rule_name":"T1021_smb_lateral",
-    "description":"Authenticated SMB connection to ADMIN$ share on SRV-HR-02 using stolen credentials"}'
-
-  inject_event "T1550.002 · Pass-the-Hash" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1550.002","mitre_tactic":"lateral-movement",
-    "severity":"critical","sensor":"windows-security",
-    "src_ip":"10.0.1.50","dst_ip":"10.0.0.10",
-    "host.name":"DC-CORP-01",
-    "rule_name":"T1550_pass_the_hash",
-    "description":"NTLM pass-the-hash detected — LogonType 3 with NTLMv2 from non-domain workstation"}'
-
-  inject_event "T1046 · Network port scan" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1046","mitre_tactic":"discovery",
-    "severity":"medium","sensor":"suricata",
-    "src_ip":"10.0.1.50","dst_ip":"10.0.0.0/24",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1046_port_scan",
-    "description":"SYN scan detected — 1024 ports probed across /24 subnet in 8 seconds"}'
-
-  inject_event "T1041 · Exfiltration over C2" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1041","mitre_tactic":"exfiltration",
-    "severity":"critical","sensor":"zeek",
-    "src_ip":"10.0.1.50","dst_ip":"185.220.101.45",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1041_c2_exfil",
-    "description":"4.2 GB data transfer to known Tor exit node over HTTPS (port 443)"}'
-
-  inject_event "T1071.004 · DNS tunneling" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1071.004","mitre_tactic":"command-and-control",
-    "severity":"high","sensor":"zeek",
-    "src_ip":"10.0.1.50","dst_ip":"8.8.8.8",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1071_dns_tunnel",
-    "description":"High-entropy DNS TXT queries to c2.malicious-apt.net — DNS tunneling C2 channel"}'
-
-  inject_event "T1562.001 · Disable Windows Defender" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1562.001","mitre_tactic":"defense-evasion",
-    "severity":"critical","sensor":"sysmon",
-    "src_ip":"10.0.1.50",
-    "host.name":"WKSTN-FINANCE-01",
-    "rule_name":"T1562_disable_defender",
-    "description":"Set-MpPreference -DisableRealtimeMonitoring $true executed via PowerShell"}'
-
-  echo
-  ok "APT-29 simulation complete — 13 events injected"
-  info "Open http://localhost:5601 to view events in OpenSearch Dashboards"
+  echo "APT-style controlled training scenario"
+  post_event "T1566.001 spearphishing" T1566.001 initial-access high email-gateway "Suspicious attachment delivered to a finance workstation"
+  post_event "T1059.001 PowerShell" T1059.001 execution high sysmon "Encoded PowerShell command executed"
+  post_event "T1053.005 scheduled task" T1053.005 persistence medium sysmon "New scheduled task created for persistence"
+  post_event "T1547.001 registry run key" T1547.001 persistence medium sysmon "Windows Run key modified"
+  post_event "T1003.001 LSASS" T1003.001 credential-access critical sysmon "Suspicious process access to LSASS"
+  post_event "T1110.001 password spray" T1110.001 credential-access high windows-security "Multiple failed logons across user accounts"
+  post_event "T1557.001 LLMNR poisoning" T1557.001 credential-access high zeek "LLMNR response spoofing observed"
+  post_event "T1021.002 SMB lateral movement" T1021.002 lateral-movement critical zeek "SMB connection to an administrative share"
+  post_event "T1550.002 pass the hash" T1550.002 lateral-movement critical windows-security "NTLM logon consistent with pass-the-hash activity"
+  post_event "T1046 network scan" T1046 discovery medium suricata "Port scan observed against an internal subnet"
+  post_event "T1041 C2 exfiltration" T1041 exfiltration critical zeek "Large outbound transfer over a C2 channel"
+  post_event "T1071.004 DNS tunneling" T1071.004 command-and-control high zeek "Long high-entropy DNS queries observed"
+  post_event "T1562.001 Defender disable" T1562.001 defense-evasion critical sysmon "Windows Defender real-time monitoring disabled"
 }
 
-# =============================================================================
-# Scenario 2: Brute Force / Password Spray
-# =============================================================================
 run_bruteforce() {
-  step "Brute Force Simulation — 12 failed logon events + lockout"
-  info "Simulating password spray across 12 accounts"
-  echo
-
-  local accounts=("jsmith" "mjohnson" "alee" "bwilliams" "cjones" "ddavis"
-                  "ewilson" "ftaylor" "gbrown" "hmartin" "ithompson" "jgarcia")
-
-  for acct in "${accounts[@]}"; do
-    inject_event "T1110 · Failed logon — ${acct}" '{
-      "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-      "mitre_technique":"T1110.001","mitre_tactic":"credential-access",
-      "severity":"medium","sensor":"windows-security",
-      "src_ip":"10.0.99.15","dst_ip":"10.0.0.10",
-      "host.name":"DC-CORP-01",
-      "username":"CORP\\'"${acct}"'",
-      "event_id":4625,
-      "rule_name":"T1110_brute_force",
-      "description":"Failed logon attempt — invalid password for '"${acct}"'@corp.local"}'
+  echo "Brute-force/password-spray training scenario"
+  local accounts=(jsmith mjohnson alee bwilliams cjones ddavis ewilson ftaylor gbrown hmartin ithompson jgarcia)
+  for account in "${accounts[@]}"; do
+    post_event "T1110.001 failed authentication for ${account}" T1110.001 credential-access medium windows-security "Failed authentication for ${account}"
   done
-
-  inject_event "T1110 · Account lockout triggered" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1110.001","mitre_tactic":"credential-access",
-    "severity":"high","sensor":"windows-security",
-    "src_ip":"10.0.99.15","dst_ip":"10.0.0.10",
-    "host.name":"DC-CORP-01",
-    "event_id":4740,
-    "rule_name":"T1110_account_lockout",
-    "description":"Account lockout triggered for 3 accounts after threshold exceeded"}'
-
-  echo
-  ok "Brute force simulation complete — 13 events injected"
+  post_event "T1110.001 account lockout" T1110.001 credential-access high windows-security "Account lockout threshold exceeded"
 }
 
-# =============================================================================
-# Scenario 3: Insider Threat
-# =============================================================================
 run_insider() {
-  step "Insider Threat Simulation — data staging and exfiltration"
-  info "Simulating malicious insider activity"
-  echo
-
-  inject_event "Insider · Bulk file access" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1039","mitre_tactic":"collection",
-    "severity":"medium","sensor":"file-audit",
-    "src_ip":"10.0.3.45",
-    "host.name":"WKSTN-LEGAL-05",
-    "username":"CORP\\rchen",
-    "rule_name":"insider_bulk_access",
-    "description":"User rchen accessed 847 files in \\\\fileserver\\legal\\contracts in 4 minutes"}'
-
-  inject_event "Insider · Archive creation" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1560.001","mitre_tactic":"collection",
-    "severity":"high","sensor":"sysmon",
-    "src_ip":"10.0.3.45",
-    "host.name":"WKSTN-LEGAL-05",
-    "rule_name":"insider_archive_create",
-    "description":"7-Zip archive created: C:\\Users\\rchen\\Desktop\\contracts_backup.7z (2.1 GB)"}'
-
-  inject_event "Insider · USB device connected" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1052.001","mitre_tactic":"exfiltration",
-    "severity":"high","sensor":"windows-security",
-    "host.name":"WKSTN-LEGAL-05",
-    "rule_name":"insider_usb_connect",
-    "description":"Removable storage device connected — SanDisk 128GB (S/N: 4C530012345)"}'
-
-  inject_event "Insider · Large upload to cloud storage" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1567.002","mitre_tactic":"exfiltration",
-    "severity":"critical","sensor":"proxy",
-    "src_ip":"10.0.3.45","dst_ip":"dropbox.com",
-    "host.name":"WKSTN-LEGAL-05",
-    "rule_name":"insider_cloud_upload",
-    "description":"2.3 GB uploaded to dropbox.com — exceeds DLP policy threshold by 2200%"}'
-
-  inject_event "Insider · After-hours access" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1078","mitre_tactic":"defense-evasion",
-    "severity":"medium","sensor":"windows-security",
-    "src_ip":"10.0.3.45","dst_ip":"10.0.0.10",
-    "host.name":"DC-CORP-01",
-    "rule_name":"insider_afterhours",
-    "description":"Logon at 02:34 UTC on Saturday — anomalous for user rchen (typical 08:00-18:00 M-F)"}'
-
-  inject_event "Insider · Email forward rule created" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1114.003","mitre_tactic":"collection",
-    "severity":"high","sensor":"o365-audit",
-    "host.name":"EXCHANGE-01",
-    "rule_name":"insider_forward_rule",
-    "description":"Inbox forwarding rule created — all mail forwarded to rchen.personal@gmail.com"}'
-
-  inject_event "Insider · VPN from unusual country" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1133","mitre_tactic":"initial-access",
-    "severity":"high","sensor":"vpn-gateway",
-    "src_ip":"45.132.227.89","dst_ip":"10.0.0.1",
-    "host.name":"VPN-GW-01",
-    "rule_name":"insider_geo_anomaly",
-    "description":"VPN login from Romania (user rchen last login from US) — impossible travel alert"}'
-
-  inject_event "Insider · Sensitive DB query" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1213","mitre_tactic":"collection",
-    "severity":"critical","sensor":"db-audit",
-    "src_ip":"10.0.3.45","dst_ip":"10.0.5.10",
-    "host.name":"DB-PROD-01",
-    "rule_name":"insider_bulk_db_query",
-    "description":"SELECT * from customers — 127,445 rows returned; query outside normal job function"}'
-
-  inject_event "Insider · Evidence deletion" '{
-    "@timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-    "mitre_technique":"T1070.004","mitre_tactic":"defense-evasion",
-    "severity":"critical","sensor":"sysmon",
-    "host.name":"WKSTN-LEGAL-05",
-    "rule_name":"insider_log_wipe",
-    "description":"Windows Event Log cleared (EventID 1102) and browser history deleted by rchen"}'
-
-  echo
-  ok "Insider threat simulation complete — 9 events injected"
+  echo "Insider-threat training scenario"
+  post_event "T1039 bulk file collection" T1039 collection medium file-audit "Large number of files accessed from a network share"
+  post_event "T1560.001 archive staging" T1560.001 collection high sysmon "Large archive created from collected files"
+  post_event "T1052.001 removable media" T1052.001 exfiltration high windows-security "Removable storage device connected"
+  post_event "T1567.002 cloud upload" T1567.002 exfiltration critical proxy "Large upload to cloud storage"
+  post_event "T1078 after-hours login" T1078 defense-evasion medium windows-security "Interactive account login outside the normal working schedule"
+  post_event "T1114.003 email forwarding" T1114.003 collection high o365-audit "Mailbox forwarding rule created"
+  post_event "T1133 external remote service" T1133 initial-access high vpn-gateway "VPN login from an unusual geography"
+  post_event "T1213 data from information repositories" T1213 collection critical db-audit "Large sensitive database query"
+  post_event "T1070.004 file deletion" T1070.004 defense-evasion critical sysmon "Evidence and event-log deletion activity observed"
 }
 
-# =============================================================================
-# Scenario 4: Verify injected events
-# =============================================================================
 run_verify() {
-  step "Verification — querying injected events"
-  echo
-
-  local techniques=(
-    "T1566" "T1059" "T1003" "T1110" "T1557"
-    "T1021" "T1046" "T1041" "T1071" "T1562"
-  )
-
-  for tech in "${techniques[@]}"; do
-    COUNT=$(curl -sk $OS_AUTH \
-      "${OS_URL}/soc-logs-*/_count?q=mitre_technique:${tech}*" 2>/dev/null \
-      | python3 -c "import sys,json; print(json.load(sys.stdin).get('count',0))" 2>/dev/null || echo "?")
-    if [[ "$COUNT" =~ ^[0-9]+$ && "$COUNT" -gt 0 ]]; then
-      ok "${tech} — ${COUNT} event(s) found"
-    else
-      warn "${tech} — 0 events (run ./simulate-attack.sh apt29 first)"
-    fi
-  done
-
-  TOTAL=$(curl -sk $OS_AUTH \
-    "${OS_URL}/soc-logs-*/_count" 2>/dev/null \
-    | python3 -c "import sys,json; print(json.load(sys.stdin).get('count',0))" 2>/dev/null || echo "?")
-  echo
-  ok "Total documents in soc-logs-*: ${TOTAL}"
-  info "View in OpenSearch Dashboards: http://localhost:5601"
+  echo "Verifying generated training telemetry"
+  total=$(curl -sS --fail --cacert "$CA" --cert "$CERT" --key "$KEY" \
+    "$OS_URL/$INDEX/_count" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("count",0))')
+  echo "Documents in $INDEX: $total"
+  [[ "$total" =~ ^[0-9]+$ ]] || exit 1
+  (( total > 0 )) || { echo "No training telemetry found." >&2; exit 1; }
 }
-
-# =============================================================================
-# Dispatch
-# =============================================================================
-echo -e "\n${C_BOLD}${C_CYAN}  Advanced SOC Lab v2.0 — Attack Simulation${C_RESET}"
-echo -e "  Scenario: ${C_BOLD}${SCENARIO}${C_RESET}\n"
 
 case "$SCENARIO" in
-  apt29)       run_apt29 ;;
-  bruteforce)  run_bruteforce ;;
-  insider)     run_insider ;;
-  verify)      run_verify ;;
-  all)
-    run_apt29
-    run_bruteforce
-    run_insider
-    run_verify
-    ;;
-  *)
-    echo -e "  ${C_RED}Unknown scenario: ${SCENARIO}${C_RESET}"
-    echo -e "  Usage: $0 [apt29|bruteforce|insider|verify|all]"
-    exit 1
-    ;;
+  apt29) run_apt29 ;;
+  bruteforce) run_bruteforce ;;
+  insider) run_insider ;;
+  verify) run_verify ;;
+  all) run_apt29; run_bruteforce; run_insider; run_verify ;;
+  *) echo "Usage: $0 [apt29|bruteforce|insider|verify|all]" >&2; exit 1 ;;
 esac
-
-echo
