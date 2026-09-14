@@ -1,9 +1,14 @@
 title: Windows Defender Disabled
-id: j1m5k9l2-3i0h-1j7m-k5l0-1n7m0i5l2j8m
-status: production
-description: Detects attempts to disable Windows Defender real-time protection
+id: 4d3e5f6a-7b8c-49d0-a1e2-f3b4c5d6e7f8
+status: test
+description: Detects commands or registry changes intended to disable Windows Defender real-time protection.
 author: SOC Lab
-tags: [attack.defense_evasion, attack.t1562.001]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1562/001/
+tags:
+  - attack.defense_evasion
+  - attack.t1562.001
 logsource:
   category: process_creation
   product: windows
@@ -14,7 +19,9 @@ detection:
       - 'sc stop WinDefend'
       - 'sc config WinDefend start=disabled'
   selection_reg:
-    TargetObject|contains: '\Windows Defender\DisableAntiSpyware'
+    TargetObject|contains: '\\Windows Defender\\DisableAntiSpyware'
     Details: 'DWORD (0x00000001)'
   condition: selection_cmd or selection_reg
-level: high
+falsepositives:
+  - Authorized endpoint security maintenance performed by administrators
+level: critical
