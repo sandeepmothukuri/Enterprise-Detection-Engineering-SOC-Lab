@@ -92,6 +92,8 @@ for var in "${REQUIRED_CREDS[@]}"; do
 done
 ok "All ${#REQUIRED_CREDS[@]} required credentials set"
 
+os_password="$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2-)"
+
 # ── Kernel tuning ─────────────────────────────────────────────────────────────
 step "Kernel parameters"
 
@@ -137,8 +139,8 @@ docker compose up -d opensearch-node1 opensearch-node2
 
 info "Waiting for OpenSearch cluster to become healthy..."
 for i in $(seq 1 60); do
-  STATUS=$(curl -sk -u "admin:$(grep OPENSEARCH_PASSWORD .env | cut -d= -f2)" \
-    http://localhost:9200/_cluster/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','red'))" 2>/dev/null || echo "red")
+  STATUS=$(curl -sk -u "admin:${os_password}" \
+    https://localhost:9200/_cluster/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','red'))" 2>/dev/null || echo "red")
   if [[ "$STATUS" == "green" || "$STATUS" == "yellow" ]]; then
     ok "OpenSearch cluster: ${STATUS}"
     break
@@ -151,8 +153,8 @@ echo
 # Apply index template
 info "Applying soc-logs index template..."
 curl -sk -X PUT \
-  -u "admin:$(grep OPENSEARCH_PASSWORD .env | cut -d= -f2)" \
-  "http://localhost:9200/_index_template/soc-logs" \
+  -u "admin:${os_password}" \
+  "https://localhost:9200/_index_template/soc-logs" \
   -H "Content-Type: application/json" \
   -d '{
     "index_patterns": ["soc-logs-*"],
@@ -172,14 +174,14 @@ curl -sk -X PUT \
         }
       }
     }
-  }' >/dev/null 2>&1 && ok "Index template applied" || warn "Index template: check manually at http://localhost:9200"
+  }' >/dev/null 2>&1 && ok "Index template applied" || warn "Index template: check manually at https://localhost:9200"
 
 docker compose up -d vector
 ok "Vector log pipeline started"
 
 # ── Stage 2: Security tools ────────────────────────────────────────────────────
 step "Stage 2/4 — Security tools (MISP, IRIS, Velociraptor)"
-docker compose up -d misp iris velociraptor
+docker compose up -d misp dfir-iris velociraptor
 info "Waiting 20s for services to initialise..."
 sleep 20
 ok "Security tools started"
@@ -194,9 +196,9 @@ ok "SOAR + detection engine started"
 step "Stage 4/4 — AI agents + Attack simulation (Ollama, CrewAI, Caldera)"
 docker compose up -d ollama
 info "Pulling Ollama model llama3.2:3b (first run: ~2 GB download)..."
-docker exec ollama ollama pull llama3.2:3b 2>/dev/null || warn "Ollama model pull failed — run manually: docker exec ollama ollama pull llama3.2:3b"
+docker exec soc-ollama ollama pull "${OLLAMA_MODEL:-llama3.2:3b}" 2>/dev/null || warn "Ollama model pull failed — run manually: docker exec soc-ollama ollama pull ${OLLAMA_MODEL:-llama3.2:3b}"
 
-docker compose up -d ai-agents caldera ws-streamer opensearch-dashboards nginx
+docker compose up -d crewai-soc caldera ws-streamer opensearch-dashboards nginx
 sleep 10
 ok "All services started"
 
@@ -211,11 +213,11 @@ echo
 echo -e "  ${C_BOLD}Dashboards${C_RESET}"
 echo -e "  Portal              ${C_CYAN}dashboards/index.html${C_RESET}"
 echo -e "  OpenSearch          ${C_CYAN}http://localhost:5601${C_RESET}"
-echo -e "  DFIR-IRIS           ${C_CYAN}http://localhost:4460${C_RESET}"
+echo -e "  DFIR-IRIS           ${C_CYAN}https://localhost:8443${C_RESET}"
 echo -e "  Caldera             ${C_CYAN}http://localhost:8888${C_RESET}"
 echo -e "  Velociraptor        ${C_CYAN}http://localhost:8889${C_RESET}"
-echo -e "  MISP                ${C_CYAN}http://localhost:4000${C_RESET}"
-echo -e "  AI Agents API Docs  ${C_CYAN}http://localhost:8000/docs${C_RESET}"
+echo -e "  MISP                ${C_CYAN}http://localhost:8080${C_RESET}"
+echo -e "  AI Agents API Docs  ${C_CYAN}http://localhost:8500/docs${C_RESET}"
 echo
 echo -e "  ${C_BOLD}Next steps${C_RESET}"
 echo -e "  Run attack sim      ${C_DIM}./simulate-attack.sh apt29${C_RESET}"

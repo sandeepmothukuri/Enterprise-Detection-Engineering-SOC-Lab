@@ -53,7 +53,7 @@ echo -e "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n"
 # ── Load .env ─────────────────────────────────────────────────────────────────
 OPENSEARCH_PASSWORD=""
 if [[ -f .env ]]; then
-  OPENSEARCH_PASSWORD=$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2)
+  OPENSEARCH_PASSWORD=$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2-)
 fi
 
 # ── Services ──────────────────────────────────────────────────────────────────
@@ -97,7 +97,12 @@ http_check      "Ollama LLM"    "http://localhost:11434"
 # ── Red Team ──────────────────────────────────────────────────────────────────
 echo
 echo -e "  ${C_BOLD}Red Team (optional — requires --profile redteam)${C_RESET}"
-RESP_STATUS=$(docker inspect --format='{{.State.Status}}' responder 2>/dev/null || echo "not started")
+RESP_CONTAINER=$(docker compose ps -q responder 2>/dev/null || true)
+if [[ -n "$RESP_CONTAINER" ]]; then
+  RESP_STATUS=$(docker inspect --format='{{.State.Status}}' "$RESP_CONTAINER" 2>/dev/null || echo "not started")
+else
+  RESP_STATUS="not started"
+fi
 if [[ "$RESP_STATUS" == "running" ]]; then
   pass "Responder" "container running"
 else

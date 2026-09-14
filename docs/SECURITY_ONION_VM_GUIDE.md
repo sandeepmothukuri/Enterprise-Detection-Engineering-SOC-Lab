@@ -130,7 +130,7 @@ filebeat.inputs:
 output.elasticsearch:
   hosts: ["http://SOC_LAB_IP:9200"]
   username: "admin"
-  password: "AdminPassword123!"
+  password: "${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
   index: "soc-logs-so-%{+yyyy.MM.dd}"
 
 setup.template.name: "soc-logs-so"
@@ -151,7 +151,7 @@ output {
   elasticsearch {
     hosts => ["http://SOC_LAB_IP:9200"]
     user => "admin"
-    password => "AdminPassword123!"
+    password => "${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
     index => "soc-logs-so-%{+YYYY.MM.dd}"
   }
 }
@@ -228,7 +228,7 @@ curl http://testmyids.com  # Should trigger Suricata
 
 # Check logs arrive in SOC OpenSearch
 curl -s "http://SOC_LAB_IP:9200/soc-logs-so-*/_search?q=sensor_type:security-onion-layer&size=5" \
-  -u admin:AdminPassword123! | python3 -m json.tool
+  -u "admin:${OPENSEARCH_INITIAL_ADMIN_PASSWORD}" | python3 -m json.tool
 ```
 
 ---

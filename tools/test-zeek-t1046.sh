@@ -7,7 +7,16 @@ TARGET_NAME="soc-t1046-target"
 
 [[ -n "$NETWORK" ]] || { echo "ERROR: SOC Docker network not found. Start the core Compose stack first." >&2; exit 1; }
 
-docker compose ps -q zeek >/dev/null || { echo "ERROR: Zeek service is not configured." >&2; exit 1; }
+ZEEK_CONTAINER="$(docker compose ps -q zeek 2>/dev/null || true)"
+[[ -n "$ZEEK_CONTAINER" ]] || {
+  echo "ERROR: Zeek service is not running. Start it with: docker compose up -d zeek" >&2
+  exit 1
+}
+ZEEK_STATUS="$(docker inspect --format='{{.State.Status}}' "$ZEEK_CONTAINER" 2>/dev/null || true)"
+[[ "$ZEEK_STATUS" == "running" ]] || {
+  echo "ERROR: Zeek container is not running (status: ${ZEEK_STATUS:-unknown})." >&2
+  exit 1
+}
 
 docker rm -f "$TARGET_NAME" >/dev/null 2>&1 || true
 
@@ -42,7 +51,7 @@ for port in range(10000, 10025):
 PY
 
 for _ in $(seq 1 20); do
-  if docker exec soc-zeek sh -c 'grep -h "Port_Scan\|T1046" /opt/zeek/logs/notice.log 2>/dev/null | tail -20' | grep -q .; then
+  if docker exec "$ZEEK_CONTAINER" sh -c 'grep -h "Port_Scan\|T1046" /opt/zeek/logs/notice.log 2>/dev/null | tail -20' | grep -q .; then
     echo "PASS: Zeek emitted a T1046 Port_Scan notice."
     exit 0
   fi
@@ -51,5 +60,5 @@ done
 
 echo "FAIL: no T1046 notice was observed in Zeek notice.log" >&2
 echo "Inspect: docker compose logs --tail=100 zeek" >&2
-echo "Inspect: docker exec soc-zeek sh -c 'tail -50 /opt/zeek/logs/conn.log'" >&2
+echo "Inspect: docker exec ${ZEEK_CONTAINER} sh -c 'tail -50 /opt/zeek/logs/conn.log'" >&2
 exit 1
