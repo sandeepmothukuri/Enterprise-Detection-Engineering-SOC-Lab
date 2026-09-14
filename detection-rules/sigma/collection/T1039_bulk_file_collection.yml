@@ -1,0 +1,24 @@
+title: Bulk File Collection from Network Shares
+id: f6a7b8c9-d0e1-4234-f5a6-b7c8d9e0f123
+status: test
+description: Detects repeated file-copy activity from network shares that may indicate bulk collection.
+author: SOC Lab
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1039/
+tags:
+  - attack.collection
+  - attack.t1039
+logsource:
+  category: file_access
+  product: windows
+detection:
+  selection:
+    ShareName|contains: '\\'
+    AccessMask|contains:
+      - '0x1'
+      - '0x120089'
+  condition: selection
+falsepositives:
+  - Normal file-server access and enterprise backup operations
+level: medium
