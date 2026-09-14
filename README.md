@@ -201,7 +201,7 @@ Tune logic, reduce false positives, improve telemetry requirements and document 
                          ┌─────────────────────────────────────┐
                          │       SECURITY TELEMETRY            │
                          │                                     │
-                         │  Zeek · Suricata · Host Logs       │
+                         │  Zeek · Suricata · Host Logs        │
                          └──────────────────┬──────────────────┘
                                             │
                                             ▼
@@ -213,48 +213,49 @@ Tune logic, reduce false positives, improve telemetry requirements and document 
                          └──────────────────┬──────────────────┘
                                             │
                                             ▼
-              ┌────────────────────────────────────────────────────┐
-              │                    OPENSEARCH                       │
-              │                                                    │
-              │       SIEM Data Store · Search · Correlation       │
-              │              Investigation / Analytics             │
-              └────────────────────────┬───────────────────────────┘
+                  ┌────────────────────────────────────────────────────┐
+                  │                    OPENSEARCH                      │
+                  │                                                    │
+                  │       SIEM Data Store · Search · Correlation       │
+                  │              Investigation / Analytics             │
+                  └────────────────────────┬───────────────────────────┘
+                                           │
+                        ┌──────────────────┴──────────────────┐
+                        │                                     │
+                        ▼                                     ▼
+            ┌────────────────────────┐             ┌────────────────────────┐
+            │      ELASTALERT2       │             │  OPENSEARCH DASHBOARDS │
+            │                        │             │                        │
+            │ Detection Engineering  │             │ Analyst Search         │
+            │ Alerting / Correlation │             │ Investigation / Visual │
+            └───────────┬────────────┘             └────────────────────────┘
+                        │
+                        ▼
+            ┌──────────────────────────────────────────────────────────┐
+            │             INVESTIGATION & ENRICHMENT                   │
+            │                                                          │
+            │   MISP          DFIR-IRIS          Velociraptor          │
+            │   Threat        Incident           Endpoint / DFIR       │
+            │   Intel         Response           Investigation         │
+            └──────────────────────────┬───────────────────────────────┘
                                        │
-                    ┌──────────────────┴──────────────────┐
-                    │                                     │
-                    ▼                                     ▼
-       ┌────────────────────────┐             ┌────────────────────────┐
-       │      ELASTALERT2       │             │  OPENSEARCH DASHBOARDS │
-       │                        │             │                        │
-       │ Detection Engineering  │             │ Analyst Search         │
-       │ Alerting / Correlation │             │ Investigation / Visual │
-       └───────────┬────────────┘             └────────────────────────┘
-                   │
-                   ▼
-       ┌──────────────────────────────────────────────────────────┐
-       │             INVESTIGATION & ENRICHMENT                   │
-       │                                                          │
-       │   MISP          DFIR-IRIS          Velociraptor           │
-       │   Threat        Incident           Endpoint / DFIR        │
-       │   Intel         Response           Investigation          │
-       └──────────────────────────┬───────────────────────────────┘
-                                  │
-                                  ▼
-                       ┌────────────────────────┐
-                       │      STACKSTORM        │
-                       │                        │
-                       │    SOAR / Response     │
-                       │    Automation Logic    │
-                       └───────────┬────────────┘
-                                  │
-                                  ▼
-                       ┌────────────────────────┐
-                       │     AI ANALYST LAYER   │
-                       │                        │
-                       │   Ollama + CrewAI      │
-                       │   Analyst Assistance   │
-                       │   Triage / Analysis    │
-                       └────────────────────────┘
+                                       ▼
+                          ┌────────────────────────┐
+                          │      STACKSTORM        │
+                          │                        │
+                          │    SOAR / Response     │
+                          │    Automation Logic    │
+                          └───────────┬────────────┘
+                                      │
+                                      ▼
+                          ┌────────────────────────┐
+                          │     AI ANALYST LAYER   │
+                          │                        │
+                          │   Ollama + CrewAI      │
+                          │   Analyst Assistance   │
+                          │   Triage / Analysis    │
+                          └────────────────────────┘
+
 ```
 
 Docker Compose provides the primary orchestration layer. Network-monitoring services that require raw packet access use host networking; the optional red-team profile is kept separate from the normal startup path.
