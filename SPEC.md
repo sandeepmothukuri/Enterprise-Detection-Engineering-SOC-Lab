@@ -22,6 +22,8 @@ V5: Sigma/ElastAlert rules retain title, detection/log source, severity, ATT&CK,
 V6: README setup/ports/env paths → checked-in files & Compose.
 V7: no full lab start required for config validation.
 V8: setup generates all Compose-mounted OpenSearch certificates before any OpenSearch container starts.
+V9: detection validation normalizes Docker bind-mount paths for Git Bash/Windows and keeps POSIX paths unchanged.
+V10: SOAR blocking actions validate IP/direction input, never interpolate it into a shell, and schedule cleanup for every applied rule.
 
 §T
 id|status|task|cites
@@ -35,3 +37,5 @@ T6|.|generate OpenSearch TLS certificates before Compose startup|V8
 §B
 id|date|cause|fix
 B1|2026-09-14|Compose mounted absent OpenSearch certificate paths, so WSL2 never generated pem files and the plugin failed at startup|Generate idempotent host certificates before Compose startup; add focused test
+B2|2026-09-14|Git Bash rewrote validator bind mounts to the Git installation path, so Zeek could not load the mounted config|V9; normalize Windows Docker paths and add portability test
+B3|2026-09-14|StackStorm block_ip interpolated unvalidated input into shell=True and cleaned up only inbound rules|V10; validate inputs, use argv execution, roll back partial blocks, and schedule all cleanup rules

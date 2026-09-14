@@ -79,6 +79,7 @@ jobs:
         run: |
           pip install pyflakes --break-system-packages 2>/dev/null || pip install pyflakes
           find ai-agents -name "*.py" -exec python3 -m pyflakes {} \;
+          python3 -m compileall -q ai-agents endpoint-configs tools ws-streamer
           echo "  ✅ Python agent lint complete"
 
   security-scan:
@@ -91,10 +92,10 @@ jobs:
       - name: Check for committed secrets
         run: |
           echo "Scanning for accidental secret commits..."
-          FOUND=0
-          # Check no real passwords in committed configs
-          if grep -r "AdminPassword123\!" --include="*.yml" --include="*.yaml" config/ 2>/dev/null | grep -v ".env.example" | grep -v "# default" | head -5; then
-            echo "  ⚠️  Default passwords found — ensure .env overrides these"
+          if grep -RIn --exclude-dir='.git' --exclude='README.md' --exclude='.env.example' \
+              -E 'AdminPassword123!|CHANGE_ME_SET_STRONG_PASSWORD' .; then
+            echo "  ❌ Sentinel/default credentials found in tracked configuration"
+            exit 1
           fi
           # Ensure .env is gitignored
           if grep -q "^\.env$" .gitignore; then

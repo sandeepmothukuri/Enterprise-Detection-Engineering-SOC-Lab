@@ -21,10 +21,10 @@ OS_PASS="${OPENSEARCH_PASSWORD:-}"
 
 # Load password from .env if not in environment
 if [[ -z "$OS_PASS" && -f .env ]]; then
-  OS_PASS=$(grep '^OPENSEARCH_PASSWORD=' .env | cut -d= -f2 || true)
+  OS_PASS=$(grep '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env | cut -d= -f2- || true)
 fi
 
-OS_URL="http://localhost:9200"
+OS_URL="${OPENSEARCH_URL:-https://localhost:9200}"
 OS_AUTH=""
 if [[ -n "$OS_PASS" ]]; then
   OS_AUTH="-u admin:${OS_PASS}"

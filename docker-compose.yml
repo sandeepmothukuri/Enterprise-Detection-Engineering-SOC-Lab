@@ -433,7 +433,7 @@ services:
     <<: *restart
     depends_on: [ollama, opensearch-node1]
     ports:
-      - "${CREWAI_API_PORT:-8500}:8500"
+      - "${CREWAI_API_PORT:-8500}:8000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
