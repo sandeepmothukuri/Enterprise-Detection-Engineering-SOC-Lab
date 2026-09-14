@@ -1,0 +1,24 @@
+title: After-Hours Account Login
+id: a7b8c9d0-e1f2-4345-a6b7-c8d9e0f1a234
+status: test
+description: Detects successful interactive account logons that are outside the configured business-hours baseline.
+author: SOC Lab
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1078/
+tags:
+  - attack.credential_access
+  - attack.t1078
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+    LogonType:
+      - 2
+      - 10
+  condition: selection
+falsepositives:
+  - Approved on-call, maintenance and overnight administrative activity
+level: medium
