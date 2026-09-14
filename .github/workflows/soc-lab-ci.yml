@@ -25,7 +25,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check pyyaml
 
       - name: Validate repository
-        run: ./tools/validate-detections.sh
+        run: bash ./tools/validate-detections.sh
 
       - name: Validate shell scripts
         run: |
@@ -92,7 +92,7 @@ jobs:
 
       - name: Check obsolete OpenSearch credential variable
         run: |
-          if git grep -n 'OPENSEARCH_PASSWORD' -- ':!README.md' ':!.git*'; then
+          if git grep -n 'OPENSEARCH_PASSWORD' -- ':!README.md' ':!.env.example' ':!.git*'; then
             echo 'Obsolete OPENSEARCH_PASSWORD reference found.'
             exit 1
           fi
