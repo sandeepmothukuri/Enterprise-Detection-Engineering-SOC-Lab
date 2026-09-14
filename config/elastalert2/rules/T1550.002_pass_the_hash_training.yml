@@ -1,0 +1,10 @@
+name: T1550.002 — Pass the Hash Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1550.002
+alert:
+  - debug
+realert:
+  minutes: 5
