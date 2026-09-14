@@ -1,0 +1,10 @@
+name: T1041 — C2 Exfiltration Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1041
+alert:
+  - debug
+realert:
+  minutes: 5
