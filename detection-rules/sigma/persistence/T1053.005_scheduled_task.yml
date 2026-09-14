@@ -1,16 +1,21 @@
-title: Malicious Scheduled Task Creation
-id: c4f8d2e5-6b3a-4c0f-d8e3-4g0f3b8e5c1f
-status: production
-description: Detects creation of suspicious scheduled tasks for persistence
+title: Suspicious Scheduled Task Creation
+id: c3d4e5f6-a7b8-4901-c2d3-e4f5a6b7c890
+status: test
+description: Detects creation of scheduled tasks associated with script interpreters or signed binary proxy execution.
 author: SOC Lab
-tags: [attack.persistence, attack.t1053.005]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+tags:
+  - attack.persistence
+  - attack.t1053.005
 logsource:
   product: windows
   service: security
 detection:
   selection:
     EventID: 4698
-  keywords:
+  suspicious:
     CommandLine|contains:
       - 'powershell'
       - 'wscript'
@@ -18,5 +23,7 @@ detection:
       - 'mshta'
       - 'rundll32'
       - 'regsvr32'
-  condition: selection and keywords
+  condition: selection and suspicious
+falsepositives:
+  - Enterprise software deployment and administrative scheduled tasks
 level: high
