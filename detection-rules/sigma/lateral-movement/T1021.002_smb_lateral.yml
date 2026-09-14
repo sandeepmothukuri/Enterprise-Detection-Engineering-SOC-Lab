@@ -1,9 +1,14 @@
 title: Lateral Movement via SMB
-id: h9k3i7j0-1g8f-9h5k-i3j8-9l5k8g3j0h6k
-status: production
-description: Detects lateral movement via SMB file shares
+id: 9c8d7e6f-5a4b-4321-c0d9-e8f7a6b5c4d3
+status: test
+description: Detects network connections to SMB destination port 445 that are not associated with common benign system processes.
 author: SOC Lab
-tags: [attack.lateral_movement, attack.t1021.002]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1021/002/
+tags:
+  - attack.lateral_movement
+  - attack.t1021.002
 logsource:
   category: network_connection
   product: windows
@@ -13,6 +18,11 @@ detection:
     DestinationPort: 445
     Initiated: 'true'
   filter:
-    Image|endswith: ['\explorer.exe', '\svchost.exe', '\System']
+    Image|endswith:
+      - '\\explorer.exe'
+      - '\\svchost.exe'
+      - '\\System'
   condition: selection and not filter
-level: medium
+falsepositives:
+  - Normal Windows file-sharing activity from approved hosts
+level: high
