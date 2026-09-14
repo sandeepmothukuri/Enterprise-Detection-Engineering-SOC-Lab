@@ -240,21 +240,21 @@ Tune logic, reduce false positives, improve telemetry requirements and document 
             └──────────────────────────┬───────────────────────────────┘
                                        │
                                        ▼
-                          ┌────────────────────────┐
-                          │      STACKSTORM        │
-                          │                        │
-                          │    SOAR / Response     │
-                          │    Automation Logic    │
-                          └───────────┬────────────┘
-                                      │
-                                      ▼
-                          ┌────────────────────────┐
-                          │     AI ANALYST LAYER   │
-                          │                        │
-                          │   Ollama + CrewAI      │
-                          │   Analyst Assistance   │
-                          │   Triage / Analysis    │
-                          └────────────────────────┘
+                           ┌────────────────────────┐
+                           │      STACKSTORM        │
+                           │                        │
+                           │    SOAR / Response     │
+                           │    Automation Logic    │
+                           └───────────┬────────────┘
+                                       │
+                                       ▼
+                           ┌────────────────────────┐
+                           │     AI ANALYST LAYER   │
+                           │                        │
+                           │   Ollama + CrewAI      │
+                           │   Analyst Assistance   │
+                           │   Triage / Analysis    │
+                           └────────────────────────┘
 
 ```
 
