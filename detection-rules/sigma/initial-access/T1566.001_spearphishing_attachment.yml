@@ -1,0 +1,29 @@
+title: Suspicious Spearphishing Attachment
+id: e5f6a7b8-c9d0-4123-e4f5-a6b7c8d9e012
+status: test
+description: Detects email attachment execution patterns associated with spearphishing attachments.
+author: SOC Lab
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1566/001/
+tags:
+  - attack.initial_access
+  - attack.t1566.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    ParentImage|endswith:
+      - '\\outlook.exe'
+      - '\\winword.exe'
+      - '\\excel.exe'
+    Image|endswith:
+      - '\\wscript.exe'
+      - '\\cscript.exe'
+      - '\\mshta.exe'
+      - '\\rundll32.exe'
+  condition: selection
+falsepositives:
+  - Approved automation launched by Microsoft Office or endpoint management software
+level: high
