@@ -73,57 +73,86 @@ That feedback loop is the main purpose of the lab.
 
 ## What This Lab Demonstrates
 
+The architecture below is the **single canonical architecture** for this repository. It represents the complete SOC workflow and all major tools without duplicating the architecture elsewhere.
+
+---
+
+## Architecture
+
 ```text
-                         ┌─────────────────────┐
-                         │ Adversary Emulation  │
-                         │ MITRE Caldera       │
-                         │ Responder (optional) │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                    ┌──────────────────────────────┐
-                    │ Security Telemetry           │
-                    │ Zeek · Suricata · host logs  │
-                    └──────────────┬───────────────┘
+                         ┌─────────────────────────────────────┐
+                         │        LAB / TEST NETWORK           │
+                         │                                     │
+                         │  MITRE Caldera    Responder         │
+                         │  Adversary        Red-Team          │
+                         │  Emulation        (Optional)        │
+                         └──────────────────┬──────────────────┘
+                                            │
+                                            ▼
+                         ┌─────────────────────────────────────┐
+                         │       SECURITY TELEMETRY            │
+                         │                                     │
+                         │  Zeek · Suricata · Host Logs       │
+                         └──────────────────┬──────────────────┘
+                                            │
+                                            ▼
+                         ┌─────────────────────────────────────┐
+                         │              VECTOR                 │
+                         │                                     │
+                         │  Collection · Routing ·             │
+                         │  Transformation · Normalisation     │
+                         └──────────────────┬──────────────────┘
+                                            │
+                                            ▼
+              ┌────────────────────────────────────────────────────┐
+              │                    OPENSEARCH                       │
+              │                                                    │
+              │       SIEM Data Store · Search · Correlation       │
+              │              Investigation / Analytics             │
+              └────────────────────────┬───────────────────────────┘
+                                       │
+                    ┌──────────────────┴──────────────────┐
+                    │                                     │
+                    ▼                                     ▼
+       ┌────────────────────────┐             ┌────────────────────────┐
+       │      ELASTALERT2       │             │  OPENSEARCH DASHBOARDS │
+       │                        │             │                        │
+       │ Detection Engineering  │             │ Analyst Search         │
+       │ Alerting / Correlation │             │ Investigation / Visual │
+       └───────────┬────────────┘             └────────────────────────┘
+                   │
+                   ▼
+       ┌──────────────────────────────────────────────────────────┐
+       │             INVESTIGATION & ENRICHMENT                   │
+       │                                                          │
+       │   MISP          DFIR-IRIS          Velociraptor           │
+       │   Threat        Incident           Endpoint / DFIR        │
+       │   Intel         Response           Investigation          │
+       └──────────────────────────┬───────────────────────────────┘
+                                  │
+                                  ▼
+                       ┌────────────────────────┐
+                       │      STACKSTORM        │
+                       │                        │
+                       │    SOAR / Response     │
+                       │    Automation Logic    │
+                       └───────────┬────────────┘
                                    │
                                    ▼
-                    ┌──────────────────────────────┐
-                    │ Vector                       │
-                    │ Collection / routing         │
-                    │ Normalisation                │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-              ┌─────────────────────────────────────────┐
-              │ OpenSearch                              │
-              │ Search · correlation · investigation    │
-              └──────────────────┬──────────────────────┘
-                                 │
-                     ┌───────────┴───────────┐
-                     ▼                       ▼
-              ElastAlert2               Analyst Search
-              Detection                 & Investigation
-                     │
-                     ▼
-        ┌───────────────────────────────────────────┐
-        │ Enrichment / Investigation               │
-        │ MISP · DFIR-IRIS · Velociraptor          │
-        └────────────────────┬──────────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ StackStorm SOAR │
-                    │ Response logic  │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Ollama + CrewAI │
-                    │ Analyst assist  │
-                    └─────────────────┘
+                       ┌────────────────────────┐
+                       │     AI ANALYST LAYER   │
+                       │                        │
+                       │   Ollama + CrewAI      │
+                       │   Analyst Assistance   │
+                       │   Triage / Analysis    │
+                       └────────────────────────┘
 ```
 
-The components are intentionally separated by responsibility so that a detection can be traced back to its telemetry source and forward into investigation and response.
+Docker Compose provides the primary orchestration layer. Network-monitoring services that require raw packet access use host networking; the optional red-team profile is kept separate from the normal startup path.
+
+The architecture follows the operational path:
+
+**Adversary Emulation → Security Telemetry → Collection/Normalisation → SIEM → Detection & Analyst Investigation → Enrichment/DFIR → SOAR → AI Analyst Assistance**
 
 ---
 
@@ -233,63 +262,6 @@ The same scenario is replayed or tested again to determine whether the detection
 ### Phase 9 — Improve
 
 Tune logic, reduce false positives, improve telemetry requirements and document the resulting detection change.
-
----
-
-## Architecture
-
-```text
-                         LAB / TEST NETWORK
-                                │
-               ┌────────────────┴────────────────┐
-               │                                 │
-        MITRE Caldera                      Responder
-        adversary emulation                red-team profile
-               │                                 │
-               └────────────────┬────────────────┘
-                                ▼
-                    ┌─────────────────────┐
-                    │ Network / Host Data  │
-                    │ Zeek · Suricata      │
-                    └──────────┬──────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Vector 0.38         │
-                    │ Routing / transform │
-                    └──────────┬──────────┘
-                               ▼
-              ┌─────────────────────────────────┐
-              │ OpenSearch 2.13                │
-              │ SIEM data store / investigation│
-              └───────────────┬─────────────────┘
-                              │
-                 ┌────────────┴────────────┐
-                 ▼                         ▼
-          ┌──────────────┐          ┌───────────────┐
-          │ ElastAlert2  │          │ OpenSearch    │
-          │ Detection    │          │ Dashboards    │
-          └──────┬───────┘          └───────────────┘
-                 │
-                 ▼
-       ┌─────────────────────────────┐
-       │ Investigation & Enrichment  │
-       │ MISP · DFIR-IRIS            │
-       │ Velociraptor                │
-       └──────────────┬──────────────┘
-                      ▼
-              ┌──────────────┐
-              │ StackStorm   │
-              │ SOAR         │
-              └──────┬───────┘
-                     ▼
-              ┌──────────────┐
-              │ Ollama       │
-              │ + CrewAI     │
-              │ AI assistance│
-              └──────────────┘
-```
-
-Docker Compose provides the primary orchestration layer. Network-monitoring services that require raw packet access use host networking; the optional red-team profile is kept separate from the normal startup path.
 
 ---
 
@@ -651,12 +623,6 @@ sudo ./setup.sh
 ./health-check.sh
 ./simulate-attack.sh apt29
 ./tools/capture-live-screenshots.sh
-```
-
-Selected native services:
-
-```bash
-./tools/capture-live-screenshots.sh --only 02_opensearch_siem,06_iris_cases,07_caldera_attack,08_misp_ti,09_velociraptor
 ```
 
 Visible browser capture:
