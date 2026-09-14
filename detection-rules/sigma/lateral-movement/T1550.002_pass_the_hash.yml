@@ -1,9 +1,14 @@
 title: Pass-the-Hash Attack
-id: i0l4j8k1-2h9g-0i6l-j4k9-0m6l9h4k1i7l
-status: production
-description: Detects pass-the-hash attacks using harvested NTLM hashes
+id: a1b2c3d4-e5f6-4789-a012-b3c4d5e6f789
+status: test
+description: Detects NTLM network logons with characteristics associated with pass-the-hash activity.
 author: SOC Lab
-tags: [attack.lateral_movement, attack.t1550.002]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1550/002/
+tags:
+  - attack.lateral_movement
+  - attack.t1550.002
 logsource:
   product: windows
   service: security
@@ -16,4 +21,6 @@ detection:
   filter:
     SubjectUserName|endswith: '$'
   condition: selection and not filter
+falsepositives:
+  - Legacy applications using NTLM authentication
 level: high
