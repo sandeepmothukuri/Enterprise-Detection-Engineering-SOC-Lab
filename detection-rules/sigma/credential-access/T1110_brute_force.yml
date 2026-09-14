@@ -1,15 +1,48 @@
-title: Brute Force Authentication Attack
-id: f7i1g5h8-9e6d-7f3i-g1h6-7j3i6e1h8f4i
-status: production
-description: Detects repeated authentication failures indicating brute force
+title: Windows Failed Authentication
+name: failed_authentication
+id: 11111111-1111-4111-8111-111111111111
+status: test
+description: Detects a failed Windows authentication event used as the base event for brute-force correlation.
 author: SOC Lab
-tags: [attack.credential_access, attack.t1110]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1110/001/
+tags:
+  - attack.credential_access
+  - attack.t1110.001
 logsource:
   product: windows
   service: security
 detection:
   selection:
     EventID: 4625
-  timeframe: 5m
-  condition: selection | count(TargetUserName) by IpAddress > 10
+  condition: selection
+falsepositives:
+  - Invalid passwords from users or applications during normal operations
+level: low
+---
+title: Brute Force Authentication Attack
+id: 11111111-1111-4111-8111-111111111112
+status: test
+description: Detects at least 10 failed Windows authentication events for the same account within five minutes.
+author: SOC Lab
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1110/001/
+tags:
+  - attack.credential_access
+  - attack.t1110.001
+correlation:
+  type: event_count
+  rules:
+    - failed_authentication
+  group-by:
+    - TargetUserName
+    - IpAddress
+  timespan: 5m
+  condition:
+    gte: 10
+falsepositives:
+  - Password synchronization failures
+  - Misconfigured applications repeatedly retrying authentication
 level: high
