@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Generate local, self-signed OpenSearch certificates for the SOC lab.
-# Generated material is intentionally ignored by Git.
+# Generate deterministic local OpenSearch TLS material before the OpenSearch
+# containers start. Generated material is intentionally ignored by Git.
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -32,7 +32,8 @@ if $all_present; then
   exit 0
 fi
 
-rm -f "$CERT_DIR"/*.pem "$CERT_DIR"/*.csr "$CERT_DIR"/*.srl
+# Never leave a partially generated PKI set behind.
+rm -f "$CERT_DIR"/*.pem "$CERT_DIR"/*.csr "$CERT_DIR"/*.ext "$CERT_DIR"/*.srl
 
 openssl req -x509 -newkey rsa:4096 -sha256 -days "$DAYS" -nodes \
   -keyout "$CERT_DIR/root-ca-key.pem" \
@@ -80,11 +81,34 @@ make_cert "opensearch-admin" "opensearch-admin" \
   "DNS:opensearch-admin" \
   "clientAuth"
 
+# OpenSearch Security requires PKCS#8 private keys for PEM configuration.
+for name in opensearch-node1 opensearch-node2 opensearch-admin; do
+  openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt \
+    -in "$CERT_DIR/${name}-key.pem" \
+    -out "$CERT_DIR/${name}-key-pkcs8.pem"
+  mv "$CERT_DIR/${name}-key-pkcs8.pem" "$CERT_DIR/${name}-key.pem"
+done
+
 rm -f "$CERT_DIR/root-ca.srl"
 
-# OpenSearch runs as a non-root user in the official image. The certificate
-# files are public material; the private keys remain local and untracked.
-chmod 644 "$CERT_DIR"/*.pem
-chmod 644 "$CERT_DIR"/*-key.pem
+# Public certificates are readable by the OpenSearch container. Private keys
+# remain local and untracked; keep them readable only by the generating user.
+chmod 644 "$CERT_DIR"/root-ca.pem "$CERT_DIR"/opensearch-*.pem
+chmod 600 "$CERT_DIR"/root-ca-key.pem "$CERT_DIR"/opensearch-*-key.pem
 
-echo "Generated OpenSearch CA, node and admin certificates in $CERT_DIR"
+# Validate the generated certificate/key set before allowing Compose startup.
+openssl verify -CAfile "$CERT_DIR/root-ca.pem" \
+  "$CERT_DIR/opensearch-node1.pem" \
+  "$CERT_DIR/opensearch-node2.pem" \
+  "$CERT_DIR/opensearch-admin.pem" >/dev/null
+
+for name in opensearch-node1 opensearch-node2 opensearch-admin; do
+  cert_pub=$(openssl x509 -in "$CERT_DIR/${name}.pem" -pubkey -noout | openssl pkey -pubin -outform DER | sha256sum | cut -d' ' -f1)
+  key_pub=$(openssl pkey -in "$CERT_DIR/${name}-key.pem" -pubout | openssl pkey -pubin -outform DER | sha256sum | cut -d' ' -f1)
+  [[ "$cert_pub" == "$key_pub" ]] || {
+    echo "ERROR: certificate/key mismatch for ${name}." >&2
+    exit 1
+  }
+done
+
+echo "Generated and validated OpenSearch CA, node and admin certificates in $CERT_DIR"
