@@ -21,6 +21,7 @@ V4: CI validates YAML, Compose, Python syntax; no false-success lint pipeline.
 V5: Sigma/ElastAlert rules retain title, detection/log source, severity, ATT&CK, false positives.
 V6: README setup/ports/env paths → checked-in files & Compose.
 V7: no full lab start required for config validation.
+V8: setup generates all Compose-mounted OpenSearch certificates before any OpenSearch container starts.
 
 §T
 id|status|task|cites
@@ -29,6 +30,8 @@ T2|.|fix Compose build contexts/service wiring|V3,V7
 T3|.|fix CI validation reliability; validate detection config|V4,V5,V7
 T4|.|sync README security/setup claims|V2,V6
 T5|.|run final local validation; leave diff uncommitted|V1,V2,V3,V4,V5,V6,V7
+T6|.|generate OpenSearch TLS certificates before Compose startup|V8
 
 §B
 id|date|cause|fix
+B1|2026-09-14|Compose mounted absent OpenSearch certificate paths, so WSL2 never generated pem files and the plugin failed at startup|Generate idempotent host certificates before Compose startup; add focused test
