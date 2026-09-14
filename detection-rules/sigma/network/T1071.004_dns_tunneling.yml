@@ -1,16 +1,21 @@
 title: DNS Tunneling / Covert C2 Channel
-id: m4p8n2o5-6l3k-4m0p-n8o3-4q0p3l8o5m1p
-status: production
-description: Detects DNS tunneling — unusually long/frequent DNS queries
+id: b2c3d4e5-f6a7-4890-b1c2-d3e4f5a6b789
+status: test
+description: Detects unusually long DNS queries that may indicate DNS tunneling or covert command and control.
 author: SOC Lab
-tags: [attack.command_and_control, attack.t1071.004]
+date: 2026-09-14
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+tags:
+  - attack.command_and_control
+  - attack.t1071.004
 logsource:
   category: dns
   product: zeek
 detection:
   long_query:
     query|re: '.{60,}'
-  high_freq:
-    count|gte: 50
-  condition: long_query or high_freq
-level: medium
+  condition: long_query
+falsepositives:
+  - CDNs, software update systems and other applications that legitimately use long DNS labels
+level: high
