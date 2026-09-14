@@ -82,14 +82,10 @@ sed \
   config/caldera/local.yml.template > config/caldera/local.yml
 chmod 600 config/caldera/local.yml
 
-# Compose must be valid before any containers are started.
 docker compose --env-file .env config --quiet
 ok "docker compose config"
-
 docker compose --env-file .env pull
 
-# Start services that do not depend on runtime certificates extracted from an
-# application container. AI/portal startup happens after the IRIS CA exists.
 docker compose --env-file .env up -d \
   opensearch-node1 opensearch-node2 opensearch-dashboards vector elastalert2 \
   st-mongo st-rabbitmq stackstorm iris-db dfir-iris misp-db misp-redis misp \
@@ -111,17 +107,19 @@ wait_http "http://127.0.0.1:${MISP_PORT:-8080}/users/heartbeat" || die "MISP did
 wait_http "https://127.0.0.1:${VELOCIRAPTOR_PORT:-8889}/" || die "Velociraptor did not become reachable."
 ok "Core application endpoints are reachable"
 
-# Trust the locally generated IRIS server certificate without disabling TLS
-# verification in the AI or portal containers. The resulting file is ignored.
-rm -f config/iris/iris-ca.pem
+# Capture locally generated application trust chains. These files are ignored.
+rm -f config/iris/iris-ca.pem config/iris/velociraptor-ca.pem
 openssl s_client -connect "127.0.0.1:${IRIS_PORT:-8443}" -servername dfir-iris -showcerts </dev/null 2>/dev/null \
-  | awk '/-----BEGIN CERTIFICATE-----/{capture=1} capture{print} /-----END CERTIFICATE-----/{exit}' \
+  | awk '/-----BEGIN CERTIFICATE-----/{capture=1} capture{print} /-----END CERTIFICATE-----/{capture=0}' \
   > config/iris/iris-ca.pem
+openssl s_client -connect "127.0.0.1:${VELOCIRAPTOR_PORT:-8889}" -servername VelociraptorServer -showcerts </dev/null 2>/dev/null \
+  | awk '/-----BEGIN CERTIFICATE-----/{capture=1} capture{print} /-----END CERTIFICATE-----/{capture=0}' \
+  > config/iris/velociraptor-ca.pem
 [[ -s config/iris/iris-ca.pem ]] || die "Could not capture the DFIR-IRIS TLS certificate."
-chmod 644 config/iris/iris-ca.pem
-ok "Captured DFIR-IRIS local trust certificate"
+[[ -s config/iris/velociraptor-ca.pem ]] || die "Could not capture the Velociraptor TLS certificate chain."
+chmod 644 config/iris/*.pem
+ok "Captured local trust chains for IRIS and Velociraptor"
 
-# Provision a MISP admin API key if the operator did not supply one.
 MISP_KEY=$(grep '^MISP_API_KEY=' .env | cut -d= -f2- || true)
 if [[ -z "$MISP_KEY" ]]; then
   NEW_MISP_KEY=$(docker exec -i soc-misp bash -lc \
@@ -130,7 +128,6 @@ if [[ -z "$MISP_KEY" ]]; then
   [[ -n "$NEW_MISP_KEY" ]] && set_env_value MISP_API_KEY "$NEW_MISP_KEY" || warn "MISP API key could not be provisioned automatically."
 fi
 
-# Now the AI and portal mounts have the CA material they need.
 docker compose --env-file .env up -d crewai-soc ws-streamer nginx
 
 info "Waiting for final application readiness"
