@@ -3,46 +3,44 @@
 set -euo pipefail
 
 NETWORK="${SOC_DOCKER_NETWORK:-$(docker network ls --format '{{.Name}}' | grep -E 'enterprise-detection-engineering-soc-lab.*_soc-net$' | head -1)}"
-TARGET_NAME="soc-t1046-target"
+TEST_ZEEK_NAME="soc-t1046-zeek"
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+if command -v cygpath >/dev/null 2>&1; then
+  ROOT_DIR="$(cygpath -m "$ROOT_DIR")"
+  export MSYS_NO_PATHCONV=1
+fi
 
 [[ -n "$NETWORK" ]] || { echo "ERROR: SOC Docker network not found. Start the core Compose stack first." >&2; exit 1; }
 
-ZEEK_CONTAINER="$(docker compose ps -q zeek 2>/dev/null || true)"
-[[ -n "$ZEEK_CONTAINER" ]] || {
-  echo "ERROR: Zeek service is not running. Start it with: docker compose up -d zeek" >&2
-  exit 1
+docker rm -f "$TEST_ZEEK_NAME" >/dev/null 2>&1 || true
+
+cleanup() {
+  docker rm -f "$TEST_ZEEK_NAME" >/dev/null 2>&1 || true
 }
-ZEEK_STATUS="$(docker inspect --format='{{.State.Status}}' "$ZEEK_CONTAINER" 2>/dev/null || true)"
-[[ "$ZEEK_STATUS" == "running" ]] || {
-  echo "ERROR: Zeek container is not running (status: ${ZEEK_STATUS:-unknown})." >&2
-  exit 1
-}
-
-docker rm -f "$TARGET_NAME" >/dev/null 2>&1 || true
-
-docker run -d --name "$TARGET_NAME" --network "$NETWORK" python:3.12-alpine \
-  python -m http.server 8080 --bind 0.0.0.0 >/dev/null
-
-cleanup() { docker rm -f "$TARGET_NAME" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-TARGET_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$TARGET_NAME")
-[[ -n "$TARGET_IP" ]] || { echo "ERROR: target container did not receive an IP." >&2; exit 1; }
+docker run -d --name "$TEST_ZEEK_NAME" --network "$NETWORK" \
+  --cap-add NET_ADMIN --cap-add NET_RAW \
+  -v "$ROOT_DIR/config/zeek:/usr/local/zeek/share/zeek/site:ro" \
+  -v "${TEST_ZEEK_NAME}-logs:/usr/local/zeek/logs" \
+  --workdir /usr/local/zeek/logs \
+  zeek/zeek:8.2.2 \
+  sh -c 'python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/t1046-http.log 2>&1 & exec zeek -i lo -C local /usr/local/zeek/share/zeek/policy/tuning/json-logs.zeek' >/dev/null
 
-echo "Testing Zeek T1046 against ${TARGET_IP} on ${NETWORK}"
+echo "Testing Zeek T1046 with live loopback traffic in ${NETWORK}"
+sleep 3
 
 echo "Generating 25 TCP connection attempts to distinct destination ports..."
-docker run --rm --network "$NETWORK" python:3.12-alpine python - "$TARGET_IP" <<'PY'
+docker exec -i "$TEST_ZEEK_NAME" python3 - <<'PY'
 import socket
-import sys
 import time
 
-target = sys.argv[1]
 for port in range(10000, 10025):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(0.15)
     try:
-        sock.connect((target, port))
+        sock.connect(("127.0.0.1", port))
     except OSError:
         pass
     finally:
@@ -51,7 +49,7 @@ for port in range(10000, 10025):
 PY
 
 for _ in $(seq 1 20); do
-  if docker exec "$ZEEK_CONTAINER" sh -c 'grep -h "Port_Scan\|T1046" /opt/zeek/logs/notice.log 2>/dev/null | tail -20' | grep -q .; then
+  if docker exec "$TEST_ZEEK_NAME" sh -c 'grep -h "Port_Scan\|T1046" /usr/local/zeek/logs/notice.log 2>/dev/null | tail -20' | grep -q .; then
     echo "PASS: Zeek emitted a T1046 Port_Scan notice."
     exit 0
   fi
@@ -59,6 +57,6 @@ for _ in $(seq 1 20); do
 done
 
 echo "FAIL: no T1046 notice was observed in Zeek notice.log" >&2
-echo "Inspect: docker compose logs --tail=100 zeek" >&2
-echo "Inspect: docker exec ${ZEEK_CONTAINER} sh -c 'tail -50 /opt/zeek/logs/conn.log'" >&2
+echo "Inspect: docker logs --tail=100 ${TEST_ZEEK_NAME}" >&2
+echo "Inspect: docker exec ${TEST_ZEEK_NAME} sh -c 'tail -50 /usr/local/zeek/logs/conn.log'" >&2
 exit 1

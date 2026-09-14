@@ -18,6 +18,8 @@ Audit date: 2026-09-14
 | HIGH | StackStorm `block_ip` interpolated the requested IP into `shell=True`, did not validate direction/duration, and scheduled only inbound cleanup. | Fixed with IP validation, argv-based commands, rollback, and complete cleanup scheduling; covered by `tools/test-block-ip-action.py`. |
 | LOW | The repository has no full-service integration test because it requires Docker, generated certificates, and all external images. | Targeted static checks remain available in CI and `tools/validate-detections.sh`. |
 | MEDIUM | Vector validation previously did not mount or validate the repository configuration, and the live Zeek test retried a stopped container until timeout. | Fixed: validator mounts `config/vector/vector.toml`; Zeek test checks service/container state before traffic generation. |
+| HIGH | The mounted Zeek entrypoint used CRLF line endings, causing Linux Docker to fail with `no such file or directory` before Zeek started. | Fixed by normalizing `tools/zeek-entrypoint.sh` to LF and adding `tools/test-zeek-entrypoint.sh`. |
+| HIGH | The live Zeek test mounted site scripts below `/opt/zeek` although the pinned image installs under `/usr/local/zeek`; Docker Desktop also does not expose bridge traffic to a container sniffer. | Fixed by mounting the actual image path and running a temporary pinned Zeek sensor with a same-namespace loopback listener and scanner. |
 
 ## Scope and validation
 
