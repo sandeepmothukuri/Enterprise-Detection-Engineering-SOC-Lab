@@ -36,35 +36,38 @@ jobs:
       - name: Validate Docker build contexts and Dockerfiles
         run: |
           python3 - <<'PY'
-          import subprocess
+          import subprocess, json, pathlib
           data = subprocess.check_output([
               'docker', 'compose', '--env-file', '.env.example', 'config', '--format', 'json'
           ], text=True)
-          import json
           compose = json.loads(data)
           for name, service in compose.get('services', {}).items():
               build = service.get('build')
               if not build:
                   continue
-              context = build.get('context', '.')
-              dockerfile = build.get('dockerfile', 'Dockerfile')
-              import pathlib
-              context_path = pathlib.Path(context)
-              dockerfile_path = context_path / dockerfile
-              assert context_path.is_dir(), f'{name}: missing build context {context}'
-              assert dockerfile_path.is_file(), f'{name}: missing Dockerfile {dockerfile_path}'
-              print(f'OK: {name} -> {dockerfile_path}')
+              context = pathlib.Path(build.get('context', '.'))
+              dockerfile = context / build.get('dockerfile', 'Dockerfile')
+              assert context.is_dir(), f'{name}: missing build context {context}'
+              assert dockerfile.is_file(), f'{name}: missing Dockerfile {dockerfile}'
+              print(f'OK: {name} -> {dockerfile}')
           PY
 
       - name: Validate Nginx configuration syntax
         run: |
+          mkdir -p /tmp/soc-nginx-certs
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+            -subj '/CN=ci-soc-lab' \
+            -keyout /tmp/soc-nginx-certs/ci.key \
+            -out /tmp/soc-nginx-certs/ci-ca.pem >/dev/null 2>&1
+          cp /tmp/soc-nginx-certs/ci-ca.pem /tmp/soc-nginx-certs/iris-ca.pem
+          cp /tmp/soc-nginx-certs/ci-ca.pem /tmp/soc-nginx-certs/velociraptor-ca.pem
           docker run --rm \
             -v "$PWD/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            -v "/tmp/soc-nginx-certs:/etc/nginx/certs:ro" \
             nginx:1.26-alpine nginx -t
 
       - name: Validate Python agent syntax
-        run: |
-          python -m compileall -q ai-agents ws-streamer
+        run: python -m compileall -q ai-agents ws-streamer
 
   security-scan:
     runs-on: ubuntu-latest
