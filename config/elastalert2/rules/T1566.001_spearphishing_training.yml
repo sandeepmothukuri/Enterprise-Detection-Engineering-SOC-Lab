@@ -1,0 +1,10 @@
+name: T1566.001 — Spearphishing Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1566.001
+alert:
+  - debug
+realert:
+  minutes: 5
