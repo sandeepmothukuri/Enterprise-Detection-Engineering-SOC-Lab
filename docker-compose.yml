@@ -1,7 +1,6 @@
 # ================================================================
-#  Advanced SOC Lab v2 — Complete 12-Tool Stack
-#  🛡 SOC Level 3 | SIEM + NSM + SOAR + DFIR + TI + AI + Red Team
-#  All tools 100% FREE and open-source
+#  Enterprise Detection Engineering SOC Lab
+#  Complete SOC stack: SIEM + NSM + SOAR + DFIR + TI + AI + Red Team
 # ================================================================
 
 x-logging: &logging
@@ -69,16 +68,16 @@ services:
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
       - ./config/opensearch/certs/opensearch-admin.pem:/usr/share/opensearch/config/opensearch-admin.pem:ro
       - ./config/opensearch/certs/opensearch-admin-key.pem:/usr/share/opensearch/config/opensearch-admin-key.pem:ro
-
     ports:
       - "${OPENSEARCH_PORT:-9200}:9200"
     networks:
       soc-net: { ipv4_address: 172.20.0.10 }
     healthcheck:
       test: ["CMD-SHELL", "curl -ksf --cert /usr/share/opensearch/config/opensearch-admin.pem --key /usr/share/opensearch/config/opensearch-admin-key.pem --cacert /usr/share/opensearch/config/root-ca.pem https://localhost:9200/_cluster/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"(green|yellow)\"'"]
-      interval: 30s
+      interval: 20s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 60s
     logging: *logging
 
   opensearch-node2:
@@ -105,6 +104,12 @@ services:
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.11 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -ksf --cert /usr/share/opensearch/config/opensearch-node2.pem --key /usr/share/opensearch/config/opensearch-node2-key.pem --cacert /usr/share/opensearch/config/root-ca.pem https://localhost:9200/_cluster/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"(green|yellow)\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     logging: *logging
 
   opensearch-dashboards:
@@ -123,8 +128,15 @@ services:
       SERVER_NAME: soc-dashboards
     volumes:
       - ./config/opensearch/dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
+      - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.12 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     logging: *logging
 
 # ================================================================
@@ -137,17 +149,17 @@ services:
     container_name: soc-zeek
     hostname: zeek
     <<: *restart
-    network_mode: host           # needs raw packet access
+    network_mode: host
     cap_add: [NET_ADMIN, NET_RAW]
     environment:
-      - ZEEK_INTERFACE=${ZEEK_INTERFACE:-eth0}
+      - ZEEK_INTERFACE=${ZEEK_INTERFACE:-auto}
+      - SOC_NETWORK=${SOC_NETWORK:-172.20.0.0/16}
     volumes:
       - zeek-logs:/opt/zeek/logs
       - ./config/zeek/local.zeek:/opt/zeek/share/zeek/site/local.zeek:ro
       - ./config/zeek/soc-detections.zeek:/opt/zeek/share/zeek/site/soc-detections.zeek:ro
       - ./config/zeek/zeekctl.cfg:/opt/zeek/etc/zeekctl.cfg:ro
       - ./tools/zeek-entrypoint.sh:/opt/zeek/zeek-entrypoint.sh:ro
-      - zeek-logs:/opt/zeek/logs
     logging: *logging
 
   suricata:
@@ -171,11 +183,9 @@ services:
   vector:
     image: timberio/vector:0.38.0-debian
     container_name: soc-vector
-    environment:
-    - OPENSEARCH_INITIAL_ADMIN_PASSWORD
-    command: ["--config", "/etc/vector/vector.toml"]
     hostname: vector
     <<: *restart
+    command: ["--config", "/etc/vector/vector.toml"]
     ports:
       - "${VECTOR_API_PORT:-8686}:8686"
       - "${VECTOR_SYSLOG_UDP:-514}:514/udp"
@@ -211,10 +221,12 @@ services:
       opensearch-node1: { condition: service_healthy }
     environment:
       - TZ=UTC
-      - SLACK_WEBHOOK_URL=${ELASTALERT_SLACK_WEBHOOK:-}
     volumes:
       - ./config/elastalert2/config.yml:/opt/elastalert/config.yml:ro
       - ./config/elastalert2/rules:/opt/elastalert/rules:ro
+      - ./config/opensearch/certs/opensearch-admin.pem:/etc/elastalert/opensearch-admin.pem:ro
+      - ./config/opensearch/certs/opensearch-admin-key.pem:/etc/elastalert/opensearch-admin-key.pem:ro
+      - ./config/opensearch/certs/root-ca.pem:/etc/elastalert/root-ca.pem:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.40 }
     logging: *logging
@@ -241,6 +253,12 @@ services:
       - ./config/stackstorm/packs/soc_automation:/opt/stackstorm/packs/soc_automation:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.50 }
+    healthcheck:
+      test: ["CMD-SHELL", "st2ctl status >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 90s
     logging: *logging
 
   st-mongo:
@@ -272,6 +290,7 @@ services:
       - IRIS_SECRET_KEY=${IRIS_SECRET_KEY}
       - IRIS_ADM_USERNAME=administrator
       - IRIS_ADM_PASSWORD=${IRIS_ADMIN_PASSWORD}
+      - IRIS_ADM_API_KEY=${IRIS_ADM_API_KEY}
       - IRIS_ADM_EMAIL=${MISP_ADMIN_EMAIL}
       - IRIS_SECURITY_REGISTRATION_ENABLE=false
       - DB_USER=iris
@@ -283,6 +302,12 @@ services:
       - dfir-iris-data:/home/iris/data
     networks:
       soc-net: { ipv4_address: 172.20.0.60 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -kfs https://localhost:443/ >/dev/null"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 90s
     logging: *logging
 
   iris-db:
@@ -301,7 +326,7 @@ services:
 # LAYER 7 — MISP THREAT INTELLIGENCE
 # ================================================================
   misp:
-    image: ghcr.io/misp/misp-docker/misp-core:latest
+    image: ghcr.io/misp/misp-docker/misp-core:v2.5.45
     container_name: soc-misp
     hostname: misp
     <<: *restart
@@ -321,6 +346,12 @@ services:
       - misp-data:/var/www/MISP/app/files
     networks:
       soc-net: { ipv4_address: 172.20.0.70 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -ksf http://localhost/users/heartbeat >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     logging: *logging
 
   misp-db:
@@ -345,7 +376,7 @@ services:
 # LAYER 8 — VELOCIRAPTOR DFIR
 # ================================================================
   velociraptor:
-    image: wlambert/velociraptor:latest
+    image: wlambert/velociraptor:0.76.3
     container_name: soc-velociraptor
     hostname: velociraptor
     <<: *restart
@@ -353,25 +384,40 @@ services:
       - "${VELOCIRAPTOR_PORT:-8889}:8889"
       - "${VELOCIRAPTOR_API_PORT:-8001}:8001"
       - "8000:8000"
+    environment:
+      - VELOX_USER=${VELOX_USER:-admin}
+      - VELOX_PASSWORD=${VELOX_PASSWORD}
+      - VELOX_ROLE=${VELOX_ROLE:-administrator}
+      - VELOX_SERVER_URL=${VELOX_SERVER_URL:-https://velociraptor:8000/}
+      - VELOX_FRONTEND_HOSTNAME=${VELOX_FRONTEND_HOSTNAME:-velociraptor}
     volumes:
       - velociraptor-data:/velociraptor
-      - ./config/velociraptor:/etc/velociraptor:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.80 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -kfs https://localhost:8889/ >/dev/null"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 90s
     logging: *logging
 
 # ================================================================
 # LAYER 9 — MITRE CALDERA ATTACK SIMULATION
 # ================================================================
   caldera:
-    image: mitre/caldera:latest
+    image: ghcr.io/mitre/caldera:5.2.0
     container_name: soc-caldera
     hostname: caldera
     <<: *restart
     ports:
       - "${CALDERA_PORT:-8888}:8888"
     environment:
-      - CALDERA_URL=http://localhost:${CALDERA_PORT:-8888}
+      - CALDERA_URL=http://caldera:8888
+      - CALDERA_API_KEY_RED=${CALDERA_API_KEY_RED}
+      - CALDERA_API_KEY_BLUE=${CALDERA_API_KEY_BLUE}
+      - CALDERA_RED_PASS=${CALDERA_RED_PASS}
+      - CALDERA_BLUE_PASS=${CALDERA_BLUE_PASS}
     volumes:
       - caldera-data:/app/data
       - ./config/caldera/local.yml:/app/conf/local.yml:ro
@@ -379,6 +425,12 @@ services:
       - ./attack-simulation/caldera/adversaries:/app/data/adversaries:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.90 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8888/ >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     logging: *logging
 
 # ================================================================
@@ -390,21 +442,21 @@ services:
       dockerfile: Dockerfile
     container_name: soc-responder
     hostname: responder
-    network_mode: host           # needs raw network for LLMNR/NBT-NS
+    network_mode: host
     cap_add: [NET_ADMIN, NET_RAW]
     environment:
       - RESPONDER_INTERFACE=${RESPONDER_INTERFACE:-eth0}
     volumes:
       - ./config/responder/Responder.conf:/opt/Responder/Responder.conf:ro
       - ./attack-simulation/responder/logs:/opt/Responder/logs
-    profiles: ["redteam"]        # only starts with: docker compose --profile redteam up
+    profiles: ["redteam"]
     logging: *logging
 
 # ================================================================
 # LAYER 11 — OLLAMA + CREWAI AI AGENTS
 # ================================================================
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.34.0
     container_name: soc-ollama
     hostname: ollama
     <<: *restart
@@ -416,12 +468,12 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       soc-net: { ipv4_address: 172.20.0.100 }
-    # GPU (NVIDIA): uncomment deploy block below
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:11434/api/tags >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     logging: *logging
 
   crewai-soc:
@@ -431,23 +483,36 @@ services:
     container_name: soc-crewai
     hostname: crewai-soc
     <<: *restart
-    depends_on: [ollama, opensearch-node1]
+    depends_on:
+      ollama: { condition: service_healthy }
+      opensearch-node1: { condition: service_healthy }
     ports:
-      - "${CREWAI_API_PORT:-8500}:8500"
+      - "${CREWAI_API_PORT:-8500}:8000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
-      - OPENSEARCH_URL=http://opensearch-node1:9200
-      - OPENSEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_HOST=opensearch-node1
+      - OPENSEARCH_PORT=9200
+      - OPENSEARCH_USER=admin
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_CA_CERT=/etc/opensearch/root-ca.pem
       - IRIS_URL=https://dfir-iris:443
+      - IRIS_ADM_API_KEY=${IRIS_ADM_API_KEY}
       - MISP_URL=http://misp:80
-      - MISP_KEY=${MISP_ADMIN_PASSWORD}
+      - MISP_API_KEY=${MISP_API_KEY}
       - ST2_URL=http://stackstorm:9101
       - ST2_TOKEN=${ST2_AUTH_TOKEN}
     volumes:
       - ./ai-agents:/app:ro
+      - ./config/opensearch/certs/root-ca.pem:/etc/opensearch/root-ca.pem:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.101 }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8000/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
     logging: *logging
 
 # ================================================================
@@ -465,24 +530,43 @@ services:
     ports:
       - "${WS_PORT:-8765}:8765"
     environment:
-      - OPENSEARCH_URL=http://opensearch-node1:9200
-      - OPENSEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_HOST=opensearch-node1
+      - OPENSEARCH_PORT=9200
+      - OPENSEARCH_USER=admin
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_CA_CERT=/etc/opensearch/root-ca.pem
       - WS_PORT=8765
+    volumes:
+      - ./config/opensearch/certs/root-ca.pem:/etc/opensearch/root-ca.pem:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.110 }
     logging: *logging
 
-  # SOC Portal / Reverse Proxy
+# ================================================================
+# SOC Portal / Reverse Proxy
+# ================================================================
   nginx:
     image: nginx:1.26-alpine
     container_name: soc-nginx
     hostname: nginx
     <<: *restart
-    depends_on: [opensearch-dashboards, dfir-iris, misp, velociraptor, caldera]
-    ports: ["80:80", "443:443"]
+    depends_on:
+      opensearch-dashboards: { condition: service_healthy }
+      dfir-iris: { condition: service_healthy }
+      misp: { condition: service_healthy }
+      velociraptor: { condition: service_healthy }
+      caldera: { condition: service_healthy }
+    ports:
+      - "${SOC_PORT:-80}:80"
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./config/nginx/certs:/etc/nginx/certs:ro
+      - ./dashboards:/usr/share/nginx/html:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.200 }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     logging: *logging
