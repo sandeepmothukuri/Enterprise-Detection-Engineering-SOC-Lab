@@ -679,6 +679,16 @@ chmod +x setup.sh health-check.sh simulate-attack.sh tools/capture-live-screensh
 sudo ./setup.sh
 ```
 
+`setup.sh` generates the local OpenSearch CA, node certificates, and admin
+client certificate under `config/opensearch/certs/` before starting Compose.
+This explicit host-side generation works on WSL2 and avoids relying on the
+image's demo-certificate installer. The generated files are ignored by Git.
+To verify certificate generation without starting the lab, run:
+
+```bash
+bash tools/test-opensearch-certs.sh
+```
+
 The setup process performs preflight checks, generates local environment values where required, applies OpenSearch host tuning, pulls images and starts the stack in stages.
 
 ### 4. Verify

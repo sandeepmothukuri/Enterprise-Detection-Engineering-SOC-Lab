@@ -117,6 +117,14 @@ for d in "${DIRS[@]}"; do
 done
 ok "Created ${#DIRS[@]} data directories"
 
+# ── OpenSearch TLS certificates ───────────────────────────────────────────────
+step "OpenSearch TLS certificates"
+if ! command -v openssl &>/dev/null; then
+  fail "OpenSSL not found. Install openssl and re-run setup."
+fi
+bash tools/generate-opensearch-certs.sh
+ok "OpenSearch CA, node, and admin certificates ready"
+
 # ── Pull images ───────────────────────────────────────────────────────────────
 step "Pulling Docker images"
 info "This may take several minutes on first run..."
