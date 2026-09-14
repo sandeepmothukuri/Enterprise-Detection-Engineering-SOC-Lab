@@ -1,23 +1,21 @@
 # ================================================================
-#  Enterprise Detection Engineering SOC Lab
-#  Complete SOC stack: SIEM + NSM + SOAR + DFIR + TI + AI + Red Team
+# Enterprise Detection Engineering SOC Lab
+# Existing SOC architecture — deployment consistency hardening.
 # ================================================================
 
 x-logging: &logging
   driver: "json-file"
   options: { max-size: "50m", max-file: "5" }
-
 x-restart: &restart
   restart: unless-stopped
 
 networks:
   soc-net:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: soc-net-br
+    driver_opts: { com.docker.network.bridge.name: soc-net-br }
     ipam:
       config:
-        - subnet: ${SOC_NETWORK:-172.20.0.0/16}
+        - subnet: "${SOC_NETWORK:-172.20.0.0/16}"
   red-team:
     driver: bridge
     internal: true
@@ -65,10 +63,8 @@ services:
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
       - ./config/opensearch/certs/opensearch-admin.pem:/usr/share/opensearch/config/opensearch-admin.pem:ro
       - ./config/opensearch/certs/opensearch-admin-key.pem:/usr/share/opensearch/config/opensearch-admin-key.pem:ro
-    ports:
-      - "${OPENSEARCH_PORT:-9200}:9200"
-    networks:
-      soc-net: { ipv4_address: 172.20.0.10 }
+    ports: ["${OPENSEARCH_PORT:-9200}:9200"]
+    networks: { soc-net: { ipv4_address: 172.20.0.10 } }
     healthcheck:
       test: ["CMD-SHELL", "curl -ksf --cert /usr/share/opensearch/config/opensearch-admin.pem --key /usr/share/opensearch/config/opensearch-admin-key.pem --cacert /usr/share/opensearch/config/root-ca.pem https://localhost:9200/_cluster/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"(green|yellow)\"'"]
       interval: 20s
@@ -99,8 +95,7 @@ services:
       - ./config/opensearch/certs/opensearch-node2.pem:/usr/share/opensearch/config/opensearch-node2.pem:ro
       - ./config/opensearch/certs/opensearch-node2-key.pem:/usr/share/opensearch/config/opensearch-node2-key.pem:ro
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
-    networks:
-      soc-net: { ipv4_address: 172.20.0.11 }
+    networks: { soc-net: { ipv4_address: 172.20.0.11 } }
     healthcheck:
       test: ["CMD-SHELL", "curl -ksf --cert /usr/share/opensearch/config/opensearch-node2.pem --key /usr/share/opensearch/config/opensearch-node2-key.pem --cacert /usr/share/opensearch/config/root-ca.pem https://localhost:9200/_cluster/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"(green|yellow)\"'"]
       interval: 20s
@@ -114,10 +109,8 @@ services:
     container_name: soc-dashboards
     hostname: opensearch-dashboards
     <<: *restart
-    depends_on:
-      opensearch-node1: { condition: service_healthy }
-    ports:
-      - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
+    depends_on: { opensearch-node1: { condition: service_healthy } }
+    ports: ["${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"]
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
       OPENSEARCH_USERNAME: admin
@@ -126,8 +119,7 @@ services:
     volumes:
       - ./config/opensearch/dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
-    networks:
-      soc-net: { ipv4_address: 172.20.0.12 }
+    networks: { soc-net: { ipv4_address: 172.20.0.12 } }
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status >/dev/null"]
       interval: 20s
@@ -194,10 +186,8 @@ services:
       - vector-data:/var/lib/vector
       - zeek-logs:/zeek-logs:ro
       - suricata-logs:/suricata-logs:ro
-    depends_on:
-      opensearch-node1: { condition: service_healthy }
-    networks:
-      soc-net: { ipv4_address: 172.20.0.30 }
+    depends_on: { opensearch-node1: { condition: service_healthy } }
+    networks: { soc-net: { ipv4_address: 172.20.0.30 } }
     logging: *logging
 
   elastalert2:
@@ -205,17 +195,15 @@ services:
     container_name: soc-elastalert2
     hostname: elastalert2
     <<: *restart
-    depends_on:
-      opensearch-node1: { condition: service_healthy }
-    environment: [TZ=UTC]
+    depends_on: { opensearch-node1: { condition: service_healthy } }
+    environment: ["TZ=UTC"]
     volumes:
       - ./config/elastalert2/config.yml:/opt/elastalert/config.yml:ro
       - ./config/elastalert2/rules:/opt/elastalert/rules:ro
       - ./config/opensearch/certs/opensearch-admin.pem:/etc/elastalert/opensearch-admin.pem:ro
       - ./config/opensearch/certs/opensearch-admin-key.pem:/etc/elastalert/opensearch-admin-key.pem:ro
       - ./config/opensearch/certs/root-ca.pem:/etc/elastalert/root-ca.pem:ro
-    networks:
-      soc-net: { ipv4_address: 172.20.0.40 }
+    networks: { soc-net: { ipv4_address: 172.20.0.40 } }
     logging: *logging
 
   stackstorm:
@@ -224,9 +212,7 @@ services:
     hostname: stackstorm
     <<: *restart
     depends_on: [st-mongo, st-rabbitmq]
-    ports:
-      - "${ST2_API_PORT:-9101}:9101"
-      - "${ST2_AUTH_PORT:-9102}:9102"
+    ports: ["${ST2_API_PORT:-9101}:9101", "${ST2_AUTH_PORT:-9102}:9102"]
     environment:
       - ST2_AUTH_TOKEN=${ST2_AUTH_TOKEN}
       - MONGO_HOST=st-mongo
@@ -235,8 +221,7 @@ services:
       - st-packs:/opt/stackstorm/packs
       - st-configs:/opt/stackstorm/configs
       - ./config/stackstorm/packs/soc_automation:/opt/stackstorm/packs/soc_automation:ro
-    networks:
-      soc-net: { ipv4_address: 172.20.0.50 }
+    networks: { soc-net: { ipv4_address: 172.20.0.50 } }
     healthcheck:
       test: ["CMD-SHELL", "st2ctl status >/dev/null 2>&1"]
       interval: 30s
@@ -395,7 +380,8 @@ services:
     hostname: responder
     network_mode: host
     cap_add: [NET_ADMIN, NET_RAW]
-    environment: [RESPONDER_INTERFACE=${RESPONDER_INTERFACE:-eth0}]
+    environment:
+      - RESPONDER_INTERFACE=${RESPONDER_INTERFACE:-eth0}
     volumes:
       - ./config/responder/Responder.conf:/opt/Responder/Responder.conf:ro
       - ./attack-simulation/responder/logs:/opt/Responder/logs
@@ -409,7 +395,7 @@ services:
     <<: *restart
     ports: ["${OLLAMA_PORT:-11434}:11434"]
     volumes: [ollama-data:/root/.ollama]
-    environment: [OLLAMA_HOST=0.0.0.0]
+    environment: ["OLLAMA_HOST=0.0.0.0"]
     networks: { soc-net: { ipv4_address: 172.20.0.100 } }
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:11434/api/tags >/dev/null"]
@@ -443,10 +429,13 @@ services:
       - MISP_API_KEY=${MISP_API_KEY}
       - ST2_URL=http://stackstorm:9101
       - ST2_TOKEN=${ST2_AUTH_TOKEN}
+      - VELOCIRAPTOR_URL=${VELOX_SERVER_URL:-https://velociraptor:8000/}
+      - VELOCIRAPTOR_API_KEY=${VELOCIRAPTOR_API_KEY}
+      - VELOCIRAPTOR_CA_CERT=/etc/iris/velociraptor-ca.pem
     volumes:
       - ./ai-agents:/app:ro
       - ./config/opensearch/certs/root-ca.pem:/etc/opensearch/root-ca.pem:ro
-      - ./config/iris/iris-ca.pem:/etc/iris/iris-ca.pem:ro
+      - ./config/iris:/etc/iris:ro
     networks: { soc-net: { ipv4_address: 172.20.0.101 } }
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:8000/health >/dev/null"]
@@ -461,8 +450,7 @@ services:
     container_name: soc-ws-streamer
     hostname: ws-streamer
     <<: *restart
-    depends_on:
-      opensearch-node1: { condition: service_healthy }
+    depends_on: { opensearch-node1: { condition: service_healthy } }
     ports: ["${WS_PORT:-8765}:8765"]
     environment:
       - OPENSEARCH_HOST=opensearch-node1
@@ -489,8 +477,7 @@ services:
     ports: ["${SOC_PORT:-80}:80"]
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./config/iris/iris-ca.pem:/etc/nginx/certs/iris-ca.pem:ro
-      - ./config/iris/velociraptor-ca.pem:/etc/nginx/certs/velociraptor-ca.pem:ro
+      - ./config/iris:/etc/nginx/certs:ro
       - ./dashboards:/usr/share/nginx/html:ro
     networks: { soc-net: { ipv4_address: 172.20.0.200 } }
     healthcheck:
