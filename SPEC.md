@@ -25,6 +25,8 @@ V8: setup generates all Compose-mounted OpenSearch certificates before any OpenS
 V9: detection validation normalizes Docker bind-mount paths for Git Bash/Windows and keeps POSIX paths unchanged.
 V10: SOAR blocking actions validate IP/direction input, never interpolate it into a shell, and schedule cleanup for every applied rule.
 V11: repository validators test the actual mounted Vector configuration and live Zeek tests fail fast when the service is stopped.
+V12: executable shell files mounted into Linux containers use LF line endings and a valid Linux shebang.
+V13: live Zeek T1046 validation runs the pinned image with repository scripts mounted at the image's actual installation path and generates traffic in a capture-visible namespace.
 
 §T
 id|status|task|cites
@@ -41,3 +43,5 @@ B1|2026-09-14|Compose mounted absent OpenSearch certificate paths, so WSL2 never
 B2|2026-09-14|Git Bash rewrote validator bind mounts to the Git installation path, so Zeek could not load the mounted config|V9; normalize Windows Docker paths and add portability test
 B3|2026-09-14|StackStorm block_ip interpolated unvalidated input into shell=True and cleaned up only inbound rules|V10; validate inputs, use argv execution, roll back partial blocks, and schedule all cleanup rules
 B4|2026-09-14|Vector validation inspected no repository file and Zeek T1046 looped against a stopped container|V11; mount the actual Vector file and fail fast on Zeek service state
+B5|2026-09-14|Windows CRLF in the mounted Zeek entrypoint made Linux Docker report no such file or directory|V12; normalize the entrypoint to LF and add a line-ending regression test
+B6|2026-09-14|Zeek live test mounted repository scripts under a nonexistent image path and generated bridge traffic invisible to Docker Desktop packet capture|V13; use /usr/local/zeek and shared-loopback live traffic in a pinned temporary sensor
