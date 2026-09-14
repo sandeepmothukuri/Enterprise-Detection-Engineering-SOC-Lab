@@ -1,0 +1,10 @@
+name: T1078 — After-Hours Account Login Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1078
+alert:
+  - debug
+realert:
+  minutes: 5
