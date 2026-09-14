@@ -1,0 +1,41 @@
+# MITRE Caldera — SOC Lab configuration template
+port: 8888
+host: 0.0.0.0
+exfil_dir: /tmp/caldera-exfil
+
+users:
+  red:
+    red: "__CALDERA_RED_PASS__"
+  blue:
+    blue: "__CALDERA_BLUE_PASS__"
+
+api_key_red: "__CALDERA_API_KEY_RED__"
+api_key_blue: "__CALDERA_API_KEY_BLUE__"
+
+plugins:
+  - access
+  - atomic
+  - compass
+  - debrief
+  - fieldmanual
+  - gameboard
+  - manx
+  - response
+  - sandcat
+  - stockpile
+  - training
+
+app.contact.http: http://caldera:8888
+app.contact.tcp: 0.0.0.0:7010
+app.contact.udp: 0.0.0.0:7011
+app.contact.websocket: 0.0.0.0:7012
+
+logging:
+  level: INFO
+  log_file: /var/log/caldera/caldera.log
+
+database:
+  type: memory
+
+obfuscate: plain-text
+exfil_url: http://caldera:8888
