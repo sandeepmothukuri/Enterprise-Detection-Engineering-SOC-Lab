@@ -1,0 +1,10 @@
+name: T1053.005 — Scheduled Task Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1053.005
+alert:
+  - debug
+realert:
+  minutes: 5
