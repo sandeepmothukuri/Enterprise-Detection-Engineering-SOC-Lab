@@ -16,8 +16,8 @@ plugins.security.ssl.transport.enabled: true
 plugins.security.ssl.transport.pemcert_filepath: opensearch-node1.pem
 plugins.security.ssl.transport.pemkey_filepath: opensearch-node1-key.pem
 plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
-transport.ssl.enforce_hostname_verification: true
-transport.ssl.resolve_hostname: false
+plugins.security.ssl.transport.enforce_hostname_verification: true
+plugins.security.ssl.transport.resolve_hostname: false
 
 plugins.security.audit.type: internal_opensearch
 plugins.security.enable_snapshot_restore_privilege: true
