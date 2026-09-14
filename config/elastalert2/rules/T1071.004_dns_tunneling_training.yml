@@ -1,0 +1,10 @@
+name: T1071.004 — DNS Tunneling Training
+index: soc-logs-*
+type: any
+filter:
+  - term:
+      mitre_technique: T1071.004
+alert:
+  - debug
+realert:
+  minutes: 5
