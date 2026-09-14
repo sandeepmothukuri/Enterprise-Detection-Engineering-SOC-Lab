@@ -1,0 +1,14 @@
+# Local runtime override. Compose automatically merges this file with docker-compose.yml.
+# The override exists only for generated application trust chains captured by setup.sh.
+services:
+  crewai-soc:
+    environment:
+      VELOCIRAPTOR_URL: ${VELOX_SERVER_URL:-https://velociraptor:8000/}
+      VELOCIRAPTOR_API_KEY: ${VELOCIRAPTOR_API_KEY:-}
+      VELOCIRAPTOR_CA_CERT: /etc/iris/velociraptor-ca.pem
+    volumes:
+      - ./config/iris:/etc/iris:ro
+
+  nginx:
+    volumes:
+      - ./config/iris:/etc/nginx/certs:ro
