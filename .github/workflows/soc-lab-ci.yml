@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "Scanning for accidental secret commits..."
           if grep -RIn --exclude-dir='.git' --exclude='README.md' --exclude='.env.example' \
-              -E 'AdminPassword123!|CHANGE_ME_SET_STRONG_PASSWORD' .; then
+              -E 'AdminPassword'"123!"'|CHANGE_ME'"_SET_STRONG_PASSWORD" .; then
             echo "  ❌ Sentinel/default credentials found in tracked configuration"
             exit 1
           fi
