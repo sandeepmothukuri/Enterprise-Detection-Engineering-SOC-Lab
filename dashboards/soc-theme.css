@@ -4,7 +4,7 @@
    ============================================================ */
 
 /* ── 1. Design Tokens & Multi-Theme Definitions ─────────────── */
-:root, [data-theme="darkblue"] {
+:root, :root[data-theme="darkblue"], html[data-theme="darkblue"], body[data-theme="darkblue"], [data-theme="darkblue"] {
   /* Theme: Deep Dark Blue / Royal Navy (Default) */
   --bg-base:        #070d1e;
   --bg-surface:     #0c1530;
@@ -36,7 +36,7 @@
   --text-accent:    #60a5fa;
 }
 
-[data-theme="oled"] {
+:root[data-theme="oled"], html[data-theme="oled"], body[data-theme="oled"], [data-theme="oled"] {
   /* True OLED Pitch-Blue */
   --bg-base:        #00030a;
   --bg-surface:     #020817;
@@ -69,7 +69,7 @@
 }
 
 /* Theme 2: Obsidian Stealth (CrowdStrike / SentinelOne Clean Minimalist) */
-[data-theme="obsidian"] {
+:root[data-theme="obsidian"], html[data-theme="obsidian"], body[data-theme="obsidian"], [data-theme="obsidian"] {
   --bg-base:        #0b0e14;
   --bg-surface:     #0f141c;
   --bg-card:        #131a24;
@@ -101,7 +101,7 @@
 }
 
 /* Theme 3: Linear / Vercel Modern Indigo */
-[data-theme="indigo"] {
+:root[data-theme="indigo"], html[data-theme="indigo"], body[data-theme="indigo"], [data-theme="indigo"] {
   --bg-base:        #08090d;
   --bg-surface:     #0e0f17;
   --bg-card:        #141622;
@@ -133,7 +133,7 @@
 }
 
 /* Theme 4: Nordic Slate (GitHub Dark / Arctic Navy) */
-[data-theme="nordic"] {
+:root[data-theme="nordic"], html[data-theme="nordic"], body[data-theme="nordic"], [data-theme="nordic"] {
   --bg-base:        #0d1117;
   --bg-surface:     #161b22;
   --bg-card:        #1b222d;
@@ -165,7 +165,7 @@
 }
 
 /* Theme 5: Cyber Emerald (Matrix / Threat Hunter Green) */
-[data-theme="emerald"] {
+:root[data-theme="emerald"], html[data-theme="emerald"], body[data-theme="emerald"], [data-theme="emerald"] {
   --bg-base:        #020905;
   --bg-surface:     #05150c;
   --bg-card:        #092214;
@@ -197,7 +197,7 @@
 }
 
 /* Theme 6: Synthwave Cyberpunk (Darktrace Neon Violet) */
-[data-theme="synthwave"] {
+:root[data-theme="synthwave"], html[data-theme="synthwave"], body[data-theme="synthwave"], [data-theme="synthwave"] {
   --bg-base:        #08040f;
   --bg-surface:     #10081e;
   --bg-card:        #180c2e;
@@ -229,7 +229,7 @@
 }
 
 /* Theme 7: Solar Amber (Datadog / Splunk Enterprise Gold) */
-[data-theme="amber"] {
+:root[data-theme="amber"], html[data-theme="amber"], body[data-theme="amber"], [data-theme="amber"] {
   --bg-base:        #0a0804;
   --bg-surface:     #141008;
   --bg-card:        #1e180c;
@@ -261,7 +261,7 @@
 }
 
 /* Theme 8: Tokyo Teal (Modern Minimalist Deep Sea) */
-[data-theme="teal"] {
+:root[data-theme="teal"], html[data-theme="teal"], body[data-theme="teal"], [data-theme="teal"] {
   --bg-base:        #040a0b;
   --bg-surface:     #081416;
   --bg-card:        #0c1f24;

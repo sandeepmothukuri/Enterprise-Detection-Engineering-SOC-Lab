@@ -352,6 +352,271 @@
     { id: 'teal', name: '🌊 Arctic Teal', desc: 'Azure Sentinel Deep Cyan Security', bg: '#031114', surface: '#061b20', accent: '#06b6d4', crit: '#f43f5e' }
   ];
 
+  const THEME_VARS = {
+    darkblue: {
+      '--bg-base': '#070d1e',
+      '--bg-surface': '#0c1530',
+      '--bg-card': '#101e42',
+      '--bg-card-hover': '#162856',
+      '--bg-input': '#091124',
+      '--border': '#1a3366',
+      '--border-light': '#27478a',
+      '--accent': '#38bdf8',
+      '--accent-blue': '#3b82f6',
+      '--accent-dim': 'rgba(56, 189, 248, 0.15)',
+      '--accent-glow': 'rgba(56, 189, 248, 0.35)',
+      '--critical': '#f43f5e',
+      '--critical-dim': 'rgba(244, 63, 94, 0.15)',
+      '--high': '#fb923c',
+      '--high-dim': 'rgba(251, 146, 60, 0.15)',
+      '--medium': '#fbbf24',
+      '--medium-dim': 'rgba(251, 191, 36, 0.15)',
+      '--low': '#10b981',
+      '--low-dim': 'rgba(16, 185, 129, 0.15)',
+      '--info': '#38bdf8',
+      '--info-dim': 'rgba(56, 189, 248, 0.15)',
+      '--text-primary': '#f0f6ff',
+      '--text-secondary': '#9cb2d6',
+      '--text-muted': '#57709a',
+      '--text-accent': '#60a5fa'
+    },
+    oled: {
+      '--bg-base': '#00030a',
+      '--bg-surface': '#020817',
+      '--bg-card': '#050e24',
+      '--bg-card-hover': '#0a1838',
+      '--bg-input': '#030919',
+      '--border': '#0f224a',
+      '--border-light': '#18366d',
+      '--accent': '#00d2ff',
+      '--accent-blue': '#3b82f6',
+      '--accent-dim': 'rgba(0, 210, 255, 0.12)',
+      '--accent-glow': 'rgba(0, 210, 255, 0.35)',
+      '--critical': '#ff2a55',
+      '--critical-dim': 'rgba(255, 42, 85, 0.15)',
+      '--high': '#ff7700',
+      '--high-dim': 'rgba(255, 119, 0, 0.15)',
+      '--medium': '#ffbb00',
+      '--medium-dim': 'rgba(255, 187, 0, 0.15)',
+      '--low': '#00f076',
+      '--low-dim': 'rgba(0, 240, 118, 0.15)',
+      '--info': '#00d2ff',
+      '--info-dim': 'rgba(0, 210, 255, 0.15)',
+      '--text-primary': '#f8fafc',
+      '--text-secondary': '#94a3b8',
+      '--text-muted': '#475569',
+      '--text-accent': '#38bdf8'
+    },
+    obsidian: {
+      '--bg-base': '#0b0e14',
+      '--bg-surface': '#0f141c',
+      '--bg-card': '#131a24',
+      '--bg-card-hover': '#18212e',
+      '--bg-input': '#0e131b',
+      '--border': '#1c2636',
+      '--border-light': '#2a3b54',
+      '--accent': '#3b82f6',
+      '--accent-blue': '#2563eb',
+      '--accent-dim': 'rgba(59, 130, 246, 0.12)',
+      '--accent-glow': 'rgba(59, 130, 246, 0.25)',
+      '--critical': '#ef4444',
+      '--critical-dim': 'rgba(239, 68, 68, 0.12)',
+      '--high': '#f97316',
+      '--high-dim': 'rgba(249, 115, 22, 0.12)',
+      '--medium': '#eab308',
+      '--medium-dim': 'rgba(234, 179, 8, 0.12)',
+      '--low': '#10b981',
+      '--low-dim': 'rgba(16, 185, 129, 0.12)',
+      '--info': '#0284c7',
+      '--info-dim': 'rgba(2, 132, 199, 0.12)',
+      '--text-primary': '#e2e8f0',
+      '--text-secondary': '#8898aa',
+      '--text-muted': '#4b5563',
+      '--text-accent': '#60a5fa'
+    },
+    indigo: {
+      '--bg-base': '#08090d',
+      '--bg-surface': '#0e0f17',
+      '--bg-card': '#141622',
+      '--bg-card-hover': '#1a1d2c',
+      '--bg-input': '#0c0d14',
+      '--border': '#1e2133',
+      '--border-light': '#2e334d',
+      '--accent': '#6366f1',
+      '--accent-blue': '#4f46e5',
+      '--accent-dim': 'rgba(99, 102, 241, 0.12)',
+      '--accent-glow': 'rgba(99, 102, 241, 0.3)',
+      '--critical': '#f43f5e',
+      '--critical-dim': 'rgba(244, 63, 94, 0.12)',
+      '--high': '#fb923c',
+      '--high-dim': 'rgba(251, 146, 60, 0.12)',
+      '--medium': '#facc15',
+      '--medium-dim': 'rgba(250, 204, 21, 0.12)',
+      '--low': '#10b981',
+      '--low-dim': 'rgba(16, 185, 129, 0.12)',
+      '--info': '#818cf8',
+      '--info-dim': 'rgba(129, 140, 248, 0.12)',
+      '--text-primary': '#f1f5f9',
+      '--text-secondary': '#94a3b8',
+      '--text-muted': '#64748b',
+      '--text-accent': '#a5b4fc'
+    },
+    nordic: {
+      '--bg-base': '#0d1117',
+      '--bg-surface': '#161b22',
+      '--bg-card': '#1b222d',
+      '--bg-card-hover': '#242d3c',
+      '--bg-input': '#0d1117',
+      '--border': '#30363d',
+      '--border-light': '#484f58',
+      '--accent': '#38bdf8',
+      '--accent-blue': '#0284c7',
+      '--accent-dim': 'rgba(56, 189, 248, 0.12)',
+      '--accent-glow': 'rgba(56, 189, 248, 0.25)',
+      '--critical': '#f85149',
+      '--critical-dim': 'rgba(248, 81, 73, 0.12)',
+      '--high': '#db6d28',
+      '--high-dim': 'rgba(219, 109, 40, 0.12)',
+      '--medium': '#d29922',
+      '--medium-dim': 'rgba(210, 153, 34, 0.12)',
+      '--low': '#2ea043',
+      '--low-dim': 'rgba(46, 160, 67, 0.12)',
+      '--info': '#58a6ff',
+      '--info-dim': 'rgba(88, 166, 255, 0.12)',
+      '--text-primary': '#f0f6fc',
+      '--text-secondary': '#8b949e',
+      '--text-muted': '#6e7681',
+      '--text-accent': '#58a6ff'
+    },
+    emerald: {
+      '--bg-base': '#020905',
+      '--bg-surface': '#05150c',
+      '--bg-card': '#092214',
+      '--bg-card-hover': '#0e311d',
+      '--bg-input': '#041009',
+      '--border': '#113b22',
+      '--border-light': '#1a5732',
+      '--accent': '#00ff9d',
+      '--accent-blue': '#10b981',
+      '--accent-dim': 'rgba(0, 255, 157, 0.12)',
+      '--accent-glow': 'rgba(0, 255, 157, 0.35)',
+      '--critical': '#ff3366',
+      '--critical-dim': 'rgba(255, 51, 102, 0.15)',
+      '--high': '#ff9900',
+      '--high-dim': 'rgba(255, 153, 0, 0.15)',
+      '--medium': '#ffcc00',
+      '--medium-dim': 'rgba(255, 204, 0, 0.15)',
+      '--low': '#00ff9d',
+      '--low-dim': 'rgba(0, 255, 157, 0.15)',
+      '--info': '#00e5ff',
+      '--info-dim': 'rgba(0, 229, 255, 0.15)',
+      '--text-primary': '#f0fdf4',
+      '--text-secondary': '#86efac',
+      '--text-muted': '#4ade80',
+      '--text-accent': '#00ff9d'
+    },
+    synthwave: {
+      '--bg-base': '#08040f',
+      '--bg-surface': '#10081e',
+      '--bg-card': '#180c2e',
+      '--bg-card-hover': '#221142',
+      '--bg-input': '#0c0617',
+      '--border': '#2a1450',
+      '--border-light': '#3e1e75',
+      '--accent': '#d946ef',
+      '--accent-blue': '#a855f7',
+      '--accent-dim': 'rgba(217, 70, 239, 0.15)',
+      '--accent-glow': 'rgba(217, 70, 239, 0.35)',
+      '--critical': '#ff0055',
+      '--critical-dim': 'rgba(255, 0, 85, 0.15)',
+      '--high': '#ff7700',
+      '--high-dim': 'rgba(255, 119, 0, 0.15)',
+      '--medium': '#facc15',
+      '--medium-dim': 'rgba(250, 204, 21, 0.15)',
+      '--low': '#10b981',
+      '--low-dim': 'rgba(16, 185, 129, 0.15)',
+      '--info': '#c084fc',
+      '--info-dim': 'rgba(192, 132, 252, 0.15)',
+      '--text-primary': '#faf5ff',
+      '--text-secondary': '#d8b4fe',
+      '--text-muted': '#9333ea',
+      '--text-accent': '#f0abfc'
+    },
+    amber: {
+      '--bg-base': '#0a0804',
+      '--bg-surface': '#141008',
+      '--bg-card': '#1e180c',
+      '--bg-card-hover': '#2b2212',
+      '--bg-input': '#0e0b06',
+      '--border': '#382d16',
+      '--border-light': '#544322',
+      '--accent': '#f59e0b',
+      '--accent-blue': '#d97706',
+      '--accent-dim': 'rgba(245, 158, 11, 0.14)',
+      '--accent-glow': 'rgba(245, 158, 11, 0.35)',
+      '--critical': '#ef4444',
+      '--critical-dim': 'rgba(239, 68, 68, 0.15)',
+      '--high': '#f97316',
+      '--high-dim': 'rgba(249, 115, 22, 0.15)',
+      '--medium': '#eab308',
+      '--medium-dim': 'rgba(234, 179, 8, 0.15)',
+      '--low': '#22c55e',
+      '--low-dim': 'rgba(34, 197, 94, 0.15)',
+      '--info': '#38bdf8',
+      '--info-dim': 'rgba(56, 189, 248, 0.15)',
+      '--text-primary': '#fffbeb',
+      '--text-secondary': '#fde68a',
+      '--text-muted': '#b45309',
+      '--text-accent': '#fbbf24'
+    },
+    teal: {
+      '--bg-base': '#040a0b',
+      '--bg-surface': '#081416',
+      '--bg-card': '#0c1f24',
+      '--bg-card-hover': '#122d33',
+      '--bg-input': '#060e10',
+      '--border': '#133740',
+      '--border-light': '#1d5360',
+      '--accent': '#14b8a6',
+      '--accent-blue': '#0d9488',
+      '--accent-dim': 'rgba(20, 184, 166, 0.14)',
+      '--accent-glow': 'rgba(20, 184, 166, 0.35)',
+      '--critical': '#f43f5e',
+      '--critical-dim': 'rgba(244, 63, 94, 0.15)',
+      '--high': '#fb923c',
+      '--high-dim': 'rgba(251, 146, 60, 0.15)',
+      '--medium': '#facc15',
+      '--medium-dim': 'rgba(250, 204, 21, 0.15)',
+      '--low': '#34d399',
+      '--low-dim': 'rgba(52, 211, 153, 0.15)',
+      '--info': '#2dd4bf',
+      '--info-dim': 'rgba(45, 212, 191, 0.15)',
+      '--text-primary': '#f0fdfa',
+      '--text-secondary': '#99f6e4',
+      '--text-muted': '#0d9488',
+      '--text-accent': '#2dd4bf'
+    }
+  };
+
+  function applyThemeVarsDirectly(themeId) {
+    const vars = THEME_VARS[themeId] || THEME_VARS['darkblue'];
+    let styleTag = document.getElementById('soc-active-theme-vars');
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = 'soc-active-theme-vars';
+      document.head.appendChild(styleTag);
+    }
+    const cssRules = Object.entries(vars).map(([k, v]) => `${k}: ${v} !important;`).join('\n  ');
+    styleTag.textContent = `
+      :root, html, body {
+        ${cssRules}
+      }
+    `;
+  }
+
+  // Pre-apply theme variables immediately
+  applyThemeVarsDirectly(activeTheme);
+
   // Kiosk Rotation List (9 Enterprise Tiers)
   const KIOSK_PAGES = [
     '01_soc_command_center.html',
@@ -405,7 +670,7 @@
       <div class="soc-theme-modal-box" onclick="event.stopPropagation()" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;width:760px;max-width:95vw;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,0.9);color:var(--text-primary);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;">
           <div>
-            <h3 style="margin:0;font-size:18px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">🎨 Choose SOC Platform Theme</h3>
+            <h3 style="margin:0;font-size:18px;color:var(--text-primary);display:flex;align-items:gap;gap:8px;">🎨 Choose SOC Platform Theme</h3>
             <p style="margin:4px 0 0;font-size:12px;color:var(--text-secondary);">Select your preferred high-contrast color system. Persisted automatically across all dashboards.</p>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="window.closeSocThemeModal()" style="font-size:16px;cursor:pointer;padding:4px 10px;">✕</button>
@@ -450,6 +715,9 @@
     if (document.body) document.body.setAttribute('data-theme', themeId);
     localStorage.setItem('soc_dashboard_theme', themeId);
     
+    // Apply CSS variables directly to :root/html/body
+    applyThemeVarsDirectly(themeId);
+
     // Refresh modal cards
     const grid = document.getElementById('socThemeGrid');
     if (grid) {
