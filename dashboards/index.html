@@ -6,161 +6,1255 @@
 <title>SOC Lab v2 — Security Operations Command Center Portal</title>
 <link rel="stylesheet" href="soc-theme.css">
 <style>
-  body { background:var(--bg-base); font-family:var(--font-sans); color:var(--text-primary); margin:0; }
-  .portal-header { position:sticky; top:0; z-index:100; background:var(--bg-surface); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 var(--space-6); height:var(--header-h); }
-  .portal-logo { font-size:18px; font-weight:700; color:var(--text-primary); letter-spacing:-.02em; }
-  .portal-logo span { color:var(--accent); text-shadow:0 0 12px var(--accent-glow); }
-  .portal-meta { display:flex; align-items:center; gap:var(--space-4); font-size:13px; color:var(--text-muted); }
-  .portal-clock { font-family:var(--font-mono); color:var(--text-secondary); }
-  .hero-bar { background:linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 100%); border-bottom:1px solid var(--border); padding:var(--space-6) var(--space-6) var(--space-5); }
-  .hero-bar h2 { margin:0 0 6px; font-size:22px; font-weight:700; text-shadow:0 0 20px var(--accent-glow); }
-  .hero-bar p  { margin:0 0 var(--space-5); color:var(--text-secondary); font-size:14px; max-width:750px; }
-  .hero-kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:var(--space-3); }
-  @media(max-width:900px){ .hero-kpis { grid-template-columns:repeat(3,1fr); } }
-  .portal-body { padding:var(--space-6); }
-  .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin:0 0 var(--space-4); display:flex; align-items:center; justify-content:space-between; }
-  .dash-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:var(--space-4); margin-bottom:var(--space-6); }
-  .dash-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); text-decoration:none; color:inherit; display:block; box-shadow:0 4px 16px rgba(0,0,0,0.4); transition:border-color .15s,transform .15s,box-shadow .15s; }
-  .dash-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 24px var(--accent-glow); }
-  .dash-card.primary-tier { border-left:4px solid var(--accent); }
-  .dash-card-icon { font-size:24px; margin-bottom:var(--space-2); }
-  .dash-card-name { font-size:15px; font-weight:700; margin-bottom:4px; }
-  .dash-card-desc { font-size:12px; color:var(--text-secondary); margin-bottom:var(--space-3); line-height:1.4; }
-  .dash-card-tags { display:flex; gap:6px; flex-wrap:wrap; }
-  .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:var(--space-3); margin-bottom:var(--space-6); }
-  .tool-link { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:var(--space-3) var(--space-4); text-decoration:none; color:var(--text-secondary); font-size:13px; display:flex; align-items:center; gap:8px; transition:border-color .15s,color .15s,box-shadow .15s; }
-  .tool-link:hover { border-color:var(--accent); color:var(--text-primary); box-shadow:0 4px 16px var(--accent-glow); }
-  .tool-port { margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); }
-  .ticker { position:fixed; bottom:0; left:0; right:0; background:var(--bg-surface); border-top:1px solid var(--border); padding:6px var(--space-4); display:flex; align-items:center; gap:var(--space-4); font-size:12px; overflow:hidden; }
-  .ticker-label { color:var(--accent); font-weight:700; font-family:var(--font-mono); white-space:nowrap; text-shadow:0 0 8px var(--accent-glow); }
-  .ticker-track { flex:1; overflow:hidden; }
-  .ticker-inner { display:flex; gap:var(--space-6); animation:scroll-left 40s linear infinite; white-space:nowrap; }
-  @keyframes scroll-left { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  .ticker-item { color:var(--text-muted); }
-  .ticker-item .t-high { color:var(--high); text-shadow:0 0 6px var(--high); }
-  .ticker-item .t-crit { color:var(--critical); text-shadow:0 0 6px var(--critical); }
+  :root {
+    --header-h: 64px;
+  }
+  body {
+    background: var(--bg-base);
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    margin: 0;
+    padding-bottom: 48px;
+  }
+  
+  /* Topbar / Header */
+  .portal-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-6);
+    height: var(--header-h);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .portal-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .portal-logo-badge {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--accent) 0%, #1e40af 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .portal-title-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .portal-logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+  .portal-logo span {
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent-glow);
+  }
+  .portal-sub {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  
+  .portal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cluster-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--low);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .status-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--low);
+    box-shadow: 0 0 8px var(--low);
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse-ring {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.2); }
+  }
+  .portal-clock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Hero Section */
+  .hero-bar {
+    background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-base) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-6) var(--space-6) var(--space-5);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bar::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: 5%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .hero-bar h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-shadow: 0 0 20px var(--accent-glow);
+  }
+  .hero-bar p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    max-width: 800px;
+    line-height: 1.5;
+  }
+  
+  /* Hero KPIs Grid */
+  .hero-kpis {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  @media (max-width: 1400px) { .hero-kpis { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 768px) { .hero-kpis { grid-template-columns: repeat(2, 1fr); } }
+
+  .hero-kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .hero-kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .hero-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--border);
+  }
+  .hero-kpi-card.crit::after { background: var(--critical); }
+  .hero-kpi-card.high::after { background: var(--high); }
+  .hero-kpi-card.low::after { background: var(--low); }
+  .hero-kpi-card.accent::after { background: var(--accent); }
+  
+  .hero-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hero-kpi-val {
+    font-size: 20px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+  .hero-kpi-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Search & Filter Toolbar */
+  .filter-toolbar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-3) var(--space-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .search-box-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 450px;
+    min-width: 260px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .portal-search-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px 8px 34px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+  }
+  .portal-search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+  .filter-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+
+  /* Body Content Layout */
+  .portal-body {
+    padding: var(--space-5) var(--space-6);
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  
+  .section-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--space-6) 0 var(--space-4);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-count-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  /* Grid Layouts */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-4);
+  }
+  .console-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-3);
+  }
+  .tools-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-4);
+  }
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-3);
+  }
+
+  /* Dash Card */
+  .dash-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .dash-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px var(--accent-glow);
+  }
+  .dash-card.primary-tier {
+    border-left: 4px solid var(--accent);
+  }
+  .dash-card.primary-tier:hover {
+    border-left-color: #38bdf8;
+  }
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .dash-card-icon {
+    font-size: 26px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .card-header-text {
+    flex: 1;
+  }
+  .dash-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+  .dash-card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  /* Tool Interface Interactive Card */
+  .tool-inter-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .tool-inter-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--accent-glow);
+  }
+  .tool-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .tool-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tool-icon {
+    font-size: 22px;
+  }
+  .tool-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .tool-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .tool-meta-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tool-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-launch {
+    flex: 1;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-launch:hover {
+    background: var(--accent);
+    color: #070d1e;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .btn-copy-cred {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    transition: all 0.15s;
+  }
+  .btn-copy-cred:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+
+  /* Rapid Actions Card */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .action-info {
+    flex: 1;
+  }
+  .action-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .action-cmd {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+  .btn-act {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-act:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: var(--accent-dim);
+  }
+
+  /* Ticker */
+  .ticker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 6px var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: 12px;
+    overflow: hidden;
+    z-index: 999;
+  }
+  .ticker-label {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    text-shadow: 0 0 8px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ticker-track { flex: 1; overflow: hidden; }
+  .ticker-inner {
+    display: flex;
+    gap: var(--space-6);
+    animation: scroll-left 45s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes scroll-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-item { color: var(--text-muted); font-size: 11.5px; }
+  .ticker-item .t-crit { color: var(--critical); font-weight: 600; }
+  .ticker-item .t-high { color: var(--high); font-weight: 600; }
+  .ticker-item .t-accent { color: var(--accent); font-weight: 600; }
+  
+  /* Toast Notification */
+  .soc-toast {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--accent);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+    z-index: 10000;
+    pointer-events: none;
+  }
+  .soc-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>
 </head>
 <body>
+
+<!-- Header -->
 <header class="portal-header">
-  <div class="portal-logo">SOC Lab <span>v2</span> · Enterprise Platform</div>
-  <div class="portal-meta">
-    <span class="status-dot green"></span>
-    <span>12 Microservices Active</span>
-    <span class="portal-clock" id="clock">13:58:00 UTC</span>
+  <a href="index.html" class="portal-brand">
+    <div class="portal-logo-badge">🛡️</div>
+    <div class="portal-title-group">
+      <div class="portal-logo">SOC Lab <span>v2</span></div>
+      <div class="portal-sub">Enterprise Platform</div>
+    </div>
+  </a>
+
+  <div class="portal-header-actions">
+    <div class="cluster-status-pill">
+      <span class="status-pulse"></span>
+      <span>Cluster: HEALTHY (2 Nodes)</span>
+    </div>
+    
+    <button onclick="window.openSocThemeModal()" class="btn-act" style="display:inline-flex;align-items:center;gap:6px;">
+      🎨 <span>Themes ▾</span>
+    </button>
+    <button onclick="window.toggleKioskMode()" class="btn-act" style="display:inline-flex;align-items:center;gap:6px;">
+      📺 <span>Kiosk</span>
+    </button>
+    
+    <div class="portal-clock" id="clock">19:15:00 UTC</div>
   </div>
 </header>
+
+<!-- Hero Section -->
 <div class="hero-bar">
-  <h2>Security Operations Command Center Portal</h2>
-  <p>Production Detection Engineering &amp; Autonomous SOC Operations Platform — 9 Enterprise Tiers, 13 Tested Sigma Rules, Vector Ingestion Pipeline, and Multi-Agent AI Triage.</p>
+  <div class="hero-header-row">
+    <div>
+      <h2>Unified Security Operations &amp; Detection Engineering Command Hub</h2>
+      <p>Production multi-tier SIEM, autonomous AI agent triage, adversary emulation, live endpoint forensics, and automated threat hunting matrix with 13 validated Sigma rules &amp; Vector ingestion pipeline.</p>
+    </div>
+    <div style="text-align:right;">
+      <span class="badge badge-accent" style="font-size:11px;padding:4px 10px;">Enterprise Edition v2.6</span>
+    </div>
+  </div>
+
+  <!-- 8 Operational KPIs -->
   <div class="hero-kpis">
-    <div class="kpi-card critical"><div class="kpi-label">Critical Alerts</div><div class="kpi-value">3</div><div class="kpi-sub">T1003, T1059, T1550</div></div>
-    <div class="kpi-card high"><div class="kpi-label">High Severity</div><div class="kpi-value">8</div><div class="kpi-sub">Active Triage</div></div>
-    <div class="kpi-card"><div class="kpi-label">Events (24h)</div><div class="kpi-value">48.2K</div><div class="kpi-sub">842 EPS Avg</div></div>
-    <div class="kpi-card"><div class="kpi-label">Open Cases</div><div class="kpi-value">2</div><div class="kpi-sub">IRIS Tracked</div></div>
-    <div class="kpi-card"><div class="kpi-label">Sigma Rules</div><div class="kpi-value">13 / 13</div><div class="kpi-sub">100% Validated</div></div>
-    <div class="kpi-card"><div class="kpi-label">AI Accuracy</div><div class="kpi-value">94.2%</div><div class="kpi-sub">CrewAI / Llama-3</div></div>
-  </div>
-</div>
-<div class="portal-body">
-  
-  <!-- 9 CORE ENTERPRISE SOC TIERS -->
-  <div class="section-title">
-    <span>🛡️ Core Enterprise SOC Operations Tiers</span>
-    <span style="font-size:11px;color:var(--text-accent);font-family:var(--font-mono);">9 Production Tiers</span>
-  </div>
-  <div class="dash-grid">
-    <a href="01_soc_command_center.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">📊</div>
-      <div class="dash-card-name">01. SOC Command Center</div>
-      <div class="dash-card-desc">Executive KPIs, active incident queue, alert volume, top target endpoints, and sensor pipeline health.</div>
-      <div class="dash-card-tags"><span class="badge badge-critical">Tier 1</span><span class="badge badge-low">Live Stream</span></div>
-    </a>
-    <a href="02_incident_operations.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🚨</div>
-      <div class="dash-card-name">02. Incident Operations</div>
-      <div class="dash-card-desc">DFIR-IRIS incident triage queue, chronological kill chain progression, evidence locker, and SOAR actions.</div>
-      <div class="dash-card-tags"><span class="badge badge-critical">Tier 2</span><span class="badge badge-high">DFIR-IRIS</span></div>
-    </a>
-    <a href="03_detection_engineering.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🛠️</div>
-      <div class="dash-card-name">03. Detection Engineering</div>
-      <div class="dash-card-desc">13 Sigma rules catalog, pySigma transpiler, OpenSearch DSL queries, and CI test harness validation.</div>
-      <div class="dash-card-tags"><span class="badge badge-low">Tier 3</span><span class="badge badge-accent">13 Rules</span></div>
-    </a>
-    <a href="04_mitre_attack.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">⚡</div>
-      <div class="dash-card-name">04. MITRE ATT&amp;CK Matrix</div>
-      <div class="dash-card-desc">Interactive ATT&CK heatmap, tested adversary techniques, Caldera operations sync, and D3FEND mappings.</div>
-      <div class="dash-card-tags"><span class="badge badge-info">Tier 4</span><span class="badge badge-medium">ATT&CK v14</span></div>
-    </a>
-    <a href="05_threat_hunting.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🔎</div>
-      <div class="dash-card-name">05. Threat Hunting Sandbox</div>
-      <div class="dash-card-desc">Multi-engine search (VQL, KQL, Lucene), hypothesis-driven presets, outlier detection, and CSV export.</div>
-      <div class="dash-card-tags"><span class="badge badge-low">Tier 5</span><span class="badge badge-info">VQL &amp; KQL</span></div>
-    </a>
-    <a href="06_network_security.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🌐</div>
-      <div class="dash-card-name">06. Network Security &amp; NSM</div>
-      <div class="dash-card-desc">Zeek connection/DNS/TLS flows, Suricata 7.0 IDS alert signatures, DNS tunneling detector, and protocols.</div>
-      <div class="dash-card-tags"><span class="badge badge-low">Tier 6</span><span class="badge badge-high">Zeek + Suricata</span></div>
-    </a>
-    <a href="07_endpoint_security.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🖥️</div>
-      <div class="dash-card-name">07. Endpoint Security</div>
-      <div class="dash-card-desc">Sysmon Events 1/8/10/11, Linux Auditd, suspicious parent-child process tree visualizer, and LSASS access.</div>
-      <div class="dash-card-tags"><span class="badge badge-critical">Tier 7</span><span class="badge badge-accent">Sysmon Trees</span></div>
-    </a>
-    <a href="08_ai_soc.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">🤖</div>
-      <div class="dash-card-name">08. Autonomous AI SOC</div>
-      <div class="dash-card-desc">CrewAI multi-agent triage engine, local Ollama Llama-3 verdicts, confidence scores, and false positive filters.</div>
-      <div class="dash-card-tags"><span class="badge badge-low">Tier 8</span><span class="badge badge-low">CrewAI</span></div>
-    </a>
-    <a href="09_platform_health.html" class="dash-card primary-tier">
-      <div class="dash-card-icon">💚</div>
-      <div class="dash-card-name">09. Platform Health &amp; Reliability</div>
-      <div class="dash-card-desc">12 Docker microservices status, Vector ingestion throughput (EPS), buffer health, and cluster topology.</div>
-      <div class="dash-card-tags"><span class="badge badge-low">Tier 9</span><span class="badge badge-low">12 Services</span></div>
-    </a>
-  </div>
-
-  <!-- SPECIALIZED ENGINES & DEEP DIVES -->
-  <div class="section-title">
-    <span>🔬 Specialized Tool Deep Dives &amp; Forensic Consoles</span>
-    <span style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);">Direct Console Access</span>
-  </div>
-  <div class="dash-grid">
-    <a href="02_opensearch_siem.html" class="dash-card"><div class="dash-card-icon">🔍</div><div class="dash-card-name">OpenSearch SIEM</div><div class="dash-card-desc">Raw 24h event timeline, query console, severity breakdown, ElastAlert2 rules.</div><div class="dash-card-tags"><span class="badge badge-high">SIEM</span></div></a>
-    <a href="03_zeek_network.html" class="dash-card"><div class="dash-card-icon">📡</div><div class="dash-card-name">Zeek NSM Evidence</div><div class="dash-card-desc">Deep connection logs, DNS records, SSL handshakes, and protocol decodes.</div><div class="dash-card-tags"><span class="badge badge-medium">NSM</span></div></a>
-    <a href="04_suricata_ids.html" class="dash-card"><div class="dash-card-icon">🛡️</div><div class="dash-card-name">Suricata IDS / IPS</div><div class="dash-card-desc">EVE JSON telemetry, signature management, and intrusion prevention events.</div><div class="dash-card-tags"><span class="badge badge-critical">IDS</span></div></a>
-    <a href="05_ai_agents.html" class="dash-card"><div class="dash-card-icon">🧠</div><div class="dash-card-name">CrewAI Multi-Agent API</div><div class="dash-card-desc">REST API integration, task orchestration, and LLM triage debugger.</div><div class="dash-card-tags"><span class="badge badge-low">Ollama</span></div></a>
-    <a href="06_iris_cases.html" class="dash-card"><div class="dash-card-icon">📋</div><div class="dash-card-name">DFIR-IRIS Case Manager</div><div class="dash-card-desc">Case timelines, evidence attachments, IOC tracking, and incident reporting.</div><div class="dash-card-tags"><span class="badge badge-critical">Cases</span></div></a>
-    <a href="07_caldera_attack.html" class="dash-card"><div class="dash-card-icon">⚔️</div><div class="dash-card-name">Caldera Adversary Emulation</div><div class="dash-card-desc">Automated adversary profiles, operation planner, and detection scoring.</div><div class="dash-card-tags"><span class="badge badge-medium">Caldera</span></div></a>
-    <a href="08_misp_ti.html" class="dash-card"><div class="dash-card-icon">🌍</div><div class="dash-card-name">MISP Threat Intelligence</div><div class="dash-card-desc">Threat actor attribution, IoC feeds, STIX/TAXII synchronization.</div><div class="dash-card-tags"><span class="badge badge-low">MISP</span></div></a>
-    <a href="09_velociraptor.html" class="dash-card"><div class="dash-card-icon">🦖</div><div class="dash-card-name">Velociraptor DFIR</div><div class="dash-card-desc">Live endpoint forensics, VQL artifact execution, and process memory triage.</div><div class="dash-card-tags"><span class="badge badge-critical">VQL</span></div></a>
-    <a href="10_responder_redteam.html" class="dash-card"><div class="dash-card-icon">🎭</div><div class="dash-card-name">Responder Red Team Evidence</div><div class="dash-card-desc">LLMNR/NBT-NS lab evidence, intercepted hashes, and blue-team response.</div><div class="dash-card-tags"><span class="badge badge-critical">Lab Only</span></div></a>
-    <a href="12_purple_team.html" class="dash-card"><div class="dash-card-icon">🎯</div><div class="dash-card-name">Purple Team Matrix</div><div class="dash-card-desc">Synchronized Red-to-Blue correlation, detection scoring, and SOAR flows.</div><div class="dash-card-tags"><span class="badge badge-critical">Purple Team</span></div></a>
-  </div>
-
-  <!-- DIRECT TOOL LINKS -->
-  <div class="section-title"><span>🔗 Direct Tool Web Interfaces</span></div>
-  <div class="tools-grid">
-    <a href="http://localhost:5601" target="_blank" class="tool-link">🔍 OpenSearch Dashboards <span class="tool-port">:5601</span></a>
-    <a href="https://localhost:8443" target="_blank" class="tool-link">📋 DFIR-IRIS <span class="tool-port">:8443</span></a>
-    <a href="http://localhost:8888" target="_blank" class="tool-link">⚔️ MITRE Caldera <span class="tool-port">:8888</span></a>
-    <a href="https://localhost:8889" target="_blank" class="tool-link">🦖 Velociraptor <span class="tool-port">:8889</span></a>
-    <a href="http://localhost:8081" target="_blank" class="tool-link">🕵️ MISP <span class="tool-port">:8081</span></a>
-    <a href="http://localhost:9101" target="_blank" class="tool-link">⚡ StackStorm <span class="tool-port">:9101</span></a>
-    <a href="http://localhost:8500" target="_blank" class="tool-link">🤖 AI Agents API <span class="tool-port">:8500</span></a>
-    <a href="http://localhost:11434" target="_blank" class="tool-link">🧠 Ollama LLM <span class="tool-port">:11434</span></a>
+    <div class="hero-kpi-card crit">
+      <div class="hero-kpi-label"><span>Active P1 Incidents</span><span style="color:var(--critical)">●</span></div>
+      <div class="hero-kpi-val">3</div>
+      <div class="hero-kpi-sub">T1003.001, T1059.001</div>
+    </div>
+    <div class="hero-kpi-card high">
+      <div class="hero-kpi-label"><span>High Alerts (24h)</span><span style="color:var(--high)">●</span></div>
+      <div class="hero-kpi-val">8</div>
+      <div class="hero-kpi-sub">Active SOC Triage</div>
+    </div>
+    <div class="hero-kpi-card accent">
+      <div class="hero-kpi-label"><span>Ingestion Rate</span><span style="color:var(--accent)">●</span></div>
+      <div class="hero-kpi-val">842 <span style="font-size:12px;font-weight:500;">EPS</span></div>
+      <div class="hero-kpi-sub">48.2K Events / 24h</div>
+    </div>
+    <div class="hero-kpi-card low">
+      <div class="hero-kpi-label"><span>Sigma Rules</span><span style="color:var(--low)">●</span></div>
+      <div class="hero-kpi-val">13 / 13</div>
+      <div class="hero-kpi-sub">100% CI/CD Verified</div>
+    </div>
+    <div class="hero-kpi-card">
+      <div class="hero-kpi-label"><span>ATT&amp;CK Coverage</span><span style="color:var(--text-accent)">●</span></div>
+      <div class="hero-kpi-val">24 <span style="font-size:12px;font-weight:500;">Techs</span></div>
+      <div class="hero-kpi-sub">8 MITRE Tactics</div>
+    </div>
+    <div class="hero-kpi-card">
+      <div class="hero-kpi-label"><span>IRIS Open Cases</span><span style="color:var(--high)">●</span></div>
+      <div class="hero-kpi-val">2</div>
+      <div class="hero-kpi-sub">Case #1042 &amp; #1043</div>
+    </div>
+    <div class="hero-kpi-card low">
+      <div class="hero-kpi-label"><span>AI Triage Accuracy</span><span style="color:var(--low)">●</span></div>
+      <div class="hero-kpi-val">94.2%</div>
+      <div class="hero-kpi-sub">CrewAI + Llama 3</div>
+    </div>
+    <div class="hero-kpi-card">
+      <div class="hero-kpi-label"><span>Sensor Fleet</span><span style="color:var(--text-muted)">●</span></div>
+      <div class="hero-kpi-val">142</div>
+      <div class="hero-kpi-sub">Sysmon, Zeek, Suricata</div>
+    </div>
   </div>
 </div>
 
-<footer style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);">
-  Enterprise Detection Engineering &amp; SOC Operations Lab v2 · Authored by <a href="https://github.com/sandeepmothukuri" target="_blank" style="color:var(--accent);text-decoration:none;">Sandeep Mothukuri</a>
+<!-- Search & Filter Bar -->
+<div class="filter-toolbar">
+  <div class="search-box-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="portalSearch" class="portal-search-input" placeholder="Search operational tiers, forensic tools, ports (:5601), or techniques (T1003)..." oninput="filterCards()">
+  </div>
+  <div class="filter-pills">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All Interfaces</button>
+    <button class="filter-btn" onclick="setFilter('tier', this)">Enterprise Tiers (9)</button>
+    <button class="filter-btn" onclick="setFilter('tool', this)">Direct Web Tools (8)</button>
+    <button class="filter-btn" onclick="setFilter('console', this)">Forensic Consoles (16)</button>
+    <button class="filter-btn" onclick="setFilter('actions', this)">Rapid Actions</button>
+  </div>
+</div>
+
+<!-- Main Body -->
+<main class="portal-body">
+
+  <!-- SECTION 1: 9 CORE ENTERPRISE SOC TIERS -->
+  <div class="section-group" data-group="tier">
+    <div class="section-header-bar">
+      <div class="section-title">
+        <span>🛡️ Core Enterprise SOC Operations Tiers</span>
+      </div>
+      <span class="section-count-badge">9 Production Tiers</span>
+    </div>
+    <div class="tier-grid">
+      <a href="01_soc_command_center.html" class="dash-card primary-tier" data-keywords="01 soc command center executive kpis active incidents queue ingestion timeline eps zeek sysmon suricata tier1">
+        <div class="card-top">
+          <div class="dash-card-icon">📊</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>01. SOC Command Center</span> <span class="badge badge-critical">Tier 1</span></div>
+            <div class="dash-card-desc">Executive KPIs, active incident queue, 24h multi-sensor telemetry timeline, top target endpoints, and live ingestion health.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-low">Live Stream</span>
+          <span class="badge badge-accent">EPS Timeline</span>
+          <span class="badge badge-info">Multi-Sensor</span>
+        </div>
+      </a>
+
+      <a href="02_incident_operations.html" class="dash-card primary-tier" data-keywords="02 incident operations triage dfir iris case management evidence locker kill chain progression soar tier2">
+        <div class="card-top">
+          <div class="dash-card-icon">🚨</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>02. Incident Operations</span> <span class="badge badge-critical">Tier 2</span></div>
+            <div class="dash-card-desc">DFIR-IRIS incident triage queue, chronological kill chain progression, evidence locker, and automated containment actions.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-critical">P1 Incidents</span>
+          <span class="badge badge-high">DFIR-IRIS</span>
+          <span class="badge badge-accent">Evidence Vault</span>
+        </div>
+      </a>
+
+      <a href="03_detection_engineering.html" class="dash-card primary-tier" data-keywords="03 detection engineering 13 sigma rules catalog pysigma transpiler opensearch dsl queries test harness validation tier3">
+        <div class="card-top">
+          <div class="dash-card-icon">🛠️</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>03. Detection Engineering</span> <span class="badge badge-low">Tier 3</span></div>
+            <div class="dash-card-desc">13 Sigma rules catalog, pySigma transpiler, OpenSearch DSL queries, rule performance metrics, and CI validation harness.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-accent">13 Sigma Rules</span>
+          <span class="badge badge-low">pySigma</span>
+          <span class="badge badge-info">100% Pass</span>
+        </div>
+      </a>
+
+      <a href="04_mitre_attack.html" class="dash-card primary-tier" data-keywords="04 mitre att&ck matrix heatmap adversary techniques caldera operations sync d3fend countermeasures tier4">
+        <div class="card-top">
+          <div class="dash-card-icon">⚡</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>04. MITRE ATT&amp;CK Matrix</span> <span class="badge badge-info">Tier 4</span></div>
+            <div class="dash-card-desc">Interactive ATT&amp;CK heatmap, tested adversary techniques, Caldera operation synchronization, and D3FEND defensive mapping.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-info">ATT&amp;CK v14</span>
+          <span class="badge badge-medium">24 Techniques</span>
+          <span class="badge badge-accent">D3FEND</span>
+        </div>
+      </a>
+
+      <a href="05_threat_hunting.html" class="dash-card primary-tier" data-keywords="05 threat hunting sandbox vql kql lucene multi-engine search hypothesis presets outlier detection csv export tier5">
+        <div class="card-top">
+          <div class="dash-card-icon">🔎</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>05. Threat Hunting Sandbox</span> <span class="badge badge-low">Tier 5</span></div>
+            <div class="dash-card-desc">Multi-engine search (VQL, KQL, Lucene), hypothesis-driven presets, outlier detection, and forensic evidence export.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-info">VQL &amp; KQL</span>
+          <span class="badge badge-accent">Hypothesis Presets</span>
+          <span class="badge badge-low">Interactive</span>
+        </div>
+      </a>
+
+      <a href="06_network_security.html" class="dash-card primary-tier" data-keywords="06 network security nsm zeek flows dns tunneling detector suricata 7.0 ids alert signatures ssl handshakes tier6">
+        <div class="card-top">
+          <div class="dash-card-icon">🌐</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>06. Network Security &amp; NSM</span> <span class="badge badge-low">Tier 6</span></div>
+            <div class="dash-card-desc">Zeek connection/DNS/TLS flows, Suricata 7.0 IDS alert signatures, DNS entropy tunneling detector, and protocol analysis.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-high">Zeek + Suricata</span>
+          <span class="badge badge-critical">DNS Tunneling</span>
+          <span class="badge badge-accent">TLS Decodes</span>
+        </div>
+      </a>
+
+      <a href="07_endpoint_security.html" class="dash-card primary-tier" data-keywords="07 endpoint security sysmon events 1 8 10 11 linux auditd process tree visualizer lsass access tier7">
+        <div class="card-top">
+          <div class="dash-card-icon">🖥️</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>07. Endpoint Security</span> <span class="badge badge-critical">Tier 7</span></div>
+            <div class="dash-card-desc">Sysmon Events 1/8/10/11, Linux Auditd, suspicious parent-child process tree visualizer, and LSASS memory access triage.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-critical">LSASS Dump</span>
+          <span class="badge badge-accent">Sysmon Trees</span>
+          <span class="badge badge-info">Auditd</span>
+        </div>
+      </a>
+
+      <a href="08_ai_soc.html" class="dash-card primary-tier" data-keywords="08 autonomous ai soc crewai multi-agent triage engine local ollama llama-3 verdicts confidence scores false positive tier8">
+        <div class="card-top">
+          <div class="dash-card-icon">🤖</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>08. Autonomous AI SOC</span> <span class="badge badge-low">Tier 8</span></div>
+            <div class="dash-card-desc">CrewAI multi-agent triage engine, local Ollama Llama-3 verdicts, confidence scores, and automated false positive filtering.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-low">CrewAI Multi-Agent</span>
+          <span class="badge badge-info">Llama 3.2</span>
+          <span class="badge badge-accent">94.2% Conf</span>
+        </div>
+      </a>
+
+      <a href="09_platform_health.html" class="dash-card primary-tier" data-keywords="09 platform health reliability 12 docker microservices status vector throughput eps buffer health cluster topology tier9">
+        <div class="card-top">
+          <div class="dash-card-icon">💚</div>
+          <div class="card-header-text">
+            <div class="dash-card-name"><span>09. Platform Health &amp; Ops</span> <span class="badge badge-low">Tier 9</span></div>
+            <div class="dash-card-desc">12 Docker microservices live status, Vector ingestion throughput (EPS), buffer health, and OpenSearch cluster topology.</div>
+          </div>
+        </div>
+        <div class="dash-card-tags">
+          <span class="badge badge-low">12 Services</span>
+          <span class="badge badge-accent">Vector Buffer</span>
+          <span class="badge badge-info">2 Nodes</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 2: DIRECT INTEGRATION TOOL WEB INTERFACES -->
+  <div class="section-group" data-group="tool">
+    <div class="section-header-bar">
+      <div class="section-title">
+        <span>🔗 Direct Integration Web Interfaces &amp; Tool Launchpad</span>
+      </div>
+      <span class="section-count-badge">8 Core Backend Services</span>
+    </div>
+    
+    <div class="tools-catalog-grid">
+      
+      <!-- OpenSearch Dashboards -->
+      <div class="tool-inter-card" data-keywords="opensearch dashboards 5601 siem analytics visual lucene kql">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">🔍</span>
+              <span class="tool-name">OpenSearch Dashboards</span>
+            </div>
+            <span class="badge badge-low">HTTP :5601</span>
+          </div>
+          <div class="tool-desc">Primary enterprise SIEM visual analytics, Discover telemetry queries, index pattern management, and saved operational dashboards.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">admin / SocLabAdmin!2026#Secure</code></span>
+            <span class="badge badge-low">● READY</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:5601" target="_blank" class="btn-launch">Launch OpenSearch :5601 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('admin', 'SocLabAdmin!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- DFIR-IRIS -->
+      <div class="tool-inter-card" data-keywords="dfir-iris dfir iris 8443 https case management incident response forensics">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">📋</span>
+              <span class="tool-name">DFIR-IRIS Case Manager</span>
+            </div>
+            <span class="badge badge-high">HTTPS :8443</span>
+          </div>
+          <div class="tool-desc">Collaborative incident response platform, case timelines, IOC tracking, evidence chain of custody, and forensic reporting.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">administrator / IrisAdmin!2026#Secure</code></span>
+            <span class="badge badge-info">TLS Warning</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="https://localhost:8443" target="_blank" class="btn-launch">Launch DFIR-IRIS :8443 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('administrator', 'IrisAdmin!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- MITRE Caldera -->
+      <div class="tool-inter-card" data-keywords="mitre caldera 8888 adversary emulation red team c2 sandcat agent">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">⚔️</span>
+              <span class="tool-name">MITRE Caldera C2</span>
+            </div>
+            <span class="badge badge-low">HTTP :8888</span>
+          </div>
+          <div class="tool-desc">Automated adversary emulation framework, ATT&amp;CK profile orchestrator, Sandcat C2 agents, and blue team detection scorer.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">admin / CalderaAdmin!2026#Secure</code></span>
+            <span class="badge badge-low">● READY</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:8888" target="_blank" class="btn-launch">Launch Caldera :8888 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('admin', 'CalderaAdmin!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- Velociraptor -->
+      <div class="tool-inter-card" data-keywords="velociraptor 8889 https vql endpoint forensics artifact collection dfir">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">🦖</span>
+              <span class="tool-name">Velociraptor DFIR</span>
+            </div>
+            <span class="badge badge-high">HTTPS :8889</span>
+          </div>
+          <div class="tool-desc">Advanced endpoint visibility &amp; digital forensics engine, VQL hunting artifact collector, and memory dump analysis.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">admin / SocLabAdmin!2026#Secure</code></span>
+            <span class="badge badge-info">TLS Warning</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="https://localhost:8889" target="_blank" class="btn-launch">Launch Velociraptor :8889 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('admin', 'SocLabAdmin!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- MISP -->
+      <div class="tool-inter-card" data-keywords="misp 8081 threat intelligence ioc feed stix taxii sharing attribution">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">🕵️</span>
+              <span class="tool-name">MISP Threat Intelligence</span>
+            </div>
+            <span class="badge badge-low">HTTP :8081</span>
+          </div>
+          <div class="tool-desc">Open source threat intelligence platform for sharing, storing and correlating Indicators of Compromise (IOCs) and threat actors.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">admin@soc.local / MispAdmin!2026#Secure</code></span>
+            <span class="badge badge-low">● READY</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:8081" target="_blank" class="btn-launch">Launch MISP :8081 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('admin@soc.local', 'MispAdmin!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- StackStorm -->
+      <div class="tool-inter-card" data-keywords="stackstorm 9101 soar automation playbooks incident containment rabbitmq mongo">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">⚡</span>
+              <span class="tool-name">StackStorm SOAR</span>
+            </div>
+            <span class="badge badge-low">HTTP :9101</span>
+          </div>
+          <div class="tool-desc">Event-driven security orchestration and automated response (SOAR), automated firewall blocking, and IP quarantine workflows.</div>
+          <div class="tool-meta-bar">
+            <span>Auth: <code class="mono">st2admin / StackStorm!2026#Secure</code></span>
+            <span class="badge badge-accent">● AUTOMATION</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:9101" target="_blank" class="btn-launch">Launch StackStorm :9101 ↗</a>
+          <button class="btn-copy-cred" onclick="copyCred('st2admin', 'StackStorm!2026#Secure')">📋 Copy Auth</button>
+        </div>
+      </div>
+
+      <!-- AI Agents API -->
+      <div class="tool-inter-card" data-keywords="ai agents api 8500 fastapi crewai triage swagger rest api docs">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">🤖</span>
+              <span class="tool-name">AI Agents FastAPI</span>
+            </div>
+            <span class="badge badge-low">HTTP :8500</span>
+          </div>
+          <div class="tool-desc">Autonomous multi-agent SOC triage REST API, Interactive OpenAPI / Swagger UI documentation, and real-time reasoning stream.</div>
+          <div class="tool-meta-bar">
+            <span>Docs: <code class="mono">http://localhost:8500/docs</code></span>
+            <span class="badge badge-low">● FASTAPI</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:8500/docs" target="_blank" class="btn-launch">Open Swagger API Docs ↗</a>
+          <a href="http://localhost:8500" target="_blank" class="btn-copy-cred">API Root :8500</a>
+        </div>
+      </div>
+
+      <!-- Ollama LLM -->
+      <div class="tool-inter-card" data-keywords="ollama llm 11434 llama3 local model generative ai rest api">
+        <div>
+          <div class="tool-header-row">
+            <div class="tool-title-wrap">
+              <span class="tool-icon">🧠</span>
+              <span class="tool-name">Ollama Local LLM</span>
+            </div>
+            <span class="badge badge-low">HTTP :11434</span>
+          </div>
+          <div class="tool-desc">High-performance local LLM engine powering private, air-gapped security reasoning with Llama 3.2:3b and CodeLlama.</div>
+          <div class="tool-meta-bar">
+            <span>Model: <code class="mono">llama3.2:3b (Active)</code></span>
+            <span class="badge badge-accent">● LOCAL AI</span>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <a href="http://localhost:11434" target="_blank" class="btn-launch">Ollama Endpoint :11434 ↗</a>
+          <button class="btn-copy-cred" onclick="copyText('curl http://localhost:11434/api/tags')">📋 Copy Curl</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION 3: SPECIALIZED FORENSIC CONSOLES & DEEP DIVES -->
+  <div class="section-group" data-group="console">
+    <div class="section-header-bar">
+      <div class="section-title">
+        <span>🔬 Specialized Forensic Consoles &amp; Deep Dives</span>
+      </div>
+      <span class="section-count-badge">16 Deep Dive Consoles</span>
+    </div>
+    
+    <div class="console-grid">
+      <a href="02_opensearch_siem.html" class="dash-card" data-keywords="opensearch siem console elastalert discover lucene"><div class="dash-card-icon">🔍</div><div class="dash-card-name">OpenSearch SIEM</div><div class="dash-card-desc">Raw 24h event timeline, query console, severity breakdown, ElastAlert2 rules.</div><div class="dash-card-tags"><span class="badge badge-high">SIEM</span></div></a>
+      
+      <a href="03_zeek_network.html" class="dash-card" data-keywords="zeek network nsm dns ssl conn flows"><div class="dash-card-icon">📡</div><div class="dash-card-name">Zeek NSM Evidence</div><div class="dash-card-desc">Deep connection logs, DNS records, SSL handshakes, and protocol decodes.</div><div class="dash-card-tags"><span class="badge badge-medium">NSM</span></div></a>
+      
+      <a href="04_suricata_ids.html" class="dash-card" data-keywords="suricata ids ips eve json alert signatures"><div class="dash-card-icon">🛡️</div><div class="dash-card-name">Suricata IDS / IPS</div><div class="dash-card-desc">EVE JSON telemetry, signature management, and intrusion prevention events.</div><div class="dash-card-tags"><span class="badge badge-critical">IDS</span></div></a>
+      
+      <a href="05_ai_agents.html" class="dash-card" data-keywords="crewai ai agents multi-agent reasoning trace"><div class="dash-card-icon">🧠</div><div class="dash-card-name">CrewAI Multi-Agent API</div><div class="dash-card-desc">REST API integration, task orchestration, and LLM triage debugger.</div><div class="dash-card-tags"><span class="badge badge-low">Ollama</span></div></a>
+      
+      <a href="06_iris_cases.html" class="dash-card" data-keywords="dfir-iris cases evidence ioc tracking"><div class="dash-card-icon">📋</div><div class="dash-card-name">DFIR-IRIS Case Manager</div><div class="dash-card-desc">Case timelines, evidence attachments, IOC tracking, and incident reporting.</div><div class="dash-card-tags"><span class="badge badge-critical">Cases</span></div></a>
+      
+      <a href="07_caldera_attack.html" class="dash-card" data-keywords="caldera attack emulation sandcat adversary"><div class="dash-card-icon">⚔️</div><div class="dash-card-name">Caldera Emulation</div><div class="dash-card-desc">Automated adversary profiles, operation planner, and detection scoring.</div><div class="dash-card-tags"><span class="badge badge-medium">Caldera</span></div></a>
+      
+      <a href="08_misp_ti.html" class="dash-card" data-keywords="misp threat intel stix taxii attribution"><div class="dash-card-icon">🌍</div><div class="dash-card-name">MISP Threat Intel</div><div class="dash-card-desc">Threat actor attribution, IoC feeds, STIX/TAXII synchronization.</div><div class="dash-card-tags"><span class="badge badge-low">MISP</span></div></a>
+      
+      <a href="09_velociraptor.html" class="dash-card" data-keywords="velociraptor dfir vql endpoint artifacts"><div class="dash-card-icon">🦖</div><div class="dash-card-name">Velociraptor DFIR</div><div class="dash-card-desc">Live endpoint forensics, VQL artifact execution, and process memory triage.</div><div class="dash-card-tags"><span class="badge badge-critical">VQL</span></div></a>
+      
+      <a href="10_responder_redteam.html" class="dash-card" data-keywords="responder red team llmnr nbt-ns hashes lab"><div class="dash-card-icon">🎭</div><div class="dash-card-name">Responder Red Team</div><div class="dash-card-desc">LLMNR/NBT-NS lab evidence, intercepted hashes, and blue-team response.</div><div class="dash-card-tags"><span class="badge badge-critical">Lab Only</span></div></a>
+      
+      <a href="12_purple_team.html" class="dash-card" data-keywords="purple team correlation matrix red to blue"><div class="dash-card-icon">🎯</div><div class="dash-card-name">Purple Team Matrix</div><div class="dash-card-desc">Synchronized Red-to-Blue correlation, detection scoring, and SOAR flows.</div><div class="dash-card-tags"><span class="badge badge-critical">Purple Team</span></div></a>
+
+      <a href="14_cloud_security.html" class="dash-card" data-keywords="cloud security aws gcp azure iam audit"><div class="dash-card-icon">☁️</div><div class="dash-card-name">Cloud Security &amp; IAM</div><div class="dash-card-desc">Multi-cloud audit trails, privilege escalation monitor, and IAM anomalies.</div><div class="dash-card-tags"><span class="badge badge-info">Cloud SOC</span></div></a>
+
+      <a href="15_malware_analysis.html" class="dash-card" data-keywords="malware dynamic analysis yara sandbox pe"><div class="dash-card-icon">🧪</div><div class="dash-card-name">Malware Dynamic Sandbox</div><div class="dash-card-desc">Automated binary execution, YARA signature scanner, and behavioral drops.</div><div class="dash-card-tags"><span class="badge badge-critical">Sandbox</span></div></a>
+
+      <a href="16_d3fend_matrix.html" class="dash-card" data-keywords="d3fend matrix countermeasures defensive mitre"><div class="dash-card-icon">🛡️</div><div class="dash-card-name">MITRE D3FEND Matrix</div><div class="dash-card-desc">Defensive countermeasure mapping, hardening controls, and posture matrix.</div><div class="dash-card-tags"><span class="badge badge-low">Defensive</span></div></a>
+
+      <a href="17_asset_inventory.html" class="dash-card" data-keywords="asset inventory cmdb hosts servers topology"><div class="dash-card-icon">📦</div><div class="dash-card-name">Asset Inventory &amp; CMDB</div><div class="dash-card-desc">Enterprise host catalog, critical crown-jewel assets, and vulnerability posture.</div><div class="dash-card-tags"><span class="badge badge-accent">CMDB</span></div></a>
+
+      <a href="18_threat_intel_feeds.html" class="dash-card" data-keywords="threat intel feeds cve cisa kev alienvault"><div class="dash-card-icon">🌐</div><div class="dash-card-name">Threat Intel &amp; CVE Feeds</div><div class="dash-card-desc">Live CISA KEV feeds, AlienVault OTX pulses, and zero-day advisory tracker.</div><div class="dash-card-tags"><span class="badge badge-high">Threat Intel</span></div></a>
+
+      <a href="19_network_topology.html" class="dash-card" data-keywords="network topology sensor taps spans routers"><div class="dash-card-icon">🗺️</div><div class="dash-card-name">Sensor &amp; Network Topology</div><div class="dash-card-desc">Visual network architecture, Zeek/Suricata tap points, and gateway routing.</div><div class="dash-card-tags"><span class="badge badge-info">Topology</span></div></a>
+    </div>
+  </div>
+
+  <!-- SECTION 4: RAPID ACTIONS & OPERATIONAL LAUNCHPAD -->
+  <div class="section-group" data-group="actions">
+    <div class="section-header-bar">
+      <div class="section-title">
+        <span>⚡ Detection Engineering &amp; SOC Rapid Actions</span>
+      </div>
+      <span class="section-count-badge">Quick Execution</span>
+    </div>
+    
+    <div class="actions-grid">
+      <div class="action-card" data-keywords="validate detections test harness sigma bash tools">
+        <div class="action-info">
+          <div class="action-title">🧪 Run Detection CI Validation Harness</div>
+          <div class="action-cmd">bash tools/validate-detections.sh</div>
+        </div>
+        <button class="btn-act" onclick="copyText('bash tools/validate-detections.sh')">📋 Copy</button>
+      </div>
+
+      <div class="action-card" data-keywords="adversary emulation attack simulation python attack-sim">
+        <div class="action-info">
+          <div class="action-title">⚔️ Launch Caldera Attack Simulation</div>
+          <div class="action-cmd">python attack-sim/run_simulation.py</div>
+        </div>
+        <button class="btn-act" onclick="copyText('python attack-sim/run_simulation.py')">📋 Copy</button>
+      </div>
+
+      <div class="action-card" data-keywords="transpile sigma opensearch dsl rules python">
+        <div class="action-info">
+          <div class="action-title">🔄 Transpile Sigma to OpenSearch DSL</div>
+          <div class="action-cmd">python tools/transpile-sigma-to-opensearch.py</div>
+        </div>
+        <button class="btn-act" onclick="copyText('python tools/transpile-sigma-to-opensearch.py')">📋 Copy</button>
+      </div>
+
+      <div class="action-card" data-keywords="ai triage test alert crewai fastapi curl">
+        <div class="action-info">
+          <div class="action-title">🤖 Dispatch Test Alert to CrewAI Triage</div>
+          <div class="action-cmd">curl -X POST http://localhost:8500/triage</div>
+        </div>
+        <button class="btn-act" onclick="copyText('curl -X POST http://localhost:8500/triage -H \"Content-Type: application/json\" -d \'{\"alert_id\":\"ALT-1092\",\"title\":\"Mimikatz LSASS Dump\"}\'')">📋 Copy</button>
+      </div>
+
+      <div class="action-card" data-keywords="docker compose restart opensearch dashboards services">
+        <div class="action-info">
+          <div class="action-title">🚀 Start Core SIEM &amp; Dashboards Stack</div>
+          <div class="action-cmd">docker compose up -d opensearch-node1 opensearch-dashboards</div>
+        </div>
+        <button class="btn-act" onclick="copyText('docker compose up -d opensearch-node1 opensearch-node2 opensearch-dashboards')">📋 Copy</button>
+      </div>
+
+      <div class="action-card" data-keywords="health check e2e test pipeline curl">
+        <div class="action-info">
+          <div class="action-title">🔍 Run Full End-to-End Pipeline Check</div>
+          <div class="action-cmd">bash tools/test-e2e-harness.sh</div>
+        </div>
+        <button class="btn-act" onclick="copyText('bash tools/test-e2e-harness.sh')">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Live Rolling Detection Ticker -->
+<div class="ticker">
+  <div class="ticker-label"><span>🚨 LIVE TELEMETRY STREAM</span> <span>▶</span></div>
+  <div class="ticker-track">
+    <div class="ticker-inner">
+      <span class="ticker-item"><span class="t-crit">[CRITICAL]</span> T1003.001 LSASS Memory Dump detected via Sysmon Event 10 on <code class="mono">WIN-SRV-DC01</code> (mimikatz.exe)</span>
+      <span class="ticker-item"><span class="t-high">[HIGH]</span> T1059.001 Obfuscated PowerShell Base64 Execution detected on <code class="mono">WORKSTATION-42</code></span>
+      <span class="ticker-item"><span class="t-crit">[CRITICAL]</span> T1550.002 Pass-the-Hash Kerberos Ticket Forgery flagged via Zeek Kerberos decode</span>
+      <span class="ticker-item"><span class="t-high">[HIGH]</span> T1046 DNS Tunneling High Shannon Entropy (>4.2) flagged via Suricata SID 2009582</span>
+      <span class="ticker-item"><span class="t-accent">[AI VERDICT]</span> CrewAI Agent marked Alert #ALT-1092 as <b style="color:var(--critical)">TRUE POSITIVE (98.4% Confidence)</b></span>
+      <span class="ticker-item"><span class="t-high">[SOAR]</span> StackStorm executed Automated IP Quarantine on <code class="mono">192.168.1.100</code></span>
+      <!-- Duplicate for seamless scroll loop -->
+      <span class="ticker-item"><span class="t-crit">[CRITICAL]</span> T1003.001 LSASS Memory Dump detected via Sysmon Event 10 on <code class="mono">WIN-SRV-DC01</code> (mimikatz.exe)</span>
+      <span class="ticker-item"><span class="t-high">[HIGH]</span> T1059.001 Obfuscated PowerShell Base64 Execution detected on <code class="mono">WORKSTATION-42</code></span>
+      <span class="ticker-item"><span class="t-crit">[CRITICAL]</span> T1550.002 Pass-the-Hash Kerberos Ticket Forgery flagged via Zeek Kerberos decode</span>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer style="text-align:center;padding:24px 20px 48px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);background:var(--bg-surface);margin-top:40px;">
+  <div>Enterprise Detection Engineering &amp; Autonomous SOC Operations Platform v2.6</div>
+  <div style="margin-top:6px;">Authored by <a href="https://github.com/sandeepmothukuri" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">Sandeep Mothukuri</a> · 100% CI/CD Verified · Production OpenSearch &amp; Sigma Architecture</div>
 </footer>
-  <script src="soc-copilot.js"></script>
+
+<!-- Toast UI -->
+<div id="socToast" class="soc-toast">Copied to clipboard</div>
+
+<script>
+  // Real-time UTC clock
+  function updateClock() {
+    const now = new Date();
+    const utc = now.toUTCString().split(' ')[4] + ' UTC';
+    const el = document.getElementById('clock');
+    if (el) el.textContent = utc;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Instant Card Filter
+  function filterCards() {
+    const query = document.getElementById('portalSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.dash-card, .tool-inter-card, .action-card');
+    
+    cards.forEach(card => {
+      const keywords = (card.getAttribute('data-keywords') || '') + ' ' + (card.textContent || '');
+      if (keywords.toLowerCase().includes(query)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Category Filter Pills
+  function setFilter(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const groups = document.querySelectorAll('.section-group');
+    if (type === 'all') {
+      groups.forEach(g => g.style.display = '');
+    } else {
+      groups.forEach(g => {
+        if (g.getAttribute('data-group') === type) {
+          g.style.display = '';
+        } else {
+          g.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  // Copy Auth Credentials
+  function copyCred(user, pass) {
+    const text = `Username: ${user}\nPassword: ${pass}`;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`Credentials copied: ${user}`);
+    });
+  }
+
+  function copyText(str) {
+    navigator.clipboard.writeText(str).then(() => {
+      showToast(`Copied: ${str}`);
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('socToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => {
+      t.classList.remove('show');
+    }, 2500);
+  }
+</script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>
