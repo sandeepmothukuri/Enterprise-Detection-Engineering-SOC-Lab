@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 8: Autonomous AI SOC — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .agent-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .verdict-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .confidence-meter {
+      height: 6px;
+      background: var(--bg-base);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .confidence-fill {
+      height: 100%;
+      background: var(--low);
+    }
+    .confidence-fill.high-crit {
+      background: var(--critical);
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html" class="active"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🤖</span> Tier 8 — Autonomous AI SOC &amp; Multi-Agent Triage</div>
+    <span class="topbar-meta">CrewAI Autonomous Framework · Ollama Local Llama-3 Engine</span>
+    <div class="topbar-right">
+      <a href="05_ai_agents.html" class="btn btn-secondary btn-sm">Agent API Console →</a>
+      <button class="btn btn-primary btn-sm" onclick="runAiTriage()">⚡ Run AI Triage on Queue</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- KPI Metric Summary -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card low">
+        <div class="kpi-label">Auto-Triaged Alerts</div>
+        <div class="kpi-value">128 Alerts</div>
+        <div class="kpi-sub">100% On-Premises LLM</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">True Positives Escalated</div>
+        <div class="kpi-value">14 Alerts</div>
+        <div class="kpi-sub">Avg Confidence: 94.2%</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">False Positive Suppression</div>
+        <div class="kpi-value">62%</div>
+        <div class="kpi-sub">Noise Filtered Autonomously</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Human Review Queue</div>
+        <div class="kpi-value">2 Items</div>
+        <div class="kpi-sub">Confidence &lt; 0.85</div>
+      </div>
+    </div>
+
+    <!-- Multi-Agent Pipeline Visualization -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">🧠 CrewAI Autonomous Agent Roles &amp; Live State</span>
+        <span class="badge badge-low">All 3 Agents Active</span>
+      </div>
+      <div class="card-body">
+        <div class="grid-3">
+          
+          <div class="agent-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:13px;">🤖 Agent 1: Triage Analyst</strong>
+              <span class="badge badge-low">IDLE / READY</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin:0;">Extracts process lineage, parses command-line arguments, checks privilege tokens, and normalizes telemetry artifacts.</p>
+            <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">Role: TriageAnalyst | Model: llama3:8b</div>
+          </div>
+
+          <div class="agent-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:13px;">🔬 Agent 2: Threat Contextualizer</strong>
+              <span class="badge badge-low">IDLE / READY</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin:0;">Queries MISP threat intelligence, maps MITRE ATT&CK techniques, and checks LOLBAS binary usage databases.</p>
+            <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">Role: Contextualizer | Model: llama3:8b</div>
+          </div>
+
+          <div class="agent-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:13px;">🛡️ Agent 3: Incident Responder</strong>
+              <span class="badge badge-low">IDLE / READY</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin:0;">Synthesizes findings, assigns confidence score, updates DFIR-IRIS case ticket, and dispatches containment actions.</p>
+            <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">Role: IncidentResponder | Model: llama3:8b</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Autonomous AI Verdicts Stream -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Autonomous AI Triage Verdicts &amp; Reasoning Feed</span>
+      </div>
+      <div class="card-body">
+        
+        <div class="verdict-card" style="border-left:4px solid var(--critical);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div>
+              <strong style="font-size:13px;color:var(--critical);">TRUE POSITIVE · HIGH CONFIDENCE ESCALATION</strong>
+              <span style="font-size:11px;color:var(--text-muted);margin-left:8px;font-family:var(--font-mono);">Alert: SIG-WIN-001 (LSASS Memory Dump) · Host: WIN-DC01</span>
+            </div>
+            <span class="badge badge-critical">Confidence: 96%</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-secondary);margin:0 0 6px;">
+            <strong>AI Reasoning:</strong> Binary <code>mimikatz.exe</code> requested <code>0x1010</code> (PROCESS_VM_READ | PROCESS_QUERY_INFORMATION) access to <code>lsass.exe</code>. Correlated with previous LLMNR broadcast poisoning alerts on the same subnet within 14 minutes. Confirmed credential dumping attempt.
+          </p>
+          <div style="display:flex;gap:15px;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+            <span>Recommended Action: Isolate WIN-DC01 &amp; Invalidate Kerberos TGTs</span>
+            <span>IRIS Case: INC-2026-089 (Updated)</span>
+          </div>
+        </div>
+
+        <div class="verdict-card" style="border-left:4px solid var(--low);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div>
+              <strong style="font-size:13px;color:var(--low);">FALSE POSITIVE · SUPPRESSED</strong>
+              <span style="font-size:11px;color:var(--text-muted);margin-left:8px;font-family:var(--font-mono);">Alert: SIG-WIN-008 (Scheduled Task) · Host: SRV-APP01</span>
+            </div>
+            <span class="badge badge-low">Confidence: 91%</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-secondary);margin:0 0 6px;">
+            <strong>AI Reasoning:</strong> <code>schtasks.exe /create</code> was executed by verified software deployment script <code>C:\Program Files\SCCM\deploy.ps1</code> matching standard IT maintenance baseline. Suppressed from Tier 1 analyst view.
+          </p>
+          <div style="display:flex;gap:15px;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+            <span>Action: Suppressed (Logged to soc-ai-* for audit)</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function runAiTriage() {
+  alert('[+] Dispatching CrewAI Multi-Agent pipeline against unreviewed alert queue...\nAgents executed successfully: 4 alerts triaged, 1 escalated, 3 suppressed.');
+}
+</script>
+</body>
+</html>

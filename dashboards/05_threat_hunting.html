@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 5: Threat Hunting Sandbox — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .query-textarea {
+      width: 100%;
+      height: 90px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: var(--space-3);
+      resize: vertical;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .query-textarea:focus {
+      border-color: var(--accent);
+    }
+    .preset-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-chip:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html" class="active"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🔎</span> Tier 5 — Threat Hunting Sandbox &amp; VQL Console</div>
+    <span class="topbar-meta">Multi-Engine Search: OpenSearch KQL · Velociraptor VQL · Lucene</span>
+    <div class="topbar-right">
+      <button class="btn btn-secondary btn-sm" onclick="exportResults()">📥 Export CSV</button>
+      <a href="09_velociraptor.html" class="btn btn-primary btn-sm">Velociraptor GUI →</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- KPI Metric Summary -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card info">
+        <div class="kpi-label">Active Hunts</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-sub">Process, DNS, Auth, Reg</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">Confirmed Anomalies</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">Outlier Process Handles</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Indexed Documents (24h)</div>
+        <div class="kpi-value">48.2K</div>
+        <div class="kpi-sub">soc-logs-* searchable</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Query Latency</div>
+        <div class="kpi-value">42ms</div>
+        <div class="kpi-sub">OpenSearch 2-Node Cluster</div>
+      </div>
+    </div>
+
+    <!-- Query Console Card -->
+    <div class="card mb-4">
+      <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+        <span class="card-title">⌨️ Threat Hunter Query Console</span>
+        <div style="display:flex;gap:6px;">
+          <button class="preset-chip" onclick="loadPreset('lsass')">LSASS Handle Outliers</button>
+          <button class="preset-chip" onclick="loadPreset('lolbas')">LOLBAS Process Trees</button>
+          <button class="preset-chip" onclick="loadPreset('dns')">DNS Tunneling Entropy</button>
+          <button class="preset-chip" onclick="loadPreset('auth')">Failed Logon Spikes (4625)</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea id="query-input" class="query-textarea">sensor: "sysmon" AND EventID: 10 AND TargetImage: "*\\lsass.exe" AND NOT SourceImage: ("*\\csrss.exe" OR "*\\MsMpEng.exe" OR "*\\svchost.exe")</textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+          <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+            Syntax: OpenSearch Lucene / KQL · Target: soc-logs-*
+          </div>
+          <button class="btn btn-primary" onclick="executeQuery()">▶ Execute Hunt Query</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📊 Hunt Findings &amp; Matching Records</span>
+        <span class="badge badge-accent" id="results-count">3 Matches Found</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <table class="data-table" id="results-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Host</th>
+              <th>User</th>
+              <th>Source Binary</th>
+              <th>Target / Query</th>
+              <th>Access / Details</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:54:10 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">WIN-DC01</td>
+              <td>SYSTEM</td>
+              <td style="font-family:var(--font-mono);color:var(--critical);">C:\Users\Admin\mimikatz.exe</td>
+              <td style="font-family:var(--font-mono);">C:\Windows\System32\lsass.exe</td>
+              <td style="font-family:var(--font-mono);color:var(--high);">GrantedAccess: 0x1010</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:48:22 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">WIN-DC01</td>
+              <td>SYSTEM</td>
+              <td style="font-family:var(--font-mono);color:var(--critical);">C:\Temp\procdump.exe</td>
+              <td style="font-family:var(--font-mono);">C:\Windows\System32\lsass.exe</td>
+              <td style="font-family:var(--font-mono);color:var(--high);">GrantedAccess: 0x1FFFFF</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:30:15 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">SRV-APP01</td>
+              <td>Administrator</td>
+              <td style="font-family:var(--font-mono);color:var(--high);">C:\Windows\System32\wmic.exe</td>
+              <td style="font-family:var(--font-mono);">process call create powershell</td>
+              <td style="font-family:var(--font-mono);">WMI Subscribed Execution</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const presets = {
+  lsass: 'sensor: "sysmon" AND EventID: 10 AND TargetImage: "*\\\\lsass.exe" AND NOT SourceImage: ("*\\\\csrss.exe" OR "*\\\\MsMpEng.exe" OR "*\\\\svchost.exe")',
+  lolbas: 'sensor: "sysmon" AND EventID: 1 AND ParentImage: (*winword.exe OR *excel.exe OR *w3wp.exe) AND Image: (*powershell.exe OR *cmd.exe OR *mshta.exe)',
+  dns: 'sensor: "zeek" AND service: "dns" AND NOT dns.rcode: "NXDOMAIN" AND dns.query: /[a-zA-Z0-9]{30,}\\..*/',
+  auth: 'EventID: 4625 AND Status: 0xC000006A'
+};
+
+function loadPreset(key) {
+  document.getElementById('query-input').value = presets[key];
+}
+
+function executeQuery() {
+  const query = document.getElementById('query-input').value;
+  alert(`[+] Querying OpenSearch index soc-logs-* for:\n${query}\n\nSearch complete: 3 matched records found.`);
+}
+
+function exportResults() {
+  alert('[+] Exporting hunt findings to CSV... Download complete: threat_hunt_results.csv');
+}
+</script>
+</body>
+</html>

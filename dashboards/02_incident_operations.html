@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 2: Incident Operations — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .case-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-3);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .case-card:hover, .case-card.active {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+    }
+    .timeline-node {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 20px;
+    }
+    .timeline-node::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: -20px;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-node:last-child::before {
+      display: none;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-base);
+      border: 3px solid var(--accent);
+    }
+    .timeline-dot.crit { border-color: var(--critical); }
+    .timeline-dot.high { border-color: var(--high); }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html" class="active"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🚨</span> Tier 2 — Incident Operations &amp; IRIS Cases</div>
+    <span class="topbar-meta">DFIR-IRIS Case Management Integration</span>
+    <div class="topbar-right">
+      <button class="btn btn-secondary btn-sm" onclick="exportCaseReport()">📥 Export IR Report</button>
+      <a href="06_iris_cases.html" class="btn btn-primary btn-sm">Open IRIS Portal →</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Top KPI Bar -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card critical">
+        <div class="kpi-label">Active Critical Incidents</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">INC-2026-089, INC-2026-091</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Under Investigation</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">Tier 2 Analyst Queue</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Isolated Endpoints</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-sub">WIN-DC01 (Network Quarantined)</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Resolved (30d)</div>
+        <div class="kpi-value">42</div>
+        <div class="kpi-sub">100% Post-Mortem Complete</div>
+      </div>
+    </div>
+
+    <div class="grid-2-1">
+      <!-- Left: Active Case List & Kill Chain Timeline -->
+      <div>
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">📋 Active Incident Triage Queue</span>
+            <span class="badge badge-critical">2 Active Cases</span>
+          </div>
+          <div class="card-body">
+            
+            <div class="case-card active" onclick="selectCase('INC-2026-089')">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-accent);">INC-2026-089</span>
+                <span class="badge badge-critical">CRITICAL · CONTAINMENT</span>
+              </div>
+              <h4 style="margin:0 0 6px;font-size:14px;">Domain Controller Credential Theft &amp; Pass-the-Hash</h4>
+              <p style="margin:0 0 8px;font-size:12px;color:var(--text-secondary);">Adversary executed Mimikatz against LSASS on WIN-DC01 following Responder LLMNR poisoning.</p>
+              <div style="display:flex;gap:12px;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+                <span>Host: WIN-DC01</span>
+                <span>User: SYSTEM / Admin</span>
+                <span>MITRE: T1003.001, T1550.002</span>
+              </div>
+            </div>
+
+            <div class="case-card" onclick="selectCase('INC-2026-091')">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-accent);">INC-2026-091</span>
+                <span class="badge badge-high">HIGH · TRIAGE</span>
+              </div>
+              <h4 style="margin:0 0 6px;font-size:14px;">Financial Workstation Macro Execution &amp; PowerShell C2</h4>
+              <p style="margin:0 0 8px;font-size:12px;color:var(--text-secondary);">Suspicious Word macro spawned hidden PowerShell downloading second-stage payload from 198.51.100.44.</p>
+              <div style="display:flex;gap:12px;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+                <span>Host: WS-FIN-04</span>
+                <span>User: jdoe</span>
+                <span>MITRE: T1059.001, T1071.004</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Chronological Kill Chain Reconstruction -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⏱️ Chronological Kill Chain Progression (INC-2026-089)</span>
+          </div>
+          <div class="card-body">
+            
+            <div class="timeline-node">
+              <div class="timeline-dot high"></div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">13:40:02 UTC · Zeek / Suricata</div>
+              <strong style="font-size:13px;">Phase 1: LLMNR / NBT-NS Poisoning (T1557)</strong>
+              <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0;">Responder poisoned broadcast query from WIN-DC01, intercepting NTLMv2 challenge response.</p>
+            </div>
+
+            <div class="timeline-node">
+              <div class="timeline-dot crit"></div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">13:54:10 UTC · Sysmon Event 10</div>
+              <strong style="font-size:13px;">Phase 2: LSASS Memory Handle Injection (T1003.001)</strong>
+              <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0;">Non-standard binary mimikatz.exe requested GrantedAccess: 0x1010 to LSASS memory.</p>
+            </div>
+
+            <div class="timeline-node">
+              <div class="timeline-dot crit"></div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">13:48:12 UTC · Windows Security 4624</div>
+              <strong style="font-size:13px;">Phase 3: Lateral Movement via Pass-the-Hash (T1550.002)</strong>
+              <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0;">Captured Domain Admin NTLM hash utilized to authenticate Logon Type 9 to SRV-APP01.</p>
+            </div>
+
+            <div class="timeline-node">
+              <div class="timeline-dot high"></div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">14:02:18 UTC · DFIR-IRIS SOAR</div>
+              <strong style="font-size:13px;">Phase 4: Automated Containment &amp; Host Isolation</strong>
+              <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0;">StackStorm playbook executed Velociraptor network quarantine artifact on WIN-DC01.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Evidence Locker & Containment Controls -->
+      <div>
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">🔬 Case Evidence &amp; IOC Locker</span>
+          </div>
+          <div class="card-body-sm">
+            <div style="margin-bottom:12px;">
+              <span class="status-label">Attacker IP (Responder)</span>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--critical);margin-top:2px;">172.20.0.99 (KALI-REDTEAM)</div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <span class="status-label">Compromised Account</span>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--high);margin-top:2px;">CORP\Administrator (NTLM Hash Extracted)</div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <span class="status-label">Payload SHA256 Hash</span>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);word-break:break-all;margin-top:2px;">a9f4c3b88d2146e9b9213ef2b81093df02189acbe110294827104bcefa019284</div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <span class="status-label">Target Binary</span>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-accent);margin-top:2px;">C:\Windows\System32\lsass.exe (PID 672)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🛡️ Response &amp; Containment Actions</span>
+          </div>
+          <div class="card-body-sm" style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn btn-danger" onclick="triggerAction('Host Isolation')">🚫 Isolate WIN-DC01 (Quarantine)</button>
+            <button class="btn btn-secondary" onclick="triggerAction('Block IP on Firewall')">🔥 Block 172.20.0.99 at Suricata</button>
+            <button class="btn btn-secondary" onclick="triggerAction('Revoke Kerberos Sessions')">🔑 Invalidate Admin Kerberos Tickets</button>
+            <button class="btn btn-secondary" onclick="triggerAction('Run Memory Dump')">💾 Collect Live Memory Dump via Velociraptor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function selectCase(caseId) {
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function triggerAction(actionName) {
+  alert(`[+] Action dispatched: ${actionName}\nSOAR playbook executed via StackStorm/Velociraptor API.`);
+}
+
+function exportCaseReport() {
+  alert('[+] Generating DFIR-IRIS Comprehensive Incident Report (PDF/JSON)... Export complete.');
+}
+</script>
+</body>
+</html>

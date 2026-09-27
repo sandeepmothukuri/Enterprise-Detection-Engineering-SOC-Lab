@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 4: MITRE ATT&CK Matrix — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .matrix-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+    .tactic-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+    }
+    .tactic-header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      text-align: center;
+    }
+    .tactic-body {
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tech-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 6px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tech-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+    }
+    .tech-card.covered {
+      border-left: 3px solid #10b981;
+    }
+    .tech-card.tested {
+      border-left: 3px solid #f43f5e;
+      background: rgba(244, 63, 94, 0.05);
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html" class="active"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">⚡</span> Tier 4 — MITRE ATT&CK Matrix &amp; Emulation Scoring</div>
+    <span class="topbar-meta">Enterprise v14 Matrix · 13 Covered Techniques · Caldera Adversary Sync</span>
+    <div class="topbar-right">
+      <a href="07_caldera_attack.html" class="btn btn-secondary btn-sm">Caldera Operations →</a>
+      <a href="16_d3fend_matrix.html" class="btn btn-primary btn-sm">D3FEND Countermeasures →</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- KPI Summary -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card low">
+        <div class="kpi-label">Tested Techniques</div>
+        <div class="kpi-value">13 / 13</div>
+        <div class="kpi-sub">100% Emulation Validated</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">Highest Risk Tactic</div>
+        <div class="kpi-value">Credential Access</div>
+        <div class="kpi-sub">3 Critical Techniques</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Lateral Movement</div>
+        <div class="kpi-value">2 Techniques</div>
+        <div class="kpi-sub">SMB Shares, Pass-the-Hash</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">D3FEND Defenses</div>
+        <div class="kpi-value">34 Mappings</div>
+        <div class="kpi-sub">Active Countermeasures</div>
+      </div>
+    </div>
+
+    <!-- Interactive Heatmap Matrix -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">🗺️ Enterprise ATT&CK Matrix Heatmap</span>
+        <div style="display:flex;gap:10px;font-size:11px;">
+          <span><span style="display:inline-block;width:10px;height:10px;background:#f43f5e;border-radius:2px;margin-right:4px;"></span>Adversary Tested</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:2px;margin-right:4px;"></span>Sigma Rule Covered</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="matrix-container">
+          
+          <!-- Discovery -->
+          <div class="tactic-col">
+            <div class="tactic-header">Discovery</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1046', 'Network Service Scanning', 'SIG-NET-002', 'Suricata / Zeek', 'Nmap SYN port scan against subnet')">
+                <strong>T1046</strong><br>Network Scanning
+              </div>
+            </div>
+          </div>
+
+          <!-- Execution -->
+          <div class="tactic-col">
+            <div class="tactic-header">Execution</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1047', 'WMI Execution', 'SIG-WIN-004', 'Sysmon Event 1', 'Caldera wmic process call create')">
+                <strong>T1047</strong><br>WMI Execution
+              </div>
+              <div class="tech-card tested" onclick="showTech('T1059.001', 'PowerShell Encoded', 'SIG-WIN-005', 'Sysmon Event 1', 'powershell.exe -enc payload')">
+                <strong>T1059.001</strong><br>PowerShell Encoded
+              </div>
+            </div>
+          </div>
+
+          <!-- Persistence -->
+          <div class="tactic-col">
+            <div class="tactic-header">Persistence</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1053.005', 'Scheduled Task', 'SIG-WIN-008', 'Sysmon Event 1', 'schtasks /create /sc minute')">
+                <strong>T1053.005</strong><br>Scheduled Task
+              </div>
+              <div class="tech-card tested" onclick="showTech('T1547.001', 'Registry Run Keys', 'SIG-WIN-009', 'Sysmon Event 13', 'HKCU Software Run modification')">
+                <strong>T1547.001</strong><br>Registry Run Keys
+              </div>
+            </div>
+          </div>
+
+          <!-- Defense Evasion -->
+          <div class="tactic-col">
+            <div class="tactic-header">Defense Evasion</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1562.001', 'Disable Defender', 'SIG-WIN-003', 'Sysmon Event 1', 'Set-MpPreference -DisableRealtime')">
+                <strong>T1562.001</strong><br>Disable Defender
+              </div>
+            </div>
+          </div>
+
+          <!-- Credential Access -->
+          <div class="tactic-col">
+            <div class="tactic-header">Credential Access</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1003.001', 'LSASS Memory Dump', 'SIG-WIN-001', 'Sysmon Event 10', 'Mimikatz sekurlsa::logonpasswords')">
+                <strong>T1003.001</strong><br>LSASS Dump
+              </div>
+              <div class="tech-card tested" onclick="showTech('T1110', 'Brute Force Spray', 'SIG-WIN-002', 'Win Security 4625', 'Hydra SMB / Kerbrute spray')">
+                <strong>T1110</strong><br>Brute Force
+              </div>
+              <div class="tech-card tested" onclick="showTech('T1557', 'LLMNR/NBT-NS Poison', 'SIG-NET-001', 'Zeek / Suricata', 'Kali Responder broadcast poisoning')">
+                <strong>T1557</strong><br>LLMNR Poisoning
+              </div>
+            </div>
+          </div>
+
+          <!-- Lateral Movement -->
+          <div class="tactic-col">
+            <div class="tactic-header">Lateral Movement</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1021.002', 'SMB Admin Shares', 'SIG-WIN-006', 'Zeek SMB / Sysmon', 'PsExec / NetExec C$ share access')">
+                <strong>T1021.002</strong><br>SMB Admin Shares
+              </div>
+              <div class="tech-card tested" onclick="showTech('T1550.002', 'Pass-the-Hash', 'SIG-WIN-007', 'Win Security 4624', 'Impacket wmiexec with NTLM hash')">
+                <strong>T1550.002</strong><br>Pass-the-Hash
+              </div>
+            </div>
+          </div>
+
+          <!-- Command & Control -->
+          <div class="tactic-col">
+            <div class="tactic-header">C2</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1071.004', 'DNS Tunneling', 'SIG-NET-004', 'Zeek dns.log', 'High entropy DNS TXT query exfil')">
+                <strong>T1071.004</strong><br>DNS Tunneling
+              </div>
+            </div>
+          </div>
+
+          <!-- Exfiltration -->
+          <div class="tactic-col">
+            <div class="tactic-header">Exfiltration</div>
+            <div class="tactic-body">
+              <div class="tech-card tested" onclick="showTech('T1041', 'C2 Exfiltration', 'SIG-NET-003', 'Zeek HTTP', 'Large POST body transfer to C2 IP')">
+                <strong>T1041</strong><br>C2 Exfiltration
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Technique Detail Drawer -->
+    <div class="card" id="tech-detail-card" style="display:none;">
+      <div class="card-header">
+        <span class="card-title" id="drawer-title">Technique Details</span>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('tech-detail-card').style.display='none'">✕ Close</button>
+      </div>
+      <div class="card-body-sm" id="drawer-body">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function showTech(id, name, rule, sensor, sim) {
+  const card = document.getElementById('tech-detail-card');
+  card.style.display = 'block';
+  document.getElementById('drawer-title').innerText = `⚡ ${id}: ${name}`;
+  document.getElementById('drawer-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div><span class="status-label">Detection Rule</span><div style="font-weight:700;color:var(--text-accent);">${rule}</div></div>
+      <div><span class="status-label">Primary Sensor</span><div style="font-weight:700;color:var(--low);">${sensor}</div></div>
+      <div><span class="status-label">Validation Status</span><span class="badge badge-critical">Tested &amp; Verified</span></div>
+    </div>
+    <div style="margin-bottom:8px;"><span class="status-label">Adversary Emulation Method</span><div style="font-family:var(--font-mono);font-size:12px;background:var(--bg-input);padding:6px 10px;border-radius:4px;border:1px solid var(--border);color:#38bdf8;">${sim}</div></div>
+  `;
+  card.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

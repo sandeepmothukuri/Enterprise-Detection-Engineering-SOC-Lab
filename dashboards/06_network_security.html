@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 6: Network Security &amp; NSM — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html" class="active"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🌐</span> Tier 6 — Network Security &amp; NSM</div>
+    <span class="topbar-meta">Zeek NSM Network Tap · Suricata 7.0 IDS / EVE JSON</span>
+    <div class="topbar-right">
+      <a href="03_zeek_network.html" class="btn btn-secondary btn-sm">Zeek Deep Dive →</a>
+      <a href="04_suricata_ids.html" class="btn btn-primary btn-sm">Suricata Rules →</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- KPI Metric Summary -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card info">
+        <div class="kpi-label">Active Connections (Zeek)</div>
+        <div class="kpi-value">1,842</div>
+        <div class="kpi-sub">TCP, UDP, ICMP Streamed</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">Suricata IDS Alerts</div>
+        <div class="kpi-value">14</div>
+        <div class="kpi-sub">ET OPEN / Custom Sigma</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">DNS Queries Analyzed</div>
+        <div class="kpi-value">9,210</div>
+        <div class="kpi-sub">2 Tunneling Outliers</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Packet Loss Rate</div>
+        <div class="kpi-value">0.00%</div>
+        <div class="kpi-sub">Vector Ingest Tap Stable</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid-2 mb-4">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📊 Top Network Protocols (Zeek conn.log)</span></div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:260px;">
+            <canvas id="protoChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚨 Suricata Alerts by Category</span></div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:260px;">
+            <canvas id="suriChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network Stream Table -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">📡 Live Zeek &amp; Suricata Network Telemetry Stream</span>
+        <span class="badge badge-accent">Live Stream</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Sensor</th>
+              <th>Source IP:Port</th>
+              <th>Destination IP:Port</th>
+              <th>Proto / Service</th>
+              <th>Alert / Signature</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:54:02 UTC</td>
+              <td><span class="badge badge-info">Suricata</span></td>
+              <td style="font-family:var(--font-mono);color:var(--critical);">172.20.0.99:5355</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.10:5355</td>
+              <td>UDP / llmnr</td>
+              <td>ET INFO LLMNR Non-Standard Query Poison Response</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:50:18 UTC</td>
+              <td><span class="badge badge-low">Zeek</span></td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.10:49210</td>
+              <td style="font-family:var(--font-mono);color:var(--high);">198.51.100.44:443</td>
+              <td>TCP / ssl</td>
+              <td>TLS SNI: c2.evil-attacker.org (High Entropy)</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:45:00 UTC</td>
+              <td><span class="badge badge-low">Zeek</span></td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.15:445</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.10:445</td>
+              <td>TCP / smb</td>
+              <td>Tree Connect: \\WIN-DC01\IPC$ (PsExec Service)</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:30:12 UTC</td>
+              <td><span class="badge badge-info">Suricata</span></td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.99:41022</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">172.20.0.10:1-1024</td>
+              <td>TCP / syn</td>
+              <td>ET SCAN Potential Nmap SYN Port Scan Detected</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  new Chart(document.getElementById('protoChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['HTTPS/TLS', 'DNS', 'SMB/RPC', 'HTTP', 'SSH', 'LLMNR'],
+      datasets: [{
+        data: [45, 25, 15, 8, 4, 3],
+        backgroundColor: ['#38bdf8', '#10b981', '#fb923c', '#fbbf24', '#a855f7', '#f43f5e']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#9cb2d6', font: { size: 10 } } } }
+    }
+  });
+
+  new Chart(document.getElementById('suriChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Credential Theft', 'Malware C2', 'Lateral Movement', 'Recon Scan', 'Policy Violation'],
+      datasets: [{
+        label: 'Alert Count',
+        data: [6, 4, 3, 2, 1],
+        backgroundColor: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#10b981'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { color: '#1a3366' } }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

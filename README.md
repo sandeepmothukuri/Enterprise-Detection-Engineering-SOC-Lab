@@ -586,70 +586,110 @@ Then inspect OpenSearch, detection output and relevant investigation tooling bef
 
 ---
 
-## Evidence & Screenshots
+## Enterprise SOC Dashboard Suite & Evidence
 
-The repository contains 20 high-fidelity operational screenshot assets corresponding to the full-stack SOC lab modules below.
+The platform provides a comprehensive **9-Tier Enterprise SOC Operations Suite** alongside specialized forensic consoles. All dashboards adhere strictly to **Signal > Decoration**, utilizing the unified OpenSearch schema (`soc-logs-*`, `soc-alerts-*`, `soc-ai-*`, `soc-health-*`), responsive high-contrast NOC/SOC styling, and live drill-down capabilities.
 
-> **Evidence policy:** Screenshots used as operational evidence are captured directly from the live running lab and responsive dashboard interfaces in the active **Deep Dark Blue** theme.
+> **Data Model & Schema Docs:** Detailed index contracts, field mappings, and metrics definitions are documented in [`docs/dashboard-data-model.md`](docs/dashboard-data-model.md) and [`docs/dashboard/`](docs/dashboard/).
 
-### 01 — Command Center Portal
+### Core Enterprise SOC Operations Tiers (Tiers 1–9)
+
+| Tier | Dashboard Module | Focus & Operational Capability | Evidence Asset |
+| :--- | :--- | :--- | :--- |
+| **01** | **SOC Command Center** | Executive KPIs, active incidents, alert volume, top targets, sensor health | [`01_soc_command_center.png`](dashboards/screenshots/01_soc_command_center.png) |
+| **02** | **Incident Operations** | DFIR-IRIS case tracking, chronological kill chain progression, SOAR containment | [`02_incident_operations.png`](dashboards/screenshots/02_incident_operations.png) |
+| **03** | **Detection Engineering** | 13 Sigma rules catalog, pySigma transpilation, OpenSearch DSL, CI test harness | [`03_detection_engineering.png`](dashboards/screenshots/03_detection_engineering.png) |
+| **04** | **MITRE ATT&CK Matrix** | Interactive ATT&CK v14 heatmap, technique coverage, emulation scoring | [`04_mitre_attack.png`](dashboards/screenshots/04_mitre_attack.png) |
+| **05** | **Threat Hunting Sandbox** | Multi-engine search (VQL/KQL/Lucene), hypothesis presets, outlier analysis | [`05_threat_hunting.png`](dashboards/screenshots/05_threat_hunting.png) |
+| **06** | **Network Security & NSM** | Zeek connection/DNS/TLS flows, Suricata 7.0 IDS alerts, DNS tunneling | [`06_network_security.png`](dashboards/screenshots/06_network_security.png) |
+| **07** | **Endpoint Security** | Sysmon Events 1/8/10/11, process tree visualizer, LSASS access monitoring | [`07_endpoint_security.png`](dashboards/screenshots/07_endpoint_security.png) |
+| **08** | **Autonomous AI SOC** | CrewAI 3-agent autonomous triage pipeline, local Llama-3 verdicts, confidence scores | [`08_ai_soc.png`](dashboards/screenshots/08_ai_soc.png) |
+| **09** | **Platform Health** | 12 Docker microservices topology, Vector EPS throughput, cluster status | [`09_platform_health.png`](dashboards/screenshots/09_platform_health.png) |
+
+---
+
+### Visual Showcase: 9 Enterprise Tiers
+
+#### Portal — Security Operations Command Center
 ![SOC Lab Portal](dashboards/screenshots/00_portal.png)
 
-### 02 — SOC Overview & Real-Time Alert Feed
-![SOC Overview](dashboards/screenshots/01_soc_overview.png)
+#### Tier 1 — SOC Command Center
+![SOC Command Center](dashboards/screenshots/01_soc_command_center.png)
 
-### 03 — OpenSearch SIEM & Detection Engine
+#### Tier 2 — Incident Operations & DFIR-IRIS Cases
+![Incident Operations](dashboards/screenshots/02_incident_operations.png)
+
+#### Tier 3 — Detection Engineering & Sigma Pipeline
+![Detection Engineering](dashboards/screenshots/03_detection_engineering.png)
+
+#### Tier 4 — MITRE ATT&CK Matrix & Adversary Emulation
+![MITRE ATT&CK](dashboards/screenshots/04_mitre_attack.png)
+
+#### Tier 5 — Threat Hunting Sandbox & VQL Console
+![Threat Hunting](dashboards/screenshots/05_threat_hunting.png)
+
+#### Tier 6 — Network Security & NSM (Zeek + Suricata)
+![Network Security](dashboards/screenshots/06_network_security.png)
+
+#### Tier 7 — Endpoint Security & Process Lineage
+![Endpoint Security](dashboards/screenshots/07_endpoint_security.png)
+
+#### Tier 8 — Autonomous AI SOC Multi-Agent Triage
+![Autonomous AI SOC](dashboards/screenshots/08_ai_soc.png)
+
+#### Tier 9 — Platform Health & Microservice Topology
+![Platform Health](dashboards/screenshots/09_platform_health.png)
+
+---
+
+### Specialized Deep-Dive Consoles & Tool Interfaces
+
+#### OpenSearch SIEM & Detection Engine
 ![OpenSearch SIEM](dashboards/screenshots/02_opensearch_siem.png)
 
-### 04 — Zeek Network Security Monitoring
+#### Zeek Network Security Monitoring
 ![Zeek Network](dashboards/screenshots/03_zeek_network.png)
 
-### 05 — Suricata 7.0 IDS/IPS Telemetry
+#### Suricata 7.0 IDS/IPS Telemetry
 ![Suricata IDS](dashboards/screenshots/04_suricata_ids.png)
 
-### 06 — AI-Assisted Autonomous SOC Analysis (CrewAI + Llama 3.2:3b)
+#### CrewAI Multi-Agent Engine API
 ![AI Agents](dashboards/screenshots/05_ai_agents.png)
 
-### 07 — DFIR-IRIS Incident Response & Case Management
+#### DFIR-IRIS Case Management
 ![DFIR-IRIS](dashboards/screenshots/06_iris_cases.png)
 
-### 08 — MITRE Caldera Adversary Emulation
+#### MITRE Caldera Adversary Emulation
 ![Caldera](dashboards/screenshots/07_caldera_attack.png)
 
-### 09 — MISP Threat Intelligence & Attribution Platform
+#### MISP Threat Intelligence Platform
 ![MISP](dashboards/screenshots/08_misp_ti.png)
 
-### 10 — Velociraptor Live Endpoint DFIR & VQL Hunts
+#### Velociraptor Live DFIR & VQL Hunts
 ![Velociraptor](dashboards/screenshots/09_velociraptor.png)
 
-### 11 — Responder / Red Team Evidence
+#### Red Team Responder Poisoning Evidence
 ![Responder](dashboards/screenshots/10_responder_redteam.png)
 
-### 12 — Detection Engineering Lifecycle & Sigma Rules
-![Detection Engineering](dashboards/screenshots/11_detection_engineering.png)
-
-### 13 — Purple Team Correlation & SOAR Visualizer
+#### Purple Team Correlation & SOAR Visualizer
 ![Purple Team](dashboards/screenshots/12_purple_team.png)
 
-### 14 — Multi-Engine Threat Hunting Sandbox
-![Threat Hunting](dashboards/screenshots/13_threat_hunting.png)
-
-### 15 — Cloud SOC & Multi-Cloud Posture (AWS / Azure / GCP)
+#### Cloud SOC & Multi-Cloud Posture
 ![Cloud Security](dashboards/screenshots/14_cloud_security.png)
 
-### 16 — Malware Analysis & Memory Forensics Sandbox (YARA + Volatility)
+#### Malware Analysis & Memory Sandbox (YARA + Volatility)
 ![Malware Analysis](dashboards/screenshots/15_malware_analysis.png)
 
-### 17 — MITRE D3FEND™ Defensive Countermeasure Matrix
+#### MITRE D3FEND™ Countermeasure Matrix
 ![MITRE D3FEND](dashboards/screenshots/16_d3fend_matrix.png)
 
-### 18 — Enterprise Asset Inventory & EDR Health Radar
+#### Enterprise Asset Inventory & EDR Health Radar
 ![Asset Inventory](dashboards/screenshots/17_asset_inventory.png)
 
-### 19 — Live Threat Intelligence Feed Hub (Abuse.ch / OTX / KEV)
+#### Live Threat Intelligence Feeds Hub
 ![Threat Feeds Hub](dashboards/screenshots/18_threat_intel_feeds.png)
 
-### 20 — Live SOC Network Topology & Packet Flow Graph
+#### Live SOC Network Topology Graph
 ![Network Topology](dashboards/screenshots/19_network_topology.png)
 
 ### Screenshot provenance

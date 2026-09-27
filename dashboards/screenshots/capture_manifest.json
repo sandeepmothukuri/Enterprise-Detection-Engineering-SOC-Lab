@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-27T07:49:20.861822+00:00",
-  "dashboard_count": 20,
+  "generated_at": "2026-09-27T08:29:13.945922+00:00",
+  "dashboard_count": 26,
   "theme": "darkblue",
   "captures": [
     {
@@ -9,15 +9,79 @@
       "label": "Security Operations Command Center Portal",
       "url": "http://localhost:8080/index.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:49:29.811811+00:00"
+      "timestamp": "2026-09-27T08:29:21.628384+00:00"
     },
     {
-      "id": "01_soc_overview",
-      "filename": "01_soc_overview.png",
-      "label": "SOC Overview & Real-Time Alert Heatmap",
-      "url": "http://localhost:8080/01_soc_overview.html",
+      "id": "01_soc_command_center",
+      "filename": "01_soc_command_center.png",
+      "label": "Tier 1: SOC Command Center",
+      "url": "http://localhost:8080/01_soc_command_center.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:49:38.935218+00:00"
+      "timestamp": "2026-09-27T08:29:27.572507+00:00"
+    },
+    {
+      "id": "02_incident_operations",
+      "filename": "02_incident_operations.png",
+      "label": "Tier 2: Incident Operations & IRIS Cases",
+      "url": "http://localhost:8080/02_incident_operations.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:32.697577+00:00"
+    },
+    {
+      "id": "03_detection_engineering",
+      "filename": "03_detection_engineering.png",
+      "label": "Tier 3: Detection Engineering & Sigma",
+      "url": "http://localhost:8080/03_detection_engineering.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:37.893473+00:00"
+    },
+    {
+      "id": "04_mitre_attack",
+      "filename": "04_mitre_attack.png",
+      "label": "Tier 4: MITRE ATT&CK Matrix & Scoring",
+      "url": "http://localhost:8080/04_mitre_attack.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:43.199866+00:00"
+    },
+    {
+      "id": "05_threat_hunting",
+      "filename": "05_threat_hunting.png",
+      "label": "Tier 5: Threat Hunting Sandbox & VQL",
+      "url": "http://localhost:8080/05_threat_hunting.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:48.284178+00:00"
+    },
+    {
+      "id": "06_network_security",
+      "filename": "06_network_security.png",
+      "label": "Tier 6: Network Security & NSM",
+      "url": "http://localhost:8080/06_network_security.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:52.722229+00:00"
+    },
+    {
+      "id": "07_endpoint_security",
+      "filename": "07_endpoint_security.png",
+      "label": "Tier 7: Endpoint Security & Process Trees",
+      "url": "http://localhost:8080/07_endpoint_security.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:29:58.086727+00:00"
+    },
+    {
+      "id": "08_ai_soc",
+      "filename": "08_ai_soc.png",
+      "label": "Tier 8: Autonomous AI SOC & Multi-Agent Triage",
+      "url": "http://localhost:8080/08_ai_soc.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:30:03.356200+00:00"
+    },
+    {
+      "id": "09_platform_health",
+      "filename": "09_platform_health.png",
+      "label": "Tier 9: Platform Health & Reliability",
+      "url": "http://localhost:8080/09_platform_health.html",
+      "status": "success",
+      "timestamp": "2026-09-27T08:30:08.310467+00:00"
     },
     {
       "id": "02_opensearch_siem",
@@ -25,7 +89,7 @@
       "label": "OpenSearch SIEM & Detection Engine",
       "url": "http://localhost:8080/02_opensearch_siem.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:49:44.373930+00:00"
+      "timestamp": "2026-09-27T08:30:13.841730+00:00"
     },
     {
       "id": "03_zeek_network",
@@ -33,7 +97,7 @@
       "label": "Zeek NSM Network Connection & DNS Evidence",
       "url": "http://localhost:8080/03_zeek_network.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:49:49.604169+00:00"
+      "timestamp": "2026-09-27T08:30:20.926845+00:00"
     },
     {
       "id": "04_suricata_ids",
@@ -41,7 +105,7 @@
       "label": "Suricata 7.0 IDS/IPS & EVE Telemetry",
       "url": "http://localhost:8080/04_suricata_ids.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:49:54.429925+00:00"
+      "timestamp": "2026-09-27T08:30:26.589344+00:00"
     },
     {
       "id": "05_ai_agents",
@@ -49,7 +113,7 @@
       "label": "CrewAI Multi-Agent Autonomous SOC Engine",
       "url": "http://localhost:8080/05_ai_agents.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:00.697982+00:00"
+      "timestamp": "2026-09-27T08:30:32.026571+00:00"
     },
     {
       "id": "06_iris_cases",
@@ -57,7 +121,7 @@
       "label": "DFIR-IRIS Incident Response & Case Management",
       "url": "http://localhost:8080/06_iris_cases.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:05.657233+00:00"
+      "timestamp": "2026-09-27T08:30:37.115028+00:00"
     },
     {
       "id": "07_caldera_attack",
@@ -65,7 +129,7 @@
       "label": "MITRE Caldera Adversary Emulation & Scoring",
       "url": "http://localhost:8080/07_caldera_attack.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:10.854686+00:00"
+      "timestamp": "2026-09-27T08:30:43.855169+00:00"
     },
     {
       "id": "08_misp_ti",
@@ -73,7 +137,7 @@
       "label": "MISP Threat Intelligence & Attribution Platform",
       "url": "http://localhost:8080/08_misp_ti.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:15.301786+00:00"
+      "timestamp": "2026-09-27T08:30:50.329273+00:00"
     },
     {
       "id": "09_velociraptor",
@@ -81,7 +145,7 @@
       "label": "Velociraptor Live DFIR & VQL Artifact Engine",
       "url": "http://localhost:8080/09_velociraptor.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:20.605700+00:00"
+      "timestamp": "2026-09-27T08:30:55.354363+00:00"
     },
     {
       "id": "10_responder_redteam",
@@ -89,15 +153,7 @@
       "label": "Red Team Responder LLMNR/NBT-NS Poisoning",
       "url": "http://localhost:8080/10_responder_redteam.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:25.694061+00:00"
-    },
-    {
-      "id": "11_detection_engineering",
-      "filename": "11_detection_engineering.png",
-      "label": "Detection Engineering Lifecycle & Sigma Rules",
-      "url": "http://localhost:8080/11_detection_engineering.html",
-      "status": "success",
-      "timestamp": "2026-09-27T07:50:31.036276+00:00"
+      "timestamp": "2026-09-27T08:31:01.004238+00:00"
     },
     {
       "id": "12_purple_team",
@@ -105,15 +161,7 @@
       "label": "Purple Team Matrix & SOAR Flowchart Visualizer",
       "url": "http://localhost:8080/12_purple_team.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:38.055498+00:00"
-    },
-    {
-      "id": "13_threat_hunting",
-      "filename": "13_threat_hunting.png",
-      "label": "Multi-Engine Threat Hunting Sandbox",
-      "url": "http://localhost:8080/13_threat_hunting.html",
-      "status": "success",
-      "timestamp": "2026-09-27T07:50:44.137077+00:00"
+      "timestamp": "2026-09-27T08:31:05.857539+00:00"
     },
     {
       "id": "14_cloud_security",
@@ -121,7 +169,7 @@
       "label": "Cloud SOC & Multi-Cloud Posture",
       "url": "http://localhost:8080/14_cloud_security.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:50.525505+00:00"
+      "timestamp": "2026-09-27T08:31:11.986574+00:00"
     },
     {
       "id": "15_malware_analysis",
@@ -129,7 +177,7 @@
       "label": "Malware Analysis & Memory Forensics Sandbox",
       "url": "http://localhost:8080/15_malware_analysis.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:50:56.747789+00:00"
+      "timestamp": "2026-09-27T08:31:17.017224+00:00"
     },
     {
       "id": "16_d3fend_matrix",
@@ -137,7 +185,7 @@
       "label": "MITRE D3FEND Defensive Countermeasure Matrix",
       "url": "http://localhost:8080/16_d3fend_matrix.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:51:03.762021+00:00"
+      "timestamp": "2026-09-27T08:31:22.161067+00:00"
     },
     {
       "id": "17_asset_inventory",
@@ -145,7 +193,7 @@
       "label": "Asset Inventory & EDR Health Radar",
       "url": "http://localhost:8080/17_asset_inventory.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:51:08.518258+00:00"
+      "timestamp": "2026-09-27T08:31:27.233069+00:00"
     },
     {
       "id": "18_threat_intel_feeds",
@@ -153,7 +201,7 @@
       "label": "Live Threat Intelligence Feed Hub",
       "url": "http://localhost:8080/18_threat_intel_feeds.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:51:14.520492+00:00"
+      "timestamp": "2026-09-27T08:31:32.346761+00:00"
     },
     {
       "id": "19_network_topology",
@@ -161,7 +209,7 @@
       "label": "Live SOC Network Topology & Flow Visualizer",
       "url": "http://localhost:8080/19_network_topology.html",
       "status": "success",
-      "timestamp": "2026-09-27T07:51:20.928824+00:00"
+      "timestamp": "2026-09-27T08:31:37.466926+00:00"
     }
   ]
 }

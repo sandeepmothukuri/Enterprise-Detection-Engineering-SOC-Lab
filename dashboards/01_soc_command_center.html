@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 1: SOC Command Center — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      width: 540px; max-width: 90vw; padding: var(--space-5); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .toast-popup {
+      position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent);
+      color: #fff; padding: 12px 18px; border-radius: 6px; font-size: 12px; z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html" class="active"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">📊</span> Tier 1 — SOC Command Center</div>
+    <span class="topbar-meta" id="last-update">Real-Time Telemetry Stream</span>
+    <div class="topbar-right">
+      <div class="ws-indicator">
+        <div class="ws-dot connected" id="ws-dot"></div>
+        <span id="ws-label" style="color:var(--low);font-size:11px;">Live EPS: 842</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openSimModal()">+ Simulate Threat Event</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Executive KPI Bar -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card critical">
+        <div class="kpi-label">Active Critical Alerts</div>
+        <div class="kpi-value" id="kpi-crit">3</div>
+        <div class="kpi-sub">T1003.001, T1059.001, T1550.002</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">High Severity Triggers</div>
+        <div class="kpi-value" id="kpi-high">8</div>
+        <div class="kpi-sub">Responder, Defender Disabled</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Total Events (24h)</div>
+        <div class="kpi-value" id="kpi-total">48,291</div>
+        <div class="kpi-sub">Normalized via Vector VRL</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Active Pipeline Sensors</div>
+        <div class="kpi-value">6 / 6</div>
+        <div class="kpi-sub">Sysmon, Zeek, Suricata, Auditd</div>
+      </div>
+    </div>
+
+    <!-- Main Visual Panels -->
+    <div class="grid-2-1 mb-4">
+      <!-- Live Incident & Alert Stream -->
+      <div class="card">
+        <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+          <span class="card-title">🚨 Live Alert Triage Stream</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="text" id="feed-search" placeholder="Search alerts..." oninput="filterAlerts()" style="background:var(--bg-base);border:1px solid var(--border);color:var(--text-primary);padding:3px 8px;border-radius:4px;font-size:11px;width:120px;">
+            <button class="filter-btn active" onclick="setSevFilter('all', this)">All</button>
+            <button class="filter-btn" onclick="setSevFilter('critical', this)">Crit</button>
+            <button class="filter-btn" onclick="setSevFilter('high', this)">High</button>
+            <button class="filter-btn" onclick="setSevFilter('medium', this)">Med</button>
+          </div>
+        </div>
+        <div id="alert-feed" class="alert-feed" style="max-height:380px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- MITRE Tactics Heatmap Breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⚡ MITRE ATT&CK Tactic Distribution</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:320px">
+            <canvas id="mitreChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lower Operational Grid -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📡 Sensor Pipeline Health</span></div>
+        <div class="card-body-sm">
+          <div class="status-row"><span class="status-label">Zeek NSM (Network Tap)</span><span class="status-value"><span class="status-dot up"></span>Active · eth0</span></div>
+          <div class="status-row"><span class="status-label">Suricata 7.0 IDS/IPS</span><span class="status-value"><span class="status-dot up"></span>Active · 1,420 Rules</span></div>
+          <div class="status-row"><span class="status-label">Vector VRL Aggregator</span><span class="status-value"><span class="status-dot up"></span>842 EPS · Zero Drops</span></div>
+          <div class="status-row"><span class="status-label">OpenSearch Cluster</span><span class="status-value"><span class="status-dot up"></span>Green · 2 Nodes</span></div>
+          <div class="status-row"><span class="status-label">CrewAI Triage Engine</span><span class="status-value"><span class="status-dot up"></span>Ollama Llama-3 Active</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎯 Top Targeted Endpoints</span></div>
+        <div class="card-body-sm">
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WIN-DC01.corp.local</span><span class="badge badge-critical">14 Alerts (LSASS)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">SRV-APP01.corp.local</span><span class="badge badge-high">6 Alerts (WMI)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WS-FIN-04.corp.local</span><span class="badge badge-high">5 Alerts (PS)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">LNX-PROXY01.dmz</span><span class="badge badge-medium">3 Alerts (Scan)</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚡ Quick Operational Playbooks</span></div>
+        <div class="card-body-sm" style="display:flex;flex-direction:column;gap:8px;">
+          <a href="02_incident_operations.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">📋 Open DFIR-IRIS Incident Queue</a>
+          <a href="03_detection_engineering.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🛠️ Inspect 13 Sigma Rules</a>
+          <a href="05_threat_hunting.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🔎 Run Velociraptor VQL Hunt</a>
+          <a href="08_ai_soc.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🤖 View Autonomous AI Verdicts</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal for Threat Simulation -->
+<div class="modal-overlay" id="sim-modal">
+  <div class="modal-box">
+    <h3 style="margin-top:0;font-size:16px;">⚡ Adversary Emulation & Alert Injection</h3>
+    <p style="color:var(--text-secondary);font-size:12px;">Trigger realistic attack telemetry to validate end-to-end detection and SIEM alerting pipelines.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:15px 0;">
+      <button class="btn btn-secondary" onclick="simulateAttack('T1003.001', 'LSASS Memory Dump', 'critical', 'WIN-DC01')">🔴 Mimikatz LSASS Dump (T1003.001)</button>
+      <button class="btn btn-secondary" onclick="simulateAttack('T1059.001', 'Encoded PowerShell C2', 'critical', 'WS-FIN-04')">🔴 Encoded PowerShell Download C2 (T1059.001)</button>
+      <button class="btn btn-secondary" onclick="simulateAttack('T1557', 'LLMNR/NBT-NS Poisoning', 'high', 'WIN-DC01')">🟠 Responder Poisoning Attack (T1557)</button>
+      <button class="btn btn-secondary" onclick="simulateAttack('T1562.001', 'Disable Windows Defender', 'high', 'SRV-APP01')">🟠 Disable Real-Time Monitoring (T1562.001)</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeSimModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-popup" id="toast"></div>
+
+<script>
+let alerts = [
+  { id: 1, time: "13:54:10 UTC", rule: "LSASS Memory Access & Dumping", mitre: "T1003.001", sev: "critical", host: "WIN-DC01", desc: "Mimikatz sekurlsa::logonpasswords requested 0x1010 access to lsass.exe" },
+  { id: 2, time: "13:52:45 UTC", rule: "Base64 Encoded PowerShell Command", mitre: "T1059.001", sev: "critical", host: "WS-FIN-04", desc: "powershell.exe -enc SQBFAFgA... invoked from winword.exe" },
+  { id: 3, time: "13:48:12 UTC", rule: "Pass-the-Hash Lateral Movement", mitre: "T1550.002", sev: "critical", host: "SRV-APP01", desc: "NTLM Logon Type 9 authenticated using captured Administrator hash" },
+  { id: 4, time: "13:40:02 UTC", rule: "LLMNR / NBT-NS Poisoning Detected", mitre: "T1557", sev: "high", host: "WIN-DC01", desc: "Responder broadcast poisoning on UDP 5355 / 137" },
+  { id: 5, time: "13:35:19 UTC", rule: "Windows Defender Protection Disabled", mitre: "T1562.001", sev: "high", host: "SRV-APP01", desc: "Set-MpPreference -DisableRealtimeMonitoring $true executed via PowerShell" },
+  { id: 6, time: "13:20:00 UTC", rule: "Suspicious SMB Admin Share Access", mitre: "T1021.002", sev: "high", host: "WIN-DC01", desc: "PsExec remote service creation on IPC$ / ADMIN$" },
+  { id: 7, time: "13:10:44 UTC", rule: "DNS Tunneling & High Entropy Query", mitre: "T1071.004", sev: "medium", host: "LNX-PROXY01", desc: "High entropy TXT query: a8f9bc712e0.c2.evil-attacker.org" }
+];
+
+let currentFilter = 'all';
+
+function renderAlerts() {
+  const feed = document.getElementById('alert-feed');
+  const search = document.getElementById('feed-search').value.toLowerCase();
+  
+  const filtered = alerts.filter(a => {
+    const matchesSev = currentFilter === 'all' || a.sev === currentFilter;
+    const matchesSearch = a.rule.toLowerCase().includes(search) || a.host.toLowerCase().includes(search) || a.mitre.toLowerCase().includes(search);
+    return matchesSev && matchesSearch;
+  });
+
+  feed.innerHTML = filtered.map(a => `
+    <div class="alert-item ${a.sev}" style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span class="badge badge-${a.sev}">${a.sev.toUpperCase()}</span>
+          <strong style="font-size:13px;">${a.rule}</strong>
+          <span class="badge badge-accent" style="font-family:var(--font-mono);font-size:10px;">${a.mitre}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);">${a.desc}</div>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-accent);">${a.host}</span><br>
+        <span style="font-size:10px;color:var(--text-muted);">${a.time}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setSevFilter(sev, btn) {
+  currentFilter = sev;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAlerts();
+}
+
+function filterAlerts() {
+  renderAlerts();
+}
+
+function openSimModal() {
+  document.getElementById('sim-modal').classList.add('open');
+}
+
+function closeSimModal() {
+  document.getElementById('sim-modal').classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function simulateAttack(mitre, rule, sev, host) {
+  const newAlert = {
+    id: Date.now(),
+    time: "Just now",
+    rule: rule,
+    mitre: mitre,
+    sev: sev,
+    host: host,
+    desc: `Simulated adversary technique ${mitre} generated by test engine.`
+  };
+  alerts.unshift(newAlert);
+  renderAlerts();
+  closeSimModal();
+  showToast(`[+] Simulated ${rule} (${mitre}) injected successfully!`);
+}
+
+// Initialize MITRE Chart
+window.addEventListener('DOMContentLoaded', () => {
+  renderAlerts();
+  const ctx = document.getElementById('mitreChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Credential Access', 'Execution', 'Defense Evasion', 'Lateral Movement', 'Command & Control', 'Discovery', 'Persistence', 'Exfiltration'],
+      datasets: [{
+        label: 'Detected Alerts',
+        data: [18, 14, 11, 8, 6, 5, 4, 3],
+        backgroundColor: ['#f43f5e', '#fb923c', '#fbbf24', '#f43f5e', '#38bdf8', '#10b981', '#a855f7', '#06b6d4'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#9cb2d6', font: { size: 10 } }
+        },
+        y: {
+          grid: { color: '#1a3366' },
+          ticks: { color: '#9cb2d6', font: { size: 10 } }
+        }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 7: Endpoint Security — Enterprise SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .tree-node {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 6px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tree-branch {
+      margin-left: 24px;
+      position: relative;
+      padding-left: 12px;
+      border-left: 2px dashed var(--accent);
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">ENTERPRISE PLATFORM</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+            <ul class="sidebar-nav">
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
+        <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
+        <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
+        <li class="nav-item"><a href="03_detection_engineering.html"><span class="nav-icon">🛠️</span><span>03 Detection Engineering</span></a></li>
+        <li class="nav-item"><a href="04_mitre_attack.html"><span class="nav-icon">⚡</span><span>04 MITRE ATT&CK Matrix</span></a></li>
+        <li class="nav-item"><a href="05_threat_hunting.html"><span class="nav-icon">🔎</span><span>05 Threat Hunting Sandbox</span></a></li>
+        <li class="nav-item"><a href="06_network_security.html"><span class="nav-icon">🌐</span><span>06 Network Security & NSM</span></a></li>
+        <li class="nav-item"><a href="07_endpoint_security.html" class="active"><span class="nav-icon">🖥️</span><span>07 Endpoint Security</span></a></li>
+        <li class="nav-item"><a href="08_ai_soc.html"><span class="nav-icon">🤖</span><span>08 Autonomous AI SOC</span></a></li>
+        <li class="nav-item"><a href="09_platform_health.html"><span class="nav-icon">💚</span><span>09 Platform Health</span></a></li>
+        <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 12px 4px;border-top:1px solid var(--border);margin-top:8px;">Specialized Engines</li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">📡</span><span>Zeek NSM Evidence</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🛡️</span><span>Suricata IDS / IPS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🧠</span><span>CrewAI Multi-Agent</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS Cases</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera Adversary Sim</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Threat Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor VQL</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder Red Team</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team Matrix</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud Security SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware & YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset Inventory</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🖥️</span> Tier 7 — Endpoint Security &amp; Process Trees</div>
+    <span class="topbar-meta">Sysmon Events 1/8/10/11 · Linux Auditd · Velociraptor Agent</span>
+    <div class="topbar-right">
+      <a href="09_velociraptor.html" class="btn btn-secondary btn-sm">Velociraptor VQL →</a>
+      <a href="15_malware_analysis.html" class="btn btn-primary btn-sm">Memory Analysis →</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- KPI Metric Summary -->
+    <div class="grid-4 mb-4">
+      <div class="kpi-card info">
+        <div class="kpi-label">Monitored Endpoints</div>
+        <div class="kpi-value">18 Hosts</div>
+        <div class="kpi-sub">Windows Server &amp; Linux Fleet</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">Process Access to LSASS</div>
+        <div class="kpi-value">2 Events</div>
+        <div class="kpi-sub">EventID 10 (GrantedAccess 0x1010)</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Remote Thread Injections</div>
+        <div class="kpi-value">1 Event</div>
+        <div class="kpi-sub">EventID 8 (rundll32.exe target)</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Sysmon Agent Health</div>
+        <div class="kpi-value">100% Up</div>
+        <div class="kpi-sub">Zero Dropped Event Logs</div>
+      </div>
+    </div>
+
+    <!-- Process Tree Visualizer Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">🌳 Suspicious Parent-Child Process Execution Tree (WIN-DC01)</span>
+        <span class="badge badge-critical">T1059.001 &amp; T1003.001</span>
+      </div>
+      <div class="card-body">
+        
+        <div class="tree-node">
+          <span style="color:var(--text-muted);">PID: 1044</span>
+          <span style="color:var(--text-accent);">explorer.exe</span>
+          <span style="font-size:10px;color:var(--text-muted);">C:\Windows\explorer.exe</span>
+        </div>
+
+        <div class="tree-branch">
+          <div class="tree-node">
+            <span style="color:var(--text-muted);">PID: 3208</span>
+            <span style="color:var(--high);">winword.exe</span>
+            <span style="font-size:10px;color:var(--text-muted);">"C:\Program Files\Microsoft Office\Office16\WINWORD.EXE" /n "Invoice_Q3.docm"</span>
+            <span class="badge badge-high" style="margin-left:auto;">Macro Exec</span>
+          </div>
+
+          <div class="tree-branch">
+            <div class="tree-node" style="border-color:var(--critical);background:rgba(244,63,94,0.1);">
+              <span style="color:var(--text-muted);">PID: 4912</span>
+              <span style="color:var(--critical);font-weight:700;">powershell.exe</span>
+              <span style="font-size:10px;color:var(--text-primary);">powershell.exe -nop -w hidden -enc SQBFAFgA... (Downloads Mimikatz)</span>
+              <span class="badge badge-critical" style="margin-left:auto;">SIG-WIN-005</span>
+            </div>
+
+            <div class="tree-branch">
+              <div class="tree-node" style="border-color:var(--critical);background:rgba(244,63,94,0.15);">
+                <span style="color:var(--text-muted);">PID: 5120</span>
+                <span style="color:var(--critical);font-weight:700;">mimikatz.exe</span>
+                <span style="font-size:10px;color:var(--text-primary);">mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit</span>
+                <span class="badge badge-critical" style="margin-left:auto;">SIG-WIN-001 (LSASS Dump)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sysmon Telemetry Data Table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🔍 Sysmon &amp; Auditd Event Log Stream</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Host</th>
+              <th>Event ID</th>
+              <th>User</th>
+              <th>Process / Image</th>
+              <th>Target / Details</th>
+              <th>MITRE Technique</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:54:10 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">WIN-DC01</td>
+              <td><span class="badge badge-critical">Event 10</span></td>
+              <td>SYSTEM</td>
+              <td style="font-family:var(--font-mono);">C:\Temp\mimikatz.exe</td>
+              <td style="font-family:var(--font-mono);color:var(--critical);">Target: lsass.exe (Access: 0x1010)</td>
+              <td><span class="badge badge-accent">T1003.001</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:52:45 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">WS-FIN-04</td>
+              <td><span class="badge badge-critical">Event 1</span></td>
+              <td>jdoe</td>
+              <td style="font-family:var(--font-mono);">C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</td>
+              <td style="font-family:var(--font-mono);">-nop -w hidden -enc SQBFAFgA...</td>
+              <td><span class="badge badge-accent">T1059.001</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:48:12 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">SRV-APP01</td>
+              <td><span class="badge badge-high">Event 1</span></td>
+              <td>Administrator</td>
+              <td style="font-family:var(--font-mono);">C:\Windows\System32\wmic.exe</td>
+              <td style="font-family:var(--font-mono);">process call create powershell.exe</td>
+              <td><span class="badge badge-accent">T1047</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;">13:35:19 UTC</td>
+              <td style="font-family:var(--font-mono);color:var(--text-accent);">WIN-DC01</td>
+              <td><span class="badge badge-high">Event 13</span></td>
+              <td>SYSTEM</td>
+              <td style="font-family:var(--font-mono);">C:\Windows\System32\reg.exe</td>
+              <td style="font-family:var(--font-mono);">HKCU\Software\Microsoft\Windows\CurrentVersion\Run</td>
+              <td><span class="badge badge-accent">T1547.001</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
