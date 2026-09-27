@@ -307,7 +307,7 @@ services:
     <<: *restart
     depends_on: [misp-db, misp-redis]
     ports:
-      - "${MISP_PORT:-8080}:80"
+      - "${MISP_PORT:-8081}:80"
     environment:
       - MISP_BASEURL=${MISP_BASEURL}
       - MISP_ADMIN_EMAIL=${MISP_ADMIN_EMAIL}
@@ -352,7 +352,7 @@ services:
     ports:
       - "${VELOCIRAPTOR_PORT:-8889}:8889"
       - "${VELOCIRAPTOR_API_PORT:-8001}:8001"
-      - "8000:8000"
+      - "${VELOCIRAPTOR_CLIENT_PORT:-8002}:8000"
     volumes:
       - velociraptor-data:/velociraptor
       - ./config/velociraptor:/etc/velociraptor:ro
