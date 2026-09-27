@@ -3,44 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SOC Network Topology &amp; Packet Flow — SOC Lab v2</title>
+  <title>SOC Network Topology &amp; Sensor Tap Flow — SOC Lab v2</title>
   <link rel="stylesheet" href="soc-theme.css">
   <style>
     .topo-canvas {
       width: 100%;
-      height: 480px;
+      height: 520px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+      margin-bottom: var(--space-4);
     }
     .topo-node {
       position: absolute;
-      width: 130px;
-      padding: 10px;
+      width: 140px;
+      padding: 10px 12px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 8px;
       text-align: center;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      transition: all 0.2s;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      transition: all 0.25s ease;
       z-index: 10;
     }
     .topo-node:hover {
       border-color: var(--accent);
-      transform: scale(1.05);
-      box-shadow: 0 0 15px var(--accent-glow);
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .topo-node.active {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: 0 0 20px var(--accent-glow);
     }
     .topo-node.compromised {
       border-color: var(--critical);
-      box-shadow: 0 0 15px var(--critical-dim);
+      box-shadow: 0 0 20px var(--critical-dim);
+      animation: pulseAlert 2s infinite ease-in-out;
     }
-    .node-icon { font-size: 20px; margin-bottom: 4px; }
-    .node-name { font-size: 11px; font-weight: 700; color: var(--text-primary); }
-    .node-ip { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); }
+    @keyframes pulseAlert {
+      0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); }
+      100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+    }
+    .node-icon { font-size: 22px; margin-bottom: 4px; }
+    .node-name { font-size: 11px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+    .node-ip { font-family: var(--font-mono); font-size: 9px; color: var(--text-accent); }
+    .node-role { font-size: 9px; color: var(--text-muted); }
+
+    .packet-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .proto-dns { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .proto-smb { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .proto-kerb { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .proto-c2 { background: rgba(239, 68, 68, 0.2); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.4); }
   </style>
 </head>
 <body>
@@ -56,7 +81,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Dashboards</div>
-                              <ul class="sidebar-nav">
+      <ul class="sidebar-nav">
         <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
         <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
         <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
@@ -93,10 +118,11 @@
   </nav>
 
   <header class="topbar">
-    <div class="topbar-title"><span class="page-icon">🗺️</span> Live SOC Network Topology &amp; Packet Flow Graph</div>
-    <span class="topbar-meta">Subnet 192.168.1.0/24 • Zeek NSM Tap • Suricata IDS Mirror</span>
+    <div class="topbar-title"><span class="page-icon">🗺️</span> Live SOC Network Topology &amp; Sensor TAP Points</div>
+    <span class="topbar-meta">Subnet 192.168.1.0/24 • Zeek NSM SPAN Port • Suricata 7.0 IDS Mirror</span>
     <div class="topbar-right">
-      <button class="btn btn-primary btn-sm" onclick="triggerPacketBurst()">⚡ Send Attack Packet Burst</button>
+      <button class="btn btn-secondary btn-sm" onclick="triggerAttackSimulation('c2')">📡 C2 Beacon Cadence</button>
+      <button class="btn btn-primary btn-sm" onclick="triggerAttackSimulation('llmnr')">⚡ LLMNR Poisoning Burst</button>
       <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
     </div>
   </header>
@@ -105,90 +131,185 @@
     <!-- Top KPIs -->
     <div class="grid-4" style="margin-bottom:var(--space-4);">
       <div class="kpi-card">
-        <div class="kpi-label">Active Subnets</div>
+        <div class="kpi-label">Monitored Subnets</div>
         <div class="kpi-value">3</div>
-        <div class="kpi-sub">DMZ, Corporate, SOC Core</div>
+        <div class="kpi-sub">DMZ (VLAN 50), LAN (20), Core (99)</div>
       </div>
       <div class="kpi-card low">
-        <div class="kpi-label">Live Flow Rate</div>
-        <div class="kpi-value">840/s</div>
-        <div class="kpi-sub">TCP/UDP Packets Ingested</div>
+        <div class="kpi-label">Network Ingest Rate</div>
+        <div class="kpi-value">840 pkt/s</div>
+        <div class="kpi-sub">14.2 Mbps Full Capture</div>
       </div>
       <div class="kpi-card critical">
         <div class="kpi-label">Compromised Nodes</div>
         <div class="kpi-value">1</div>
-        <div class="kpi-sub">WORKSTATION-12</div>
+        <div class="kpi-sub">WORKSTATION-12 (Injected)</div>
       </div>
       <div class="kpi-card info">
-        <div class="kpi-label">Mirror Port Status</div>
-        <div class="kpi-value">Active</div>
-        <div class="kpi-sub">Zeek eth0 Span Port</div>
+        <div class="kpi-label">TAP Drop Rate</div>
+        <div class="kpi-value">0.00%</div>
+        <div class="kpi-sub">Zeek eth0 Hardware SPAN</div>
       </div>
     </div>
 
     <!-- Interactive Topology Canvas -->
     <div class="topo-canvas" id="topoCanvas">
       <svg id="topoLines" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></svg>
-      
-      <!-- Node 1: Kali Red Team -->
-      <div class="topo-node" style="top:40px;left:40px;" onclick="inspectNode('Kali Red Team Attacker', '192.168.1.100', 'Kali Linux 2026.1', 'Responder, Mimikatz, Caldera Agent', 'ACTIVE ATTACK: LLMNR Poisoning + C2 Beaconing')">
+
+      <!-- Node 1: Kali Red Team Attacker -->
+      <div class="topo-node" style="top:30px;left:40px;" onclick="inspectNode('Kali Red Team Attacker', '192.168.1.100', '00:0c:29:ab:cd:01', 'Kali Linux 2026.1', 'Adversary Node', 'Responder, Mimikatz, Caldera C2', '10.4 MB / 1.2 MB', 'ACTIVE ATTACK: LLMNR Poisoning &amp; SMB Relay Target')">
         <div class="node-icon">🔴</div>
         <div class="node-name">Kali Attacker</div>
         <div class="node-ip">192.168.1.100</div>
+        <div class="node-role">Red Team C2</div>
       </div>
 
-      <!-- Node 2: OPNsense Firewall -->
-      <div class="topo-node" style="top:40px;left:340px;" onclick="inspectNode('OPNsense Gateway & Firewall', '192.168.1.1', 'FreeBSD 14', 'Suricata Inline, NAT, DHCP', 'Normal: 0 Drops on LAN')">
+      <!-- Node 2: OPNsense Edge Firewall -->
+      <div class="topo-node" style="top:30px;left:340px;" onclick="inspectNode('OPNsense Gateway & Firewall', '192.168.1.1', '00:50:56:00:00:01', 'FreeBSD 14 (Hardened)', 'Perimeter Gateway', 'Suricata Inline, NAT, DHCP, Unbound DNS', '142.8 MB / 98.4 MB', 'Healthy: 0 Dropped Packets on LAN interface')">
         <div class="node-icon">🛡️</div>
-        <div class="node-name">OPNsense FW</div>
+        <div class="node-name">OPNsense Gateway</div>
         <div class="node-ip">192.168.1.1</div>
+        <div class="node-role">Edge Firewall</div>
       </div>
 
-      <!-- Node 3: Zeek / Suricata Tap -->
-      <div class="topo-node" style="top:40px;right:40px;" onclick="inspectNode('Zeek / Suricata Sensor Tap', '192.168.1.254', 'Linux Debian 12 (NSM)', 'Zeek 6.2, Suricata 7.0, Vector', 'TAP Active: Full Packet Inspection')">
+      <!-- Node 3: Zeek / Suricata Sensor TAP -->
+      <div class="topo-node" style="top:30px;right:40px;" onclick="inspectNode('Zeek / Suricata Sensor TAP', '192.168.1.254', '00:50:56:ee:ff:00', 'Debian 12 (NSM Dedicated)', 'Security Sensor TAP', 'Zeek 6.2, Suricata 7.0, Vector Shipper', '350.1 MB / 340.0 MB', 'SPAN TAP Active: 840 EPS Stream to OpenSearch')">
         <div class="node-icon">👁️</div>
-        <div class="node-name">Zeek/Suricata Tap</div>
+        <div class="node-name">Zeek/Suricata TAP</div>
         <div class="node-ip">192.168.1.254</div>
+        <div class="node-role">Full Packet Mirror</div>
       </div>
 
-      <!-- Node 4: DC Corp Active Directory -->
-      <div class="topo-node" style="top:220px;left:180px;" onclick="inspectNode('DC-CORP-01 Active Directory', '192.168.1.10', 'Windows Server 2022', 'Active Directory Domain Services, Kerberos, DNS', 'Healthy: Normal TGS Requests')">
+      <!-- Node 4: DMZ Nginx Web Proxy -->
+      <div class="topo-node" style="top:220px;left:40px;" onclick="inspectNode('SRV-NGINX-DMZ Web Proxy', '192.168.1.80', '00:50:56:fe:dc:ba', 'Alpine Linux 3.19', 'DMZ Reverse Proxy', 'Nginx 1.25, TLS 1.3 Termination, Auditd', '45.2 MB / 88.1 MB', 'Healthy: Normal HTTP/HTTPS traffic')">
+        <div class="node-icon">🌐</div>
+        <div class="node-name">SRV-NGINX-DMZ</div>
+        <div class="node-ip">192.168.1.80</div>
+        <div class="node-role">DMZ Reverse Proxy</div>
+      </div>
+
+      <!-- Node 5: DC-CORP-01 Active Directory -->
+      <div class="topo-node" style="top:220px;left:240px;" onclick="inspectNode('DC-CORP-01 Domain Controller', '192.168.1.10', '00:50:56:a1:b2:c1', 'Windows Server 2022', 'Tier-0 Crown Jewel', 'Active Directory DS, Kerberos KDC, DNS', '82.4 MB / 76.8 MB', 'Healthy: Normal Kerberos TGT/TGS requests')">
         <div class="node-icon">🏛️</div>
         <div class="node-name">DC-CORP-01 (AD)</div>
         <div class="node-ip">192.168.1.10</div>
+        <div class="node-role">Tier-0 Crown Jewel</div>
       </div>
 
-      <!-- Node 5: WORKSTATION-12 (Compromised) -->
-      <div class="topo-node compromised" style="top:220px;left:480px;" onclick="inspectNode('WORKSTATION-12 (Target)', '192.168.1.105', 'Windows 11 Pro 23H2', 'Sysmon, Filebeat, Velociraptor', 'COMPROMISED: Injected Process explorer.exe (PID 3912)')">
+      <!-- Node 6: WORKSTATION-12 (Compromised) -->
+      <div class="topo-node compromised" style="top:220px;right:220px;" onclick="inspectNode('WORKSTATION-12 (Compromised)', '192.168.1.105', '00:50:56:77:88:99', 'Windows 11 Pro 23H2', 'Tier-2 End-User', 'Sysmon, Velociraptor, Injected explorer.exe', '12.4 MB / 19.8 MB', 'CRITICAL: Beaconing to 192.168.1.100:4444 (Cobalt Strike)')">
         <div class="node-icon">⚠️</div>
         <div class="node-name">WORKSTATION-12</div>
         <div class="node-ip">192.168.1.105</div>
+        <div class="node-role">Compromised Host</div>
       </div>
 
-      <!-- Node 6: SOC Central Management Stack -->
-      <div class="topo-node" style="bottom:30px;left:340px;" onclick="inspectNode('SOC Central Management Engine', '192.168.1.200', 'Docker Microservices', 'OpenSearch, IRIS, StackStorm, AI Copilot', 'Operational: 12 Services Running')">
+      <!-- Node 7: SOC Core SIEM Stack -->
+      <div class="topo-node" style="bottom:25px;left:340px;" onclick="inspectNode('SOC SIEM & Analytics Core', '192.168.1.200', '00:50:56:c3:d4:e5', 'Ubuntu 24.04 LTS', 'SOC Core Management', 'OpenSearch 2.19, DFIR-IRIS, StackStorm, AI Copilot', '512.4 MB / 420.2 MB', 'Cluster GREEN: 100% Ingestion Pipeline Health')">
         <div class="node-icon">🏢</div>
-        <div class="node-name">SOC Core SIEM</div>
+        <div class="node-name">SOC SIEM Core</div>
         <div class="node-ip">192.168.1.200</div>
+        <div class="node-role">Analytics &amp; SOAR</div>
       </div>
     </div>
 
     <!-- Node Inspector Card -->
-    <div class="card" style="margin-top:var(--space-4);">
+    <div class="card" style="margin-bottom:var(--space-4);">
       <div class="card-header">
         <div class="card-title">🔍 Selected Subnet Node Telemetry &amp; Interface Inspector</div>
-        <span id="inspectBadge" class="badge badge-accent">Selected Node</span>
+        <span id="inspectBadge" class="badge badge-accent">192.168.1.100</span>
       </div>
       <div class="card-body">
-        <h3 id="inspectNodeName" style="margin:0 0 4px;">Kali Red Team Attacker</h3>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-accent);margin-bottom:8px;" id="inspectNodeIp">192.168.1.100</div>
-        <div style="display:flex;gap:20px;font-size:12px;margin-bottom:8px;flex-wrap:wrap;">
-          <div><b>Operating System:</b> <span id="inspectNodeOs" class="mono">Kali Linux 2026.1</span></div>
-          <div><b>Active Services:</b> <span id="inspectNodeServices" class="mono">Responder, Mimikatz, Caldera Agent</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+          <div>
+            <h3 id="inspectNodeName" style="margin:0 0 4px;font-size:16px;">Kali Red Team Attacker</h3>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-accent);" id="inspectNodeIp">192.168.1.100 | MAC: 00:0c:29:ab:cd:01</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="filterPcapByHost()">🔍 Filter Live Packet Decode</button>
         </div>
-        <div style="background:var(--bg-base);padding:8px 12px;border-radius:4px;border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--critical);" id="inspectNodeAlert">
-          ACTIVE ATTACK: LLMNR Poisoning + C2 Beaconing
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;background:var(--bg-base);padding:14px;border-radius:6px;border:1px solid var(--border);font-size:12px;margin-bottom:12px;">
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">OS &amp; Role:</div>
+            <div id="inspectNodeOs" style="font-weight:600;color:var(--text-primary);">Kali Linux 2026.1 (Adversary Node)</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Active Processes / Services:</div>
+            <div id="inspectNodeServices" class="mono" style="font-weight:600;color:var(--text-accent);">Responder, Mimikatz, Caldera C2</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Throughput (Rx / Tx):</div>
+            <div id="inspectThroughput" class="mono" style="font-weight:600;color:var(--text-primary);">10.4 MB / 1.2 MB</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Live IDS Telemetry Alert:</div>
+            <div id="inspectNodeAlert" style="font-weight:700;color:var(--critical);">ACTIVE ATTACK: LLMNR Poisoning &amp; SMB Relay</div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Live Packet Stream / Decode Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📡 Real-Time Wire Packet Decode &amp; Protocol Inspector (Zeek / Suricata Stream)</div>
+        <span class="badge badge-low">Live Sensor Stream (840 pkt/s)</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="packetTable">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Protocol</th>
+              <th>Source IP:Port</th>
+              <th>Destination IP:Port</th>
+              <th>Packet Decode &amp; Protocol Metadata</th>
+              <th>IDS Correlation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-suspicious">
+              <td class="mono">13:12:04.182</td>
+              <td><span class="packet-pill proto-c2">TCP C2</span></td>
+              <td class="mono">192.168.1.105:50412</td>
+              <td class="mono"><b>192.168.1.100:4444</b></td>
+              <td><code>[PSH, ACK] Seq=1420 Ack=810 Len=256 (Cobalt Strike Jitter Beacon)</code></td>
+              <td><span class="badge badge-critical">SURICATA-9000101 (C2 Match)</span></td>
+            </tr>
+            <tr class="row-suspicious">
+              <td class="mono">13:12:03.902</td>
+              <td><span class="packet-pill proto-dns">DNS / LLMNR</span></td>
+              <td class="mono">192.168.1.100:5355</td>
+              <td class="mono">224.0.0.252:5355</td>
+              <td><code>LLMNR Response: WPAD ➔ 192.168.1.100 (Poisoned IP Response)</code></td>
+              <td><span class="badge badge-critical">ZEEK-LLMNR-POISON (High)</span></td>
+            </tr>
+            <tr>
+              <td class="mono">13:12:02.441</td>
+              <td><span class="packet-pill proto-kerb">KERBEROS</span></td>
+              <td class="mono">192.168.1.107:49810</td>
+              <td class="mono">192.168.1.10:88</td>
+              <td><code>TGS-REQ sname=cifs/DC-CORP-01 realm=CORP.LOCAL user=sandeep</code></td>
+              <td><span class="badge badge-low">Normal (Auth OK)</span></td>
+            </tr>
+            <tr>
+              <td class="mono">13:12:01.120</td>
+              <td><span class="packet-pill proto-smb">SMB2</span></td>
+              <td class="mono">192.168.1.107:49811</td>
+              <td class="mono">192.168.1.10:445</td>
+              <td><code>Tree Connect Request: \\DC-CORP-01\SYSVOL (Read Attributes)</code></td>
+              <td><span class="badge badge-low">Normal (GPO Sync)</span></td>
+            </tr>
+            <tr>
+              <td class="mono">13:11:58.740</td>
+              <td><span class="packet-pill proto-dns">DNS</span></td>
+              <td class="mono">192.168.1.80:54210</td>
+              <td class="mono">192.168.1.1:53</td>
+              <td><code>Standard query 0x14a2 A opensearch.org (Recursion Desired)</code></td>
+              <td><span class="badge badge-low">Normal (Clean)</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
@@ -198,30 +319,66 @@
 <script>
 function drawTopologyLines() {
   const svg = document.getElementById('topoLines');
+  const w = svg.clientWidth || 1000;
+  const h = svg.clientHeight || 520;
+  
   svg.innerHTML = `
-    <!-- Lines between nodes -->
-    <line x1="105" y1="75" x2="405" y2="75" stroke="var(--border)" stroke-width="2" stroke-dasharray="4" />
-    <line x1="405" y1="75" x2="800" y2="75" stroke="var(--border)" stroke-width="2" />
-    <line x1="405" y1="75" x2="245" y2="255" stroke="var(--border)" stroke-width="2" />
-    <line x1="405" y1="75" x2="545" y2="255" stroke="var(--border)" stroke-width="2" />
-    <line x1="105" y1="75" x2="545" y2="255" stroke="var(--critical)" stroke-width="2" stroke-dasharray="6" />
-    <line x1="245" y1="255" x2="405" y2="445" stroke="var(--accent)" stroke-width="2" />
-    <line x1="545" y1="255" x2="405" y2="445" stroke="var(--accent)" stroke-width="2" />
-    <line x1="800" y1="75" x2="405" y2="445" stroke="var(--accent)" stroke-width="2" />
+    <defs>
+      <linearGradient id="c2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ef4444" />
+        <stop offset="100%" stop-color="#f43f5e" />
+      </linearGradient>
+      <linearGradient id="tapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00ff9d" />
+        <stop offset="100%" stop-color="#38bdf8" />
+      </linearGradient>
+    </defs>
+
+    <!-- Edge Connections -->
+    <line x1="110" y1="65" x2="410" y2="65" stroke="var(--border)" stroke-width="2" stroke-dasharray="4" />
+    <line x1="410" y1="65" x2="${w - 110}" y2="65" stroke="var(--accent)" stroke-width="2" />
+    
+    <!-- Gateway to Internal DMZ and LAN -->
+    <line x1="410" y1="65" x2="110" y2="255" stroke="var(--border)" stroke-width="2" />
+    <line x1="410" y1="65" x2="310" y2="255" stroke="var(--border)" stroke-width="2" />
+    <line x1="410" y1="65" x2="${w - 290}" y2="255" stroke="var(--border)" stroke-width="2" />
+
+    <!-- Active C2 Attack Line (Kali to Workstation-12) -->
+    <line x1="110" y1="65" x2="${w - 290}" y2="255" stroke="url(#c2Grad)" stroke-width="2.5" stroke-dasharray="6" style="animation: dashFlow 1s linear infinite;" />
+
+    <!-- TAP Mirroring to SOC Core SIEM -->
+    <line x1="${w - 110}" y1="65" x2="410" y2="${h - 60}" stroke="url(#tapGrad)" stroke-width="2.5" stroke-dasharray="4" />
+    <line x1="310" y1="255" x2="410" y2="${h - 60}" stroke="var(--accent)" stroke-width="1.5" />
+    <line x1="${w - 290}" y1="255" x2="410" y2="${h - 60}" stroke="var(--accent)" stroke-width="1.5" />
   `;
 }
 
-function inspectNode(name, ip, os, services, alertMsg) {
+function inspectNode(name, ip, mac, os, role, services, throughput, alertMsg) {
   document.getElementById('inspectNodeName').textContent = name;
-  document.getElementById('inspectNodeIp').textContent = ip;
-  document.getElementById('inspectNodeOs').textContent = os;
+  document.getElementById('inspectNodeIp').textContent = `${ip} | MAC: ${mac}`;
+  document.getElementById('inspectNodeOs').textContent = `${os} (${role})`;
   document.getElementById('inspectNodeServices').textContent = services;
+  document.getElementById('inspectThroughput').textContent = throughput;
   document.getElementById('inspectNodeAlert').textContent = alertMsg;
+  document.getElementById('inspectNodeAlert').style.color = alertMsg.includes('Healthy') ? 'var(--low)' : 'var(--critical)';
   document.getElementById('inspectBadge').textContent = ip;
 }
 
-function triggerPacketBurst() {
-  alert('⚡ Simulated Attack Burst: 250 LLMNR and SMB packets transmitted from 192.168.1.100 to 192.168.1.105. Captured on Zeek Span Port.');
+function triggerAttackSimulation(type) {
+  if (type === 'llmnr') {
+    alert('⚡ Simulated LLMNR Poisoning Burst Dispatched:\n\n• Attacker: 192.168.1.100 (Responder)\n• Target: 224.0.0.252 (Broadcast WPAD lookup)\n• Zeek NSM generated high-confidence alert in 180ms.');
+  } else if (type === 'c2') {
+    alert('📡 Simulated Cobalt Strike C2 Jitter Beaconing:\n\n• Workstation-12 (192.168.1.105) transmitting heartbeat payload to 192.168.1.100:4444.\n• Suricata rule SID:9000101 triggered and logged to OpenSearch SIEM.');
+  }
+}
+
+function filterPcapByHost() {
+  const ip = document.getElementById('inspectBadge').textContent;
+  const rows = document.querySelectorAll('#packetTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = r.innerText.includes(ip) ? '' : 'none';
+  });
+  alert(`🔍 Filtered packet decode stream to show only packets for ${ip}`);
 }
 
 window.addEventListener('load', drawTopologyLines);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Asset Inventory &amp; EDR Health — SOC Lab v2</title>
+  <title>Enterprise Asset Inventory &amp; CMDB Crown Jewels — SOC Lab v2</title>
   <link rel="stylesheet" href="soc-theme.css">
   <style>
     .agent-pill {
@@ -19,6 +19,31 @@
     .pill-green { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
     .pill-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
     .pill-red { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .pill-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    .tier-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tier-0 { background: rgba(239, 68, 68, 0.2); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .tier-1 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .tier-2 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
+      background: var(--bg-card);
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
   </style>
 </head>
 <body>
@@ -34,7 +59,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Dashboards</div>
-                              <ul class="sidebar-nav">
+      <ul class="sidebar-nav">
         <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
         <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
         <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
@@ -71,9 +96,10 @@
   </nav>
 
   <header class="topbar">
-    <div class="topbar-title"><span class="page-icon">🖥️</span> Asset Inventory &amp; EDR Health Radar</div>
+    <div class="topbar-title"><span class="page-icon">🖥️</span> Enterprise Asset Inventory &amp; CMDB Crown Jewels</div>
     <span class="topbar-meta">Fleet Telemetry • Sensor Health • CISA KEV Vulnerability Tracker</span>
     <div class="topbar-right">
+      <button class="btn btn-secondary btn-sm" onclick="exportCmdbCsv()">📥 Export CMDB (CSV)</button>
       <button class="btn btn-primary btn-sm" onclick="pingFleetHealth()">🔄 Ping Agent Fleet</button>
       <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
     </div>
@@ -83,104 +109,208 @@
     <!-- Top KPIs -->
     <div class="grid-4" style="margin-bottom:var(--space-4);">
       <div class="kpi-card low">
-        <div class="kpi-label">Managed Endpoints</div>
-        <div class="kpi-value">18</div>
-        <div class="kpi-sub">100% Agent Coverage</div>
+        <div class="kpi-label">Total Monitored Endpoints</div>
+        <div class="kpi-value">24</div>
+        <div class="kpi-sub">100% Telemetry Ingestion</div>
       </div>
       <div class="kpi-card critical">
-        <div class="kpi-label">Vulnerable Hosts (KEV)</div>
-        <div class="kpi-value">2</div>
-        <div class="kpi-sub">CVE-2024-30078 &amp; Spooler</div>
+        <div class="kpi-label">Tier-0 Crown Jewels</div>
+        <div class="kpi-value">6</div>
+        <div class="kpi-sub">Domain Controllers, PKI &amp; SIEM</div>
       </div>
       <div class="kpi-card high">
-        <div class="kpi-label">Unhealthy Sensors</div>
-        <div class="kpi-value">1</div>
-        <div class="kpi-sub">Auditd daemon lag on SRV-02</div>
+        <div class="kpi-label">Exploited Vulnerabilities (KEV)</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">CVE-2024-30078 &amp; Terrapin SSH</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Rogue MACs Detected</div>
-        <div class="kpi-value">0</div>
-        <div class="kpi-sub">Subnet DHCP verified</div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Agent Health Score</div>
+        <div class="kpi-value">98.2%</div>
+        <div class="kpi-sub">Velociraptor &amp; Sysmon Active</div>
       </div>
     </div>
 
-    <!-- Endpoint Fleet Table -->
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div style="font-size:12px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+        <span>🔍 Search &amp; Filter Assets:</span>
+      </div>
+      <input type="text" id="assetSearchInput" class="input" style="font-size:12px;padding:5px 10px;width:280px;" placeholder="Search Hostname, IP, MAC, OS, or Tier..." onkeyup="filterAssets(this.value)">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="filterByTag('all')">All (24)</button>
+        <button class="btn btn-ghost btn-sm" style="color:#f43f5e;" onclick="filterByTag('tier-0')">👑 Tier-0 Crown Jewels</button>
+        <button class="btn btn-ghost btn-sm" style="color:#ef4444;" onclick="filterByTag('vuln')">🔥 Vulnerable (KEV)</button>
+        <button class="btn btn-ghost btn-sm" style="color:#00ff9d;" onclick="filterByTag('windows')">🪟 Windows</button>
+        <button class="btn btn-ghost btn-sm" style="color:#60a5fa;" onclick="filterByTag('linux')">🐧 Linux</button>
+        <button class="btn btn-ghost btn-sm" style="color:#a855f7;" onclick="filterByTag('cloud')">☁️ Cloud / Containers</button>
+      </div>
+    </div>
+
+    <!-- Main Asset Table -->
     <div class="card" style="margin-bottom:var(--space-4);">
       <div class="card-header">
-        <div class="card-title">🖥️ Enterprise Asset Inventory &amp; Sensor Telemetry Health</div>
-        <input type="text" class="input" style="font-size:11px;padding:3px 8px;width:220px;" placeholder="Search hostname, IP, OS..." onkeyup="filterAssets(this.value)">
+        <div class="card-title">🖥️ Comprehensive Fleet Telemetry &amp; EDR Sensor Status</div>
+        <span class="badge badge-low" id="assetCountBadge">24 Assets Online</span>
       </div>
       <div class="card-body" style="padding:0;">
         <table class="data-table" id="assetTable">
           <thead>
             <tr>
-              <th>Hostname</th>
-              <th>IP Address</th>
-              <th>OS &amp; Build</th>
+              <th>Hostname &amp; Role</th>
+              <th>IP &amp; Subnet</th>
+              <th>Criticality Tier</th>
+              <th>Operating System</th>
               <th>Sysmon / Auditd</th>
-              <th>Filebeat Shipper</th>
               <th>Velociraptor EDR</th>
+              <th>Log Shipper</th>
               <th>Active CVEs</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><b>DC-CORP-01</b></td>
-              <td class="mono">192.168.1.10</td>
+            <!-- Tier 0: Domain Controller -->
+            <tr data-tier="tier-0" data-os="windows" data-vuln="clean">
+              <td><b>DC-CORP-01</b><div style="font-size:10px;color:var(--text-muted);">Primary Domain Controller</div></td>
+              <td class="mono">192.168.1.10<div style="font-size:9px;color:var(--text-secondary);">VLAN 10 (Corp AD)</div></td>
+              <td><span class="tier-badge tier-0">Tier-0 Crown Jewel</span></td>
               <td>Windows Server 2022 (20348)</td>
               <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
-              <td><span class="agent-pill pill-green">Streaming (0s lag)</span></td>
-              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="agent-pill pill-green">VQL Online (0s)</span></td>
+              <td><span class="agent-pill pill-green">Winlogbeat Streaming</span></td>
+              <td><span class="badge badge-low">0 KEV (Hardened)</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('DC-CORP-01', '192.168.1.10', '00:50:56:A1:B2:C1', 'Windows Server 2022', 'Tier-0 Crown Jewel', 'Active Directory, Kerberos, DNS', 'Healthy (Zero Drift)', 'Sysmon v15.1, Winlogbeat 8.12, Velociraptor 0.72')">Inspect</button></td>
+            </tr>
+
+            <!-- Tier 0: OpenSearch SIEM -->
+            <tr data-tier="tier-0" data-os="linux" data-vuln="clean">
+              <td><b>SOC-SIEM-NODE-01</b><div style="font-size:10px;color:var(--text-muted);">OpenSearch 2.19 Master</div></td>
+              <td class="mono">192.168.1.200<div style="font-size:9px;color:var(--text-secondary);">VLAN 99 (SOC Core)</div></td>
+              <td><span class="tier-badge tier-0">Tier-0 Crown Jewel</span></td>
+              <td>Ubuntu 24.04 LTS (6.8.0)</td>
+              <td><span class="agent-pill pill-green">Auditd 3.1.2</span></td>
+              <td><span class="agent-pill pill-green">VQL Online (0s)</span></td>
+              <td><span class="agent-pill pill-green">Vector Pipeline (840/s)</span></td>
               <td><span class="badge badge-low">0 KEV</span></td>
               <td><span class="badge badge-low">Healthy</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('SOC-SIEM-NODE-01', '192.168.1.200', '00:50:56:C3:D4:E5', 'Ubuntu 24.04 LTS', 'Tier-0 Crown Jewel', 'OpenSearch 2.19 Cluster Master, REST API', 'Cluster GREEN (840 EPS)', 'Auditd, Vector 0.38, Velociraptor')">Inspect</button></td>
             </tr>
-            <tr class="row-suspicious">
-              <td><b>WORKSTATION-12</b></td>
-              <td class="mono">192.168.1.105</td>
+
+            <!-- Compromised Workstation -->
+            <tr class="row-suspicious" data-tier="tier-2" data-os="windows" data-vuln="cve">
+              <td><b>WORKSTATION-12</b><div style="font-size:10px;color:var(--text-muted);">Finance Dept Host</div></td>
+              <td class="mono">192.168.1.105<div style="font-size:9px;color:var(--text-secondary);">VLAN 20 (Users)</div></td>
+              <td><span class="tier-badge tier-2">Tier-2 End-User</span></td>
               <td>Windows 11 Pro 23H2</td>
               <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
-              <td><span class="agent-pill pill-green">Streaming (0s lag)</span></td>
-              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="agent-pill pill-green">VQL Online (0s)</span></td>
+              <td><span class="agent-pill pill-green">Filebeat Streaming</span></td>
               <td><span class="badge badge-critical">CVE-2024-30078 (9.8)</span></td>
               <td><span class="badge badge-critical">Compromised</span></td>
+              <td><button class="btn btn-primary btn-sm" onclick="isolateHost('WORKSTATION-12', '192.168.1.105')">⚡ Isolate Host</button></td>
             </tr>
-            <tr>
-              <td><b>WORKSTATION-14</b></td>
-              <td class="mono">192.168.1.107</td>
-              <td>Windows 11 Pro 23H2</td>
-              <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
-              <td><span class="agent-pill pill-green">Streaming</span></td>
-              <td><span class="agent-pill pill-green">Online</span></td>
-              <td><span class="badge badge-low">0 KEV</span></td>
-              <td><span class="badge badge-low">Healthy</span></td>
-            </tr>
-            <tr>
-              <td><b>SRV-UBUNTU-PROD</b></td>
-              <td class="mono">192.168.1.50</td>
-              <td>Ubuntu 24.04 LTS (Kernel 6.8)</td>
-              <td><span class="agent-pill pill-green">Auditd 3.1.2</span></td>
-              <td><span class="agent-pill pill-green">Streaming</span></td>
-              <td><span class="agent-pill pill-green">Online</span></td>
-              <td><span class="badge badge-low">0 KEV</span></td>
-              <td><span class="badge badge-low">Healthy</span></td>
-            </tr>
-            <tr>
-              <td><b>SRV-DB-PROD-02</b></td>
-              <td class="mono">192.168.1.52</td>
+
+            <!-- Tier 1: Database Production -->
+            <tr data-tier="tier-1" data-os="linux" data-vuln="cve">
+              <td><b>SRV-DB-PROD-02</b><div style="font-size:10px;color:var(--text-muted);">PostgreSQL 16 Core DB</div></td>
+              <td class="mono">192.168.1.52<div style="font-size:9px;color:var(--text-secondary);">VLAN 30 (Prod DB)</div></td>
+              <td><span class="tier-badge tier-1">Tier-1 Business Critical</span></td>
               <td>Debian 12 Bookworm</td>
               <td><span class="agent-pill pill-yellow">Auditd Lag (4m)</span></td>
-              <td><span class="agent-pill pill-green">Streaming</span></td>
-              <td><span class="agent-pill pill-green">Online</span></td>
-              <td><span class="badge badge-high">CVE-2023-48795</span></td>
+              <td><span class="agent-pill pill-green">VQL Online</span></td>
+              <td><span class="agent-pill pill-green">Filebeat Streaming</span></td>
+              <td><span class="badge badge-high">CVE-2023-48795 (5.9)</span></td>
               <td><span class="badge badge-medium">Warning</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('SRV-DB-PROD-02', '192.168.1.52', '00:50:56:88:99:AA', 'Debian 12 Bookworm', 'Tier-1 Business Critical', 'PostgreSQL 16, pg_stat_statements', 'Auditd buffer lag detected', 'Auditd 3.1.2, Filebeat 8.12, Velociraptor')">Inspect</button></td>
+            </tr>
+
+            <!-- Tier 1: Web Reverse Proxy -->
+            <tr data-tier="tier-1" data-os="linux" data-vuln="clean">
+              <td><b>SRV-NGINX-DMZ</b><div style="font-size:10px;color:var(--text-muted);">Edge Reverse Proxy</div></td>
+              <td class="mono">192.168.1.80<div style="font-size:9px;color:var(--text-secondary);">VLAN 50 (DMZ)</div></td>
+              <td><span class="tier-badge tier-1">Tier-1 Business Critical</span></td>
+              <td>Alpine Linux 3.19</td>
+              <td><span class="agent-pill pill-green">Auditd 3.1.2</span></td>
+              <td><span class="agent-pill pill-green">VQL Online</span></td>
+              <td><span class="agent-pill pill-green">Vector Streaming</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('SRV-NGINX-DMZ', '192.168.1.80', '00:50:56:FE:DC:BA', 'Alpine Linux 3.19', 'Tier-1 Business Critical', 'Nginx 1.25, TLS 1.3 Termination', 'Healthy (Zero Drops)', 'Auditd, Vector 0.38, Velociraptor')">Inspect</button></td>
+            </tr>
+
+            <!-- Tier 2: Developer Workstation -->
+            <tr data-tier="tier-2" data-os="windows" data-vuln="clean">
+              <td><b>WORKSTATION-14</b><div style="font-size:10px;color:var(--text-muted);">DevOps Engineer Laptop</div></td>
+              <td class="mono">192.168.1.107<div style="font-size:9px;color:var(--text-secondary);">VLAN 20 (Users)</div></td>
+              <td><span class="tier-badge tier-2">Tier-2 End-User</span></td>
+              <td>Windows 11 Pro 23H2</td>
+              <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
+              <td><span class="agent-pill pill-green">VQL Online</span></td>
+              <td><span class="agent-pill pill-green">Filebeat Streaming</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('WORKSTATION-14', '192.168.1.107', '00:50:56:44:55:66', 'Windows 11 Pro', 'Tier-2 End-User', 'VS Code, Git, Docker Desktop', 'Healthy (Protected)', 'Sysmon v15.1, Filebeat 8.12, Velociraptor')">Inspect</button></td>
+            </tr>
+
+            <!-- Tier 0: Kubernetes Control Plane -->
+            <tr data-tier="tier-0" data-os="cloud" data-vuln="clean">
+              <td><b>K8S-PROD-MASTER</b><div style="font-size:10px;color:var(--text-muted);">K8s Control Plane Node</div></td>
+              <td class="mono">10.244.0.1<div style="font-size:9px;color:var(--text-secondary);">Cloud VPC (10.244.0.0/16)</div></td>
+              <td><span class="tier-badge tier-0">Tier-0 Crown Jewel</span></td>
+              <td>Bottlerocket OS (1.20)</td>
+              <td><span class="agent-pill pill-blue">Falco eBPF</span></td>
+              <td><span class="agent-pill pill-green">VQL Online</span></td>
+              <td><span class="agent-pill pill-green">Fluentbit Streaming</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="inspectAsset('K8S-PROD-MASTER', '10.244.0.1', 'Cloud ENI (i-09f182c)', 'Bottlerocket OS 1.20', 'Tier-0 Crown Jewel', 'kube-apiserver, etcd, CoreDNS', 'Healthy (eBPF Sensor Active)', 'Falco eBPF, Fluentbit, Velociraptor')">Inspect</button></td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Vulnerability Radar & CVE Intel -->
+    <!-- Asset Details Inspector Drawer / Modal Area -->
+    <div class="card" id="assetInspectorCard" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <div class="card-title">🔍 Selected Asset CMDB &amp; Telemetry Profile</div>
+        <span id="inspectTierBadge" class="tier-badge tier-0">Tier-0 Crown Jewel</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+          <div>
+            <h3 id="inspectHost" style="margin:0 0 4px;font-size:16px;">DC-CORP-01</h3>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-accent);" id="inspectIpMac">192.168.1.10 | MAC: 00:50:56:A1:B2:C1</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="triggerVqlScan()">🦖 Velociraptor VQL Sweep</button>
+            <button class="btn btn-ghost btn-sm" onclick="generateComplianceReport()">📋 Compliance Audit</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;background:var(--bg-base);padding:14px;border-radius:6px;border:1px solid var(--border);font-size:12px;">
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Operating System:</div>
+            <div id="inspectOs" style="font-weight:600;color:var(--text-primary);">Windows Server 2022</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Running Workloads:</div>
+            <div id="inspectServices" class="mono" style="font-weight:600;color:var(--text-accent);">Active Directory, Kerberos, DNS</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Security Telemetry Stack:</div>
+            <div id="inspectAgents" class="mono" style="font-weight:600;color:var(--text-primary);">Sysmon v15.1, Winlogbeat, Velociraptor</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">Sensor Integrity Status:</div>
+            <div id="inspectStatus"><span class="badge badge-low">Healthy (Zero Drift)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAASM Rogue Sniffer & Vulnerability Breakdown -->
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
@@ -188,29 +318,29 @@
           <span class="badge badge-critical">2 Exploited in Wild</span>
         </div>
         <div class="card-body">
-          <div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-              <b>CVE-2024-30078 (Windows Wi-Fi Driver RCE)</b>
+          <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <b style="color:var(--critical);">CVE-2024-30078 (Windows Wi-Fi Driver RCE)</b>
               <span class="badge badge-critical">CVSS 9.8</span>
             </div>
-            <div style="font-size:12px;color:var(--text-secondary);">
-              Unauthenticated attacker can send malicious packet to wireless adapter to execute arbitrary code with SYSTEM privileges.
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;">
+              Unauthenticated attacker can send crafted malicious beacon packets to wireless adapter to execute arbitrary kernel shellcode with SYSTEM privileges.
             </div>
-            <div style="font-size:11px;color:var(--text-accent);margin-top:4px;">
-              Affected: <code>WORKSTATION-12</code> | Remediation: Patch KB5039211 queued in SOAR.
+            <div style="font-size:11px;color:var(--text-accent);margin-top:6px;">
+              Target: <code>WORKSTATION-12 (192.168.1.105)</code> | SOAR Action: Patch KB5039211 queued.
             </div>
           </div>
 
           <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-              <b>CVE-2023-48795 (Terrapin SSH Protocol Prefix Truncation)</b>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <b style="color:var(--high);">CVE-2023-48795 (Terrapin SSH Protocol Truncation)</b>
               <span class="badge badge-high">CVSS 5.9</span>
             </div>
-            <div style="font-size:12px;color:var(--text-secondary);">
-              Vulnerability in SSH transport protocol allows Man-in-the-Middle attacker to truncate handshake messages.
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;">
+              Vulnerability in BAP SSH transport protocol allows Man-in-the-Middle attacker to truncate handshake sequence numbers and disable keystroke obfuscation.
             </div>
-            <div style="font-size:11px;color:var(--text-accent);margin-top:4px;">
-              Affected: <code>SRV-DB-PROD-02</code> | Remediation: Disable ChaCha20-Poly1305 ciphers.
+            <div style="font-size:11px;color:var(--text-accent);margin-top:6px;">
+              Target: <code>SRV-DB-PROD-02 (192.168.1.52)</code> | Remediation: Disable ChaCha20-Poly1305.
             </div>
           </div>
         </div>
@@ -218,19 +348,19 @@
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">🔍 Rogue Device &amp; Shadow IT Sniffer</div>
-          <span class="badge badge-low">Zeek DHCP Verified</span>
+          <div class="card-title">🔍 CAASM Passive Rogue Device &amp; DHCP Monitor</div>
+          <span class="badge badge-low">Zeek NSM Verified</span>
         </div>
         <div class="card-body">
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
-            Continuously monitors ARP requests, DHCP lease allocations, and passive TCP SYN scans to discover unmanaged devices.
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.4;">
+            Continuously monitors ARP requests, DHCP lease allocations, and passive TCP SYN banners via Zeek <code>dhcp.log</code> and <code>conn.log</code> to identify unmanaged Shadow IT assets.
           </div>
-          <div style="background:var(--bg-base);padding:10px;border-radius:4px;border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">
+          <div style="background:var(--bg-base);padding:12px;border-radius:6px;border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:1.6;">
             [✓] Passive ARP scan on 192.168.1.0/24 complete.<br>
-            • Total Live MACs: 18 (18 registered in CAASM catalog).<br>
-            • Unmanaged DHCP Discover requests (24h): 0<br>
-            • Rogue Wi-Fi Access Points detected: 0<br>
-            • Status: All active endpoints have authenticated Sysmon/Auditd telemetry agents.
+            • Total Live MACs: <b>24 / 24 registered</b> in CMDB.<br>
+            • Unmanaged DHCP Discover requests (24h): <b>0</b><br>
+            • Rogue Wi-Fi Access Points / Evil Twins: <b>0</b><br>
+            • Telemetry Coverage: <b>100% of hosts streaming Sysmon/Auditd/eBPF</b>.
           </div>
         </div>
       </div>
@@ -240,15 +370,86 @@
 
 <script src="soc-copilot.js"></script>
 <script>
+function inspectAsset(host, ip, mac, os, tier, services, status, agents) {
+  document.getElementById('inspectHost').textContent = host;
+  document.getElementById('inspectIpMac').textContent = `${ip} | MAC: ${mac}`;
+  document.getElementById('inspectOs').textContent = os;
+  document.getElementById('inspectServices').textContent = services;
+  document.getElementById('inspectAgents').textContent = agents;
+  document.getElementById('inspectStatus').innerHTML = `<span class="badge badge-${status.includes('Lag')||status.includes('Compromised')?'critical':'low'}">${status}</span>`;
+  
+  const tierBadge = document.getElementById('inspectTierBadge');
+  tierBadge.textContent = tier;
+  tierBadge.className = 'tier-badge ' + (tier.includes('Tier-0') ? 'tier-0' : tier.includes('Tier-1') ? 'tier-1' : 'tier-2');
+}
+
 function filterAssets(q) {
+  const query = q.toLowerCase();
   const rows = document.querySelectorAll('#assetTable tbody tr');
+  let matchCount = 0;
   rows.forEach(r => {
-    r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+    const match = r.innerText.toLowerCase().includes(query);
+    r.style.display = match ? '' : 'none';
+    if (match) matchCount++;
   });
+  document.getElementById('assetCountBadge').textContent = `${matchCount} Assets Displayed`;
+}
+
+function filterByTag(tag) {
+  const rows = document.querySelectorAll('#assetTable tbody tr');
+  let matchCount = 0;
+  rows.forEach(r => {
+    let show = false;
+    if (tag === 'all') show = true;
+    else if (tag === 'tier-0' && r.getAttribute('data-tier') === 'tier-0') show = true;
+    else if (tag === 'vuln' && r.getAttribute('data-vuln') === 'cve') show = true;
+    else if (tag === 'windows' && r.getAttribute('data-os') === 'windows') show = true;
+    else if (tag === 'linux' && r.getAttribute('data-os') === 'linux') show = true;
+    else if (tag === 'cloud' && r.getAttribute('data-os') === 'cloud') show = true;
+
+    r.style.display = show ? '' : 'none';
+    if (show) matchCount++;
+  });
+  document.getElementById('assetCountBadge').textContent = `${matchCount} Assets Displayed`;
 }
 
 function pingFleetHealth() {
-  alert('Fleet health ping complete: 18/18 agents acknowledged heartbeat within 120ms.');
+  alert('🔄 Fleet Heartbeat Ping Complete:\n\n• 24 / 24 Monitored hosts responded.\n• Average response latency: 42ms\n• Auditd daemon on SRV-DB-PROD-02 lag: 4m (Auto-restart dispatched).');
+}
+
+function isolateHost(host, ip) {
+  if (confirm(`⚠️ CRITICAL SOAR ACTION:\n\nAre you sure you want to isolate ${host} (${ip}) from the corporate LAN?\n\nThis will terminate active network sockets except to the SOC SIEM & Velociraptor management IP.`)) {
+    alert(`🔒 [SOAR ACTION COMPLETE]: ${host} (${ip}) isolated via Windows Filtering Platform & OPNsense firewall rule.`);
+  }
+}
+
+function triggerVqlScan() {
+  const host = document.getElementById('inspectHost').textContent;
+  alert(`🦖 Velociraptor VQL Hunt Triggered on [${host}]:\n\n• Artifact: Windows.Detection.ProcessHollowing & Generic.System.Pstree\n• Results will stream to OpenSearch index 'velociraptor-hunts-*' in ~15s.`);
+}
+
+function generateComplianceReport() {
+  const host = document.getElementById('inspectHost').textContent;
+  alert(`📋 CIS Benchmark & PCI-DSS Audit Generated for ${host}:\n\n• CIS Level 1 Benchmark Score: 94.2%\n• Zero high-risk configuration drifts identified.`);
+}
+
+function exportCmdbCsv() {
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + "Hostname,IP_Address,VLAN,Criticality_Tier,Operating_System,EDR_Agent,Vulnerabilities,Status\n"
+    + "DC-CORP-01,192.168.1.10,VLAN 10,Tier-0 Crown Jewel,Windows Server 2022,Sysmon v15.1 + Velociraptor,0 KEV,Healthy\n"
+    + "SOC-SIEM-NODE-01,192.168.1.200,VLAN 99,Tier-0 Crown Jewel,Ubuntu 24.04 LTS,Auditd + Vector + Velociraptor,0 KEV,Healthy\n"
+    + "WORKSTATION-12,192.168.1.105,VLAN 20,Tier-2 End-User,Windows 11 Pro 23H2,Sysmon v15.1 + Filebeat,CVE-2024-30078,Compromised\n"
+    + "SRV-DB-PROD-02,192.168.1.52,VLAN 30,Tier-1 Critical,Debian 12,Auditd + Velociraptor,CVE-2023-48795,Warning\n"
+    + "SRV-NGINX-DMZ,192.168.1.80,VLAN 50,Tier-1 Critical,Alpine 3.19,Auditd + Vector,0 KEV,Healthy\n"
+    + "K8S-PROD-MASTER,10.244.0.1,Cloud VPC,Tier-0 Crown Jewel,Bottlerocket 1.20,Falco eBPF + Fluentbit,0 KEV,Healthy";
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "enterprise_cmdb_inventory.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 </script>
 </body>
