@@ -1010,7 +1010,6 @@ These limitations are documented deliberately so that the repository does not im
 | [`docs/RESPONDER_KALI_GUIDE.md`](docs/RESPONDER_KALI_GUIDE.md) | Isolated Responder lab procedure |
 | [`docs/SECURITY_ONION_VM_GUIDE.md`](docs/SECURITY_ONION_VM_GUIDE.md) | Security Onion VM guidance |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting and lab security policy |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution and change workflow |
 | [`SPEC.md`](SPEC.md) | Repository hardening and validation specification |
 
 ---
