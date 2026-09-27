@@ -64,6 +64,7 @@ services:
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
       - ./config/opensearch/opensearch-node1.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      - ./config/opensearch/security:/usr/share/opensearch/config/opensearch-security:ro
       - ./config/opensearch/certs/opensearch-node1.pem:/usr/share/opensearch/config/opensearch-node1.pem:ro
       - ./config/opensearch/certs/opensearch-node1-key.pem:/usr/share/opensearch/config/opensearch-node1-key.pem:ro
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
@@ -100,6 +101,7 @@ services:
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
       - ./config/opensearch/opensearch-node2.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      - ./config/opensearch/security:/usr/share/opensearch/config/opensearch-security:ro
       - ./config/opensearch/certs/opensearch-node2.pem:/usr/share/opensearch/config/opensearch-node2.pem:ro
       - ./config/opensearch/certs/opensearch-node2-key.pem:/usr/share/opensearch/config/opensearch-node2-key.pem:ro
       - ./config/opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro

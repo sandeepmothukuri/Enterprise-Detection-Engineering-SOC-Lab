@@ -32,7 +32,10 @@ plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access
 plugins.security.nodes_dn:
   - "CN=opensearch-node1,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"
   - "CN=opensearch-node2,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"
+  - "C=IN,ST=Telangana,L=Hyderabad,O=SOC Lab,OU=OpenSearch,CN=opensearch-node1"
+  - "C=IN,ST=Telangana,L=Hyderabad,O=SOC Lab,OU=OpenSearch,CN=opensearch-node2"
 
 # OpenSearch Security: certificate DN authorized for security administration
 plugins.security.authcz.admin_dn:
   - "CN=opensearch-admin,OU=OpenSearch,O=SOC Lab,L=Hyderabad,ST=Telangana,C=IN"
+  - "C=IN,ST=Telangana,L=Hyderabad,O=SOC Lab,OU=OpenSearch,CN=opensearch-admin"
