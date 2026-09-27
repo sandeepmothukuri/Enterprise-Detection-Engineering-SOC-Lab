@@ -1,6 +1,6 @@
 /**
  * SOC Lab — Universal AI Copilot (CrewAI + Llama 3.2:3b), Theme Switcher & Kiosk Controller
- * Version 2.5 — Enterprise Visual Design System & Theme Engine
+ * Version 2.6 — Enterprise Visual Design System & SOC Wallboard Kiosk Engine
  */
 
 (function initSocCopilot() {
@@ -8,7 +8,7 @@
   const activeTheme = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
   document.documentElement.setAttribute('data-theme', activeTheme);
 
-  // Styles for Copilot, Kiosk & Theme Modal
+  // Styles for Copilot, Kiosk Bar & Theme Modal
   const style = document.createElement('style');
   style.id = 'soc-copilot-styles';
   style.textContent = `
@@ -309,22 +309,22 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
-    /* Kiosk Mode Bar */
+    /* Kiosk Mode Wallboard Bar */
     .kiosk-bar {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 38px;
-      background: rgba(0, 3, 10, 0.96);
-      border-bottom: 1px solid #00d2ff;
+      height: 42px;
+      background: rgba(7, 13, 30, 0.96);
+      border-bottom: 2px solid var(--accent);
       display: none;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 20px;
       z-index: 10000;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.8);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.8);
     }
     .kiosk-bar.active { display: flex; }
     .kiosk-progress {
@@ -332,14 +332,14 @@
       bottom: 0;
       left: 0;
       height: 3px;
-      background: #00d2ff;
-      box-shadow: 0 0 10px #00d2ff;
-      transition: width 1s linear;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      transition: width 0.3s linear;
     }
   `;
   document.head.appendChild(style);
 
-  // Themes list
+  // 8 Themes list
   const THEMES = [
     { id: 'darkblue', name: '🌌 Deep Dark Blue', desc: 'Royal Navy / Default SOC Theme', bg: '#070d1e', surface: '#0c1530', accent: '#38bdf8', crit: '#f43f5e' },
     { id: 'oled', name: '🕶️ OLED Pitch-Blue', desc: 'Pure Pitch Black & Cyber Neon', bg: '#00030a', surface: '#020817', accent: '#00d2ff', crit: '#ff2a55' },
@@ -349,6 +349,19 @@
     { id: 'emerald', name: '📟 Cyber Emerald', desc: 'Matrix / Threat Hunter Green', bg: '#020905', surface: '#05150c', accent: '#00ff9d', crit: '#ff3366' },
     { id: 'synthwave', name: '🔮 Synthwave Violet', desc: 'Darktrace Neon Violet Glow', bg: '#08040f', surface: '#10081e', accent: '#d946ef', crit: '#ff0055' },
     { id: 'amber', name: '☀️ Solar Amber', desc: 'Splunk / Datadog Gold', bg: '#0a0804', surface: '#141008', accent: '#f59e0b', crit: '#ef4444' }
+  ];
+
+  // Kiosk Rotation List (9 Enterprise Tiers)
+  const KIOSK_PAGES = [
+    '01_soc_command_center.html',
+    '02_incident_operations.html',
+    '03_detection_engineering.html',
+    '04_mitre_attack.html',
+    '05_threat_hunting.html',
+    '06_network_security.html',
+    '07_endpoint_security.html',
+    '08_ai_soc.html',
+    '09_platform_health.html'
   ];
 
   function createThemeModal() {
@@ -412,10 +425,6 @@
     document.documentElement.setAttribute('data-theme', themeId);
     localStorage.setItem('soc_dashboard_theme', themeId);
     
-    // Update select if exists
-    const sel = document.getElementById('socThemeSelect');
-    if (sel) sel.value = themeId;
-
     // Refresh modal cards
     const grid = document.getElementById('socThemeGrid');
     if (grid) {
@@ -438,6 +447,67 @@
 
     window.showSocToast(`🎨 Theme Changed: <b>${themeId.toUpperCase()}</b>`);
   };
+
+  // ── Kiosk Mode Logic ────────────────────────────────────────────────────────
+  let kioskTimeout = null;
+  let kioskInterval = null;
+  const KIOSK_CYCLE_SECONDS = 15;
+
+  window.startKiosk = function() {
+    sessionStorage.setItem('soc_kiosk_active', 'true');
+    const bar = document.getElementById('socKioskBar');
+    if (bar) bar.classList.add('active');
+
+    const currPath = window.location.pathname.split('/').pop() || 'index.html';
+    const label = document.getElementById('kioskPageLabel');
+    const pBar = document.getElementById('kioskProgress');
+
+    let remaining = KIOSK_CYCLE_SECONDS;
+    if (label) label.textContent = `Viewing: ${currPath} (Rotating in ${remaining}s)`;
+    if (pBar) pBar.style.width = '0%';
+
+    clearInterval(kioskInterval);
+    clearTimeout(kioskTimeout);
+
+    kioskInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) remaining = 0;
+      const pct = ((KIOSK_CYCLE_SECONDS - remaining) / KIOSK_CYCLE_SECONDS) * 100;
+      if (pBar) pBar.style.width = `${pct}%`;
+      if (label) label.textContent = `Viewing: ${currPath} (Rotating in ${remaining}s)`;
+    }, 1000);
+
+    kioskTimeout = setTimeout(() => {
+      window.kioskNext();
+    }, KIOSK_CYCLE_SECONDS * 1000);
+
+    window.showSocToast('📺 <b>SOC Kiosk Mode Activated</b> (Auto-cycling every 15s)');
+  };
+
+  window.exitKiosk = function() {
+    sessionStorage.removeItem('soc_kiosk_active');
+    clearTimeout(kioskTimeout);
+    clearInterval(kioskInterval);
+    const bar = document.getElementById('socKioskBar');
+    if (bar) bar.classList.remove('active');
+    window.showSocToast('📺 Kiosk Mode Exited');
+  };
+
+  window.kioskNext = function() {
+    clearTimeout(kioskTimeout);
+    clearInterval(kioskInterval);
+    const currPath = window.location.pathname.split('/').pop() || 'index.html';
+    let idx = KIOSK_PAGES.indexOf(currPath);
+    if (idx === -1) idx = 0;
+    const nextIdx = (idx + 1) % KIOSK_PAGES.length;
+    window.location.href = KIOSK_PAGES[nextIdx];
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sessionStorage.getItem('soc_kiosk_active') === 'true') {
+      window.exitKiosk();
+    }
+  });
 
   function createCopilotUI() {
     // 1. Floating Launcher
@@ -500,7 +570,24 @@
     `;
     document.body.appendChild(drawer);
 
-    // 3. Inject Theme Switcher Button into Topbar (Exact single instance)
+    // 3. Kiosk Banner (Fixed Top Wallboard Bar)
+    const kiosk = document.createElement('div');
+    kiosk.className = 'kiosk-bar';
+    kiosk.id = 'socKioskBar';
+    kiosk.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#e8edf5;font-weight:700;">
+        <span style="color:#ef4444;animation:copilot-pulse 1s infinite;">●</span> SOC WALLBOARD KIOSK MODE
+        <span id="kioskPageLabel" style="color:#94a3b8;font-weight:400;font-size:11px;">(Auto-cycling every 15s)</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-secondary btn-sm" style="padding:3px 10px;font-size:11px;" onclick="window.kioskNext()">Next ➔</button>
+        <button class="btn btn-danger btn-sm" style="padding:3px 10px;font-size:11px;" onclick="window.exitKiosk()">Exit Kiosk (Esc)</button>
+      </div>
+      <div class="kiosk-progress" id="kioskProgress"></div>
+    `;
+    document.body.appendChild(kiosk);
+
+    // 4. Inject Theme Switcher & Kiosk Button into Topbar
     const topbarRight = document.querySelector('.topbar-right') || document.querySelector('.portal-meta');
     if (topbarRight && !document.getElementById('socThemeBtn')) {
       const wrapper = document.createElement('div');
@@ -528,6 +615,11 @@
     }
 
     createThemeModal();
+
+    // Auto-resume kiosk if active in session
+    if (sessionStorage.getItem('soc_kiosk_active') === 'true') {
+      window.startKiosk();
+    }
   }
 
   function toggleCopilot() {
