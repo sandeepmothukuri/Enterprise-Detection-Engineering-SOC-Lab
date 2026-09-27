@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cloud SOC & Multi-Cloud Posture — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .cloud-provider-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+    .cp-aws { background: rgba(255, 153, 0, 0.15); color: #ff9900; border: 1px solid rgba(255, 153, 0, 0.35); }
+    .cp-azure { background: rgba(0, 120, 212, 0.15); color: #38bdf8; border: 1px solid rgba(0, 120, 212, 0.35); }
+    .cp-gcp { background: rgba(66, 133, 244, 0.15); color: #60a5fa; border: 1px solid rgba(66, 133, 244, 0.35); }
+    .cloud-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-bottom: var(--space-4); }
+    @media(max-width: 1000px){ .cloud-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html" class="active"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">☁️</span> Cloud SOC &amp; Multi-Cloud Posture</div>
+    <span class="topbar-meta">AWS GuardDuty • Azure Sentinel • GCP SCC</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="runCloudComplianceScan()">⚡ Run IAM Audit</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Top KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card critical">
+        <div class="kpi-label">Critical Cloud Alerts</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">AWS Root + IAM Escalation</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">GuardDuty Findings</div>
+        <div class="kpi-value">14</div>
+        <div class="kpi-sub">Recon &amp; UnauthorizedAccess</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Cloud Identities Tracked</div>
+        <div class="kpi-value">84</div>
+        <div class="kpi-sub">6 Over-Privileged Roles</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">CSPM Compliance Score</div>
+        <div class="kpi-value">91%</div>
+        <div class="kpi-sub">CIS AWS Benchmark v1.4</div>
+      </div>
+    </div>
+
+    <!-- Provider Status Cards -->
+    <div class="cloud-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="cp-aws">AWS</span> CloudTrail &amp; GuardDuty</div>
+          <span class="badge badge-low">Vector Active</span>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+            Ingesting CloudTrail audit trail via SQS/S3 Vector pipeline. GuardDuty detector active in <code>us-east-1</code>.
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>Root Account Logins (24h)</span>
+            <span class="badge badge-critical">1 (MFA Bypassed)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>S3 Public Bucket Alerts</span>
+            <span class="badge badge-high">2 Buckets</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:11px;">
+            <span>KMS Key Destruction Anomalies</span>
+            <span class="badge badge-low">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="cp-azure">Azure</span> Sentinel &amp; Entra ID</div>
+          <span class="badge badge-low">Connected</span>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+            Microsoft Entra ID (Azure AD) sign-in logs and Privileged Identity Management (PIM) alerts.
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>Impossible Travel Detections</span>
+            <span class="badge badge-high">1 Alert</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>App Registration Credential Adds</span>
+            <span class="badge badge-medium">3 Service Principals</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:11px;">
+            <span>Global Admin Role Escalations</span>
+            <span class="badge badge-low">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="cp-gcp">GCP</span> Security Command Center</div>
+          <span class="badge badge-low">PubSub Stream</span>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+            Google Cloud SCC findings ingested via Pub/Sub to Vector daemon. Org-level policy compliance.
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>Service Account Key Exports</span>
+            <span class="badge badge-critical">1 Event</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <span>Compute Instance Mining Anomalies</span>
+            <span class="badge badge-low">Clean</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:11px;">
+            <span>Firewall Ingress 0.0.0.0/0 (Port 22)</span>
+            <span class="badge badge-medium">1 Instance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Cloud Incident Table -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <div class="card-title">🚨 Active Multi-Cloud Security Findings (Real-Time SIEM Correlation)</div>
+        <input type="text" class="input" style="font-size:11px;padding:3px 8px;width:200px;" placeholder="Filter cloud findings..." onkeyup="filterCloudTable(this.value)">
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="cloudTable">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Cloud Provider</th>
+              <th>Finding / Detection Name</th>
+              <th>Target Resource / Identity</th>
+              <th>ATT&amp;CK Technique</th>
+              <th>Severity</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">13:04:18 UTC</td>
+              <td><span class="cp-aws">AWS</span></td>
+              <td><b>UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration</b></td>
+              <td class="mono">arn:aws:iam::123456789012:role/Prod-Backend-EC2</td>
+              <td><span class="badge badge-critical">T1552.005</span></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Triggered SOAR Playbook: Revoke IAM Role Session & Isolate Instance')">⚡ Quarantine</button></td>
+            </tr>
+            <tr>
+              <td class="mono">12:51:02 UTC</td>
+              <td><span class="cp-gcp">GCP</span></td>
+              <td><b>Service Account Key Created Outside Terraform CI</b></td>
+              <td class="mono">sa-data-ingest@prod-lakehouse.iam.gserviceaccount.com</td>
+              <td><span class="badge badge-high">T1078.004</span></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Key disabled in GCP IAM via StackStorm.')">Revoke Key</button></td>
+            </tr>
+            <tr>
+              <td class="mono">12:35:40 UTC</td>
+              <td><span class="cp-azure">Azure</span></td>
+              <td><b>Suspicious OAuth App Consent Granted to Multi-Tenant App</b></td>
+              <td class="mono">AppID: 8d7c4a1e-72b1-4f10-9b32-849c71a3</td>
+              <td><span class="badge badge-high">T1528</span></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('OAuth Grant Revoked.')">Revoke Consent</button></td>
+            </tr>
+            <tr>
+              <td class="mono">11:18:22 UTC</td>
+              <td><span class="cp-aws">AWS</span></td>
+              <td><b>S3 Public Bucket Policy Attached (AllUsers Read)</b></td>
+              <td class="mono">s3://company-prod-client-exports-2026</td>
+              <td><span class="badge badge-medium">T1530</span></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Bucket set to Block Public Access.')">Block Public</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Interactive Cloud SIEM Query Sandbox -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔍 Multi-Cloud SIEM Query Builder (OpenSearch CloudTrail / Sentinel DSL)</div>
+        <button class="btn btn-primary btn-sm" onclick="runCloudQuery()">Execute Query</button>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="loadCloudQuery('root_login')">AWS Root Login</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadCloudQuery('iam_privesc')">IAM Policy Tampering</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadCloudQuery('azure_consent')">Azure OAuth Misuse</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadCloudQuery('gcp_firewall')">GCP 0.0.0.0/0 Firewall</button>
+        </div>
+        <textarea id="cloudQueryText" class="input" style="width:100%;height:100px;font-family:var(--font-mono);font-size:12px;resize:vertical;" spellcheck="false">eventSource: "signin.amazonaws.com" AND eventName: "ConsoleLogin" AND userIdentity.type: "Root"</textarea>
+        <div id="cloudQueryResult" style="margin-top:10px;padding:10px;background:var(--bg-base);border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);display:none;"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+function filterCloudTable(q) {
+  const rows = document.querySelectorAll('#cloudTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function loadCloudQuery(type) {
+  const box = document.getElementById('cloudQueryText');
+  if (type === 'root_login') {
+    box.value = 'eventSource: "signin.amazonaws.com" AND eventName: "ConsoleLogin" AND userIdentity.type: "Root"';
+  } else if (type === 'iam_privesc') {
+    box.value = 'eventName: ("CreatePolicyVersion" OR "AttachUserPolicy" OR "PutUserPolicy") AND userIdentity.arn: NOT "*admin*"';
+  } else if (type === 'azure_consent') {
+    box.value = 'category: "AuditLogs" AND operationName: "Consent to application" AND result: "success"';
+  } else if (type === 'gcp_firewall') {
+    box.value = 'protoPayload.methodName: "v1.compute.firewalls.insert" AND protoPayload.request.sourceRanges: "0.0.0.0/0"';
+  }
+}
+
+function runCloudQuery() {
+  const res = document.getElementById('cloudQueryResult');
+  res.style.display = 'block';
+  res.innerHTML = `<b>Query Output (OpenSearch <code>soc-cloud-telemetry-*</code>):</b><br>
+  ✓ Matched <b>4 records</b> in 18ms.<br>
+  • Hit: <code>{ "eventTime": "2026-09-27T13:04:18Z", "sourceIPAddress": "198.51.100.42", "userAgent": "aws-cli/2.15.15", "responseElements": { "ConsoleLogin": "Success" } }</code>`;
+}
+
+function runCloudComplianceScan() {
+  alert('⚡ IAM & CSPM Audit Completed. 43 AWS, 28 Azure, and 13 GCP policies validated across CIS Benchmark standards. Compliance Score: 91%.');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "id": "l3o7m1n4-5k2j-3l9o-m7n2-3p9o2k7n4l0o",
+  "title": "Data Exfiltration via C2 Channel",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.exfiltration",
+    "attack.t1041"
+  ],
+  "description": "Detects large outbound data transfers to suspicious external IPs",
+  "logsource": {
+    "category": "network_connection",
+    "product": "zeek"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "local_orig": true
+          }
+        },
+        {
+          "term": {
+            "local_resp": false
+          }
+        },
+        {
+          "term": {
+            "orig_bytes": 5000000
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "resp_h": "1.1.1.1"
+                }
+              },
+              {
+                "match_phrase": {
+                  "resp_h": "8.8.8.8"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/exfiltration/T1041_c2_exfil.yml"
+}

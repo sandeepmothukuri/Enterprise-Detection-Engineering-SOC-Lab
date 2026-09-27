@@ -1,0 +1,68 @@
+{
+  "id": "a2fbc6b2-4a3e-41b7-8e6c-2f1d9c0e5a3f",
+  "title": "Suspicious Encoded PowerShell Execution",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.execution",
+    "attack.t1059.001",
+    "attack.defense_evasion",
+    "attack.t1027"
+  ],
+  "description": "Detects PowerShell with encoded/obfuscated commands \u2014 fileless malware, droppers",
+  "logsource": {
+    "category": "process_creation",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "Image": {
+              "value": "*\\powershell.exe"
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "CommandLine": "-EncodedCommand"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "-enc "
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "IEX("
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "Invoke-Expression"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "DownloadString"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "FromBase64String"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/execution/T1059.001_encoded_powershell.yml"
+}

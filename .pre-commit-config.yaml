@@ -1,0 +1,26 @@
+# Pre-commit configuration for Enterprise Detection Engineering SOC Lab
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=2000']
+      - id: check-merge-conflict
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-d, '{extends: relaxed, rules: {line-length: disable, document-start: disable}}']
+        files: \.(yaml|yml)$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=130', '--ignore=E501,W503,E402,F401,F841']

@@ -1,0 +1,63 @@
+{
+  "id": "d5g9e3f6-7c4b-5d1g-e9f4-5h1g4c9f6d2g",
+  "title": "Persistence via Registry Run Keys",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.persistence",
+    "attack.t1547.001"
+  ],
+  "description": "Detects malware writing to registry Run/RunOnce keys for persistence",
+  "logsource": {
+    "category": "registry_set",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "TargetObject": "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                }
+              },
+              {
+                "match_phrase": {
+                  "TargetObject": "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce"
+                }
+              },
+              {
+                "match_phrase": {
+                  "TargetObject": "\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "Image": "\\Program Files\\"
+                }
+              },
+              {
+                "match_phrase": {
+                  "Image": "\\Windows\\System32\\"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/persistence/T1547.001_registry_run.yml"
+}

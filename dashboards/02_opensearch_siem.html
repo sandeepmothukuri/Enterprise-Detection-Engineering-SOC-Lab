@@ -1,137 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenSearch SIEM — SOC Lab</title>
-<link rel="stylesheet" href="soc-theme.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenSearch SIEM &amp; Detection Engine — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); width: 90%; max-width: 700px;
+      padding: var(--space-6); box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .clickable-row { cursor: pointer; transition: background 0.15s; }
+    .clickable-row:hover { background: var(--bg-card-hover); }
+    .search-pill {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      color: var(--text-secondary); padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; cursor: pointer; font-family: var(--font-mono); transition: var(--transition);
+    }
+    .search-pill:hover, .search-pill.active {
+      background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
 
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">SOC Lab v2</div>
-    <ul class="sidebar-nav">
-      <li><a href="index.html">⌂ Portal</a></li>
-      <li><a href="01_soc_overview.html">Overview</a></li>
-      <li><a href="02_opensearch_siem.html" class="active">OpenSearch SIEM</a></li>
-      <li><a href="03_zeek_network.html">Zeek NSM</a></li>
-      <li><a href="04_suricata_ids.html">Suricata IDS</a></li>
-      <li><a href="05_ai_agents.html">AI Agents</a></li>
-      <li><a href="06_iris_cases.html">DFIR-IRIS</a></li>
-      <li><a href="07_caldera_attack.html">Caldera</a></li>
-      <li><a href="08_misp_ti.html">MISP Threat Intel</a></li>
-      <li><a href="09_velociraptor.html">Velociraptor</a></li>
-      <li><a href="10_responder_redteam.html">Red Team</a></li>
-    </ul>
-    <div class="sidebar-footer">MITRE ATT&amp;CK v14</div>
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html" class="active"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
   </nav>
 
-  <!-- Main -->
-  <div class="main-wrap">
-    <header class="topbar">
-      <span class="topbar-title">OpenSearch SIEM</span>
-      <div class="topbar-meta">
-        <span class="status-dot green"></span> Cluster healthy
-        <span style="margin-left:var(--space-4)">Index: soc-logs-*</span>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🔍</span> OpenSearch SIEM &amp; Detection Engine</div>
+    <span class="topbar-meta">Cluster Status: <span style="color:var(--low);">● Green</span> (2 Nodes) • soc-logs-*</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="triggerMockEvent()">+ Ingest Test Telemetry</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Search & Query Bar -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-body" style="padding:var(--space-4);">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input type="text" id="queryInput" placeholder="Lucene / DQL: e.g. mitre_technique:T1003.001 OR severity:critical" style="flex:1; padding:8px 12px; background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); border-radius:4px; font-family:var(--font-mono); font-size:12px;">
+          <button class="btn btn-primary btn-sm" onclick="runSearch()">🔍 Search SIEM</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetSearch()">Reset</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span style="font-size:11px; color:var(--text-muted);">Quick Filters:</span>
+          <button class="search-pill" onclick="applyFilter('severity:critical')">severity:critical</button>
+          <button class="search-pill" onclick="applyFilter('mitre_technique:T1003.001')">T1003.001 (LSASS)</button>
+          <button class="search-pill" onclick="applyFilter('mitre_technique:T1059.001')">T1059.001 (PowerShell)</button>
+          <button class="search-pill" onclick="applyFilter('mitre_technique:T1110')">T1110 (Brute Force)</button>
+          <button class="search-pill" onclick="applyFilter('mitre_technique:T1557')">T1557 (Responder)</button>
+          <button class="search-pill" onclick="applyFilter('sensor:zeek')">sensor:zeek</button>
+          <button class="search-pill" onclick="applyFilter('sensor:suricata')">sensor:suricata</button>
+        </div>
       </div>
-    </header>
+    </div>
 
-    <main class="content">
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card"><div class="kpi-label">Total Ingested (24h)</div><div class="kpi-value" id="kpiTotal">48,291</div><div class="kpi-sub">↑ 12% vs yesterday</div></div>
+      <div class="kpi-card high"><div class="kpi-label">High Severity Alerts</div><div class="kpi-value" id="kpiHigh">127</div><div class="kpi-sub">14 unreviewed</div></div>
+      <div class="kpi-card critical"><div class="kpi-label">Critical Alerts</div><div class="kpi-value" id="kpiCrit">9</div><div class="kpi-sub">3 open IRIS cases</div></div>
+      <div class="kpi-card low"><div class="kpi-label">Ingestion Health</div><div class="kpi-value">99.9%</div><div class="kpi-sub">0 dropped events</div></div>
+    </div>
 
-      <!-- KPIs -->
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">Total Events (24h)</div><div class="kpi-value">48,291</div><div class="kpi-sub">↑ 12% vs yesterday</div></div>
-        <div class="kpi-card high"><div class="kpi-label">High Severity</div><div class="kpi-value">127</div><div class="kpi-sub">14 unreviewed</div></div>
-        <div class="kpi-card critical"><div class="kpi-label">Critical Alerts</div><div class="kpi-value">9</div><div class="kpi-sub">3 open cases</div></div>
-        <div class="kpi-card"><div class="kpi-label">Active Indices</div><div class="kpi-value">4</div><div class="kpi-sub">2 nodes healthy</div></div>
+    <div class="grid-2" style="margin-bottom:var(--space-4);">
+      <!-- 24h Timeline -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📈 Event Volume — 24h Timeline</span>
+          <span class="badge badge-low">Live Stream</span>
+        </div>
+        <div class="card-body">
+          <div style="height:200px;">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
       </div>
 
-      <div class="grid-2">
-
-        <!-- 24h Timeline -->
-        <div class="card" style="grid-column:1/-1">
-          <div class="card-header">
-            <span class="card-title">📈 Event Volume — 24h Timeline</span>
-            <span class="badge badge-low">Live</span>
-          </div>
-          <div class="card-body">
-            <div class="chart-wrap" style="height:200px">
-              <canvas id="timelineChart"></canvas>
-            </div>
+      <!-- Severity Breakdown -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔴 Severity Breakdown (24h)</span></div>
+        <div class="card-body">
+          <div style="height:200px;">
+            <canvas id="sevChart"></canvas>
           </div>
         </div>
-
-        <!-- Severity Breakdown -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">🔴 Severity Breakdown</span></div>
-          <div class="card-body">
-            <div class="chart-wrap" style="height:220px">
-              <canvas id="sevChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Active Indices -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">🗄️ Active Indices</span></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead><tr><th>Index</th><th>Docs</th><th>Size</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td class="mono">soc-logs-2026.04.25</td><td class="mono">18,432</td><td class="mono">2.1 GB</td><td><span class="badge badge-low">GREEN</span></td></tr>
-                <tr><td class="mono">soc-logs-2026.04.24</td><td class="mono">21,105</td><td class="mono">2.4 GB</td><td><span class="badge badge-low">GREEN</span></td></tr>
-                <tr><td class="mono">soc-logs-2026.04.23</td><td class="mono">19,887</td><td class="mono">2.2 GB</td><td><span class="badge badge-low">GREEN</span></td></tr>
-                <tr><td class="mono">soc-logs-2026.04.22</td><td class="mono">15,340</td><td class="mono">1.8 GB</td><td><span class="badge badge-medium">YELLOW</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Top Source IPs -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">🌐 Top Source IPs</span></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead><tr><th>IP</th><th>Events</th><th>Technique</th><th>Risk</th></tr></thead>
-              <tbody>
-                <tr><td class="mono">185.220.101.45</td><td class="mono">1,204</td><td><span class="technique-tag">T1566.001</span></td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
-                <tr><td class="mono">10.0.99.15</td><td class="mono">847</td><td><span class="technique-tag">T1110.001</span></td><td><span class="badge badge-high">HIGH</span></td></tr>
-                <tr><td class="mono">10.0.1.50</td><td class="mono">612</td><td><span class="technique-tag">T1059.001</span></td><td><span class="badge badge-high">HIGH</span></td></tr>
-                <tr><td class="mono">45.132.227.89</td><td class="mono">389</td><td><span class="technique-tag">T1133</span></td><td><span class="badge badge-medium">MED</span></td></tr>
-                <tr><td class="mono">10.0.3.45</td><td class="mono">203</td><td><span class="technique-tag">T1039</span></td><td><span class="badge badge-medium">MED</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ElastAlert2 Rules -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">⚡ ElastAlert2 Rules</span></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead><tr><th>Rule</th><th>Technique</th><th>Fires (24h)</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td>Brute Force Spray</td><td><span class="technique-tag">T1110</span></td><td class="mono">14</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>LSASS Dump</td><td><span class="technique-tag">T1003.001</span></td><td class="mono">3</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>DNS Tunneling</td><td><span class="technique-tag">T1071.004</span></td><td class="mono">7</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Lateral SMB</td><td><span class="technique-tag">T1021.002</span></td><td class="mono">2</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Scheduled Task</td><td><span class="technique-tag">T1053.005</span></td><td class="mono">5</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Defender Disabled</td><td><span class="technique-tag">T1562.001</span></td><td class="mono">1</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
-    </main>
+    </div>
+
+    <!-- Active Indices Management -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <span class="card-title">🗄️ OpenSearch Active Shards &amp; Ingestion Indices</span>
+        <button class="btn btn-ghost btn-sm" onclick="alert('Index lifecycle management: Shards reallocated.')">Optimize Shards</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Index Name</th><th>Documents</th><th>Storage Size</th><th>Primary / Replica</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="mono"><b>soc-logs-2026.04.25</b></td><td class="mono">18,432</td><td class="mono">2.1 GB</td><td class="mono">2 / 1</td><td><span class="badge badge-low">GREEN (Active Write)</span></td></tr>
+            <tr><td class="mono">soc-logs-2026.04.24</td><td class="mono">21,105</td><td class="mono">2.4 GB</td><td class="mono">2 / 1</td><td><span class="badge badge-low">GREEN (Read Only)</span></td></tr>
+            <tr><td class="mono">soc-logs-2026.04.23</td><td class="mono">19,887</td><td class="mono">2.2 GB</td><td class="mono">2 / 1</td><td><span class="badge badge-low">GREEN</span></td></tr>
+            <tr><td class="mono">soc-logs-2026.04.22</td><td class="mono">15,340</td><td class="mono">1.8 GB</td><td class="mono">2 / 1</td><td><span class="badge badge-low">GREEN (Warm Tier)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Ingested Security Events (Interactive Table) -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🔍 Indexed Telemetry &amp; Detections (Click row to inspect full JSON payload)</span>
+        <span class="badge badge-low" id="resultCount">5 Events</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="eventsTable">
+          <thead><tr><th>Timestamp</th><th>Sensor</th><th>Host / Target</th><th>Source IP</th><th>Technique</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr class="clickable-row" onclick="inspectRow(0)"><td class="mono">02:31:14 UTC</td><td>Sysmon</td><td class="mono">WKSTN-FINANCE-01</td><td class="mono">10.0.1.50</td><td><span class="badge badge-critical">T1003.001</span></td><td><span class="badge badge-critical">CRITICAL</span></td><td>LSASS memory dumped via rundll32.exe</td></tr>
+            <tr class="clickable-row" onclick="inspectRow(1)"><td class="mono">02:19:05 UTC</td><td>Sysmon</td><td class="mono">WKSTN-FINANCE-01</td><td class="mono">185.220.101.45</td><td><span class="badge badge-high">T1059.001</span></td><td><span class="badge badge-high">HIGH</span></td><td>Suspicious Encoded PowerShell execution</td></tr>
+            <tr class="clickable-row" onclick="inspectRow(2)"><td class="mono">02:47:33 UTC</td><td>Sysmon</td><td class="mono">DC-CORP-01</td><td class="mono">10.0.1.50</td><td><span class="badge badge-high">T1021.002</span></td><td><span class="badge badge-high">HIGH</span></td><td>Pass-the-Hash SMB Lateral Movement</td></tr>
+            <tr class="clickable-row" onclick="inspectRow(3)"><td class="mono">03:41:22 UTC</td><td>Windows</td><td class="mono">WIN-DC01</td><td class="mono">10.0.99.15</td><td><span class="badge badge-high">T1110</span></td><td><span class="badge badge-high">HIGH</span></td><td>Brute force authentication spray (Event 4625)</td></tr>
+            <tr class="clickable-row" onclick="inspectRow(4)"><td class="mono">03:12:49 UTC</td><td>Zeek</td><td class="mono">SRV-APP-02</td><td class="mono">185.220.101.45</td><td><span class="badge badge-medium">T1071.004</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td>High entropy DNS query rate (C2 Tunnel)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Event JSON Modal -->
+<div class="modal-overlay" id="jsonModal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-3);">
+      <h3 style="color:var(--text-primary);">Document Inspector (_source JSON)</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <pre id="jsonContent" style="background:var(--bg-base); padding:var(--space-4); border-radius:4px; border:1px solid var(--border); font-size:11px; max-height:360px; overflow-y:auto; color:var(--text-accent); font-family:var(--font-mono);"></pre>
+    <div style="display:flex; justify-content:flex-end; margin-top:var(--space-4);">
+      <button class="btn btn-primary btn-sm" onclick="closeModal()">Close Inspector</button>
+    </div>
   </div>
 </div>
 
 <script>
-// 24h timeline
+const RAW_EVENTS = [
+  {
+    "_index": "soc-logs-2026.04.25",
+    "_id": "doc_e6h0f4g7",
+    "_source": {
+      "@timestamp": "2026-04-25T02:31:14Z",
+      "event_type": "process_access",
+      "host": {"name": "WKSTN-FINANCE-01"},
+      "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+      "SourceImage": "C:\\Windows\\System32\\rundll32.exe",
+      "GrantedAccess": "0x1010",
+      "mitre_technique": "T1003.001",
+      "mitre_tactic": "credential-access",
+      "severity": "critical"
+    }
+  },
+  {
+    "_index": "soc-logs-2026.04.25",
+    "_id": "doc_a9b8c7d6",
+    "_source": {
+      "@timestamp": "2026-04-25T02:19:05Z",
+      "event_type": "process_creation",
+      "host": {"name": "WKSTN-FINANCE-01"},
+      "CommandLine": "powershell.exe -enc SQBFAFgAIAAoAE4AZQB3AC0...",
+      "mitre_technique": "T1059.001",
+      "mitre_tactic": "execution",
+      "severity": "high"
+    }
+  },
+  {
+    "_index": "soc-logs-2026.04.25",
+    "_id": "doc_c4d3e2f1",
+    "_source": {
+      "@timestamp": "2026-04-25T02:47:33Z",
+      "event_type": "network_connection",
+      "host": {"name": "DC-CORP-01"},
+      "DestinationPort": 445,
+      "mitre_technique": "T1021.002",
+      "mitre_tactic": "lateral-movement",
+      "severity": "high"
+    }
+  },
+  {
+    "_index": "soc-logs-2026.04.25",
+    "_id": "doc_f1e2d3c4",
+    "_source": {
+      "@timestamp": "2026-04-25T03:41:22Z",
+      "event_type": "authentication",
+      "EventID": 4625,
+      "TargetUserName": "admin",
+      "mitre_technique": "T1110",
+      "mitre_tactic": "credential-access",
+      "severity": "high"
+    }
+  },
+  {
+    "_index": "soc-logs-2026.04.25",
+    "_id": "doc_d3e2f1a9",
+    "_source": {
+      "@timestamp": "2026-04-25T03:12:49Z",
+      "sensor": "zeek",
+      "query": "malicious-c2-channel.exfil.org",
+      "mitre_technique": "T1071.004",
+      "mitre_tactic": "command-and-control",
+      "severity": "medium"
+    }
+  }
+];
+
+function inspectRow(idx) {
+  const ev = RAW_EVENTS[idx];
+  document.getElementById('jsonContent').textContent = JSON.stringify(ev, null, 2);
+  document.getElementById('jsonModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('jsonModal').classList.remove('active');
+}
+
+function applyFilter(query) {
+  document.getElementById('queryInput').value = query;
+  runSearch();
+}
+
+function runSearch() {
+  const q = document.getElementById('queryInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#eventsTable tbody tr');
+  let matchCount = 0;
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    if (!q || text.includes(q.replace('mitre_technique:', '').replace('severity:', '').replace('sensor:', ''))) {
+      r.style.display = '';
+      matchCount++;
+    } else {
+      r.style.display = 'none';
+    }
+  });
+  document.getElementById('resultCount').textContent = `${matchCount} Events`;
+}
+
+function resetSearch() {
+  document.getElementById('queryInput').value = '';
+  runSearch();
+}
+
+function triggerMockEvent() {
+  const tbody = document.querySelector('#eventsTable tbody');
+  const tr = document.createElement('tr');
+  tr.className = 'clickable-row';
+  const now = new Date().toISOString().slice(11, 19) + ' UTC';
+  tr.innerHTML = `
+    <td class="mono">${now}</td>
+    <td>Vector/Syslog</td>
+    <td class="mono">DC-PRIMARY-01</td>
+    <td class="mono">10.0.1.99</td>
+    <td><span class="badge badge-high">T1110</span></td>
+    <td><span class="badge badge-high">HIGH</span></td>
+    <td>Simulated brute force event injected via pipeline</td>
+  `;
+  const newEvent = {
+    "_index": "soc-logs-" + new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+    "_id": "doc_" + Math.random().toString(36).substr(2, 8),
+    "_source": {
+      "@timestamp": new Date().toISOString(),
+      "event_type": "authentication",
+      "host": {"name": "DC-PRIMARY-01"},
+      "src_ip": "10.0.1.99",
+      "mitre_technique": "T1110",
+      "severity": "high"
+    }
+  };
+  RAW_EVENTS.unshift(newEvent);
+  tr.onclick = () => inspectRow(0);
+  tbody.prepend(tr);
+  document.getElementById('kpiTotal').textContent = '48,292';
+  document.getElementById('resultCount').textContent = `${tbody.querySelectorAll('tr').length} Events`;
+}
+
+// Charts
 const hours = Array.from({length:24}, (_,i) => `${String(i).padStart(2,'0')}:00`);
 const counts = [120,98,75,60,55,80,210,380,520,640,710,695,580,490,550,620,740,810,780,660,540,430,310,220];
 new Chart(document.getElementById('timelineChart'), {
@@ -141,8 +338,8 @@ new Chart(document.getElementById('timelineChart'), {
     datasets:[{
       label:'Events',
       data:counts,
-      borderColor:'#3b82f6',
-      backgroundColor:'rgba(59,130,246,0.1)',
+      borderColor:'#38bdf8',
+      backgroundColor:'rgba(56,189,248,0.1)',
       fill:true,
       tension:0.3,
       pointRadius:2
@@ -158,14 +355,13 @@ new Chart(document.getElementById('timelineChart'), {
   }
 });
 
-// Severity doughnut
 new Chart(document.getElementById('sevChart'), {
   type:'doughnut',
   data:{
     labels:['Critical','High','Medium','Low','Info'],
     datasets:[{
       data:[9,127,834,2104,45217],
-      backgroundColor:['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'],
+      backgroundColor:['#f43f5e','#fb923c','#fbbf24','#10b981','#38bdf8'],
       borderWidth:0
     }]
   },
@@ -175,5 +371,6 @@ new Chart(document.getElementById('sevChart'), {
   }
 });
 </script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

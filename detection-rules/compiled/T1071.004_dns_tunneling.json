@@ -1,0 +1,19 @@
+{
+  "id": "m4p8n2o5-6l3k-4m0p-n8o3-4q0p3l8o5m1p",
+  "title": "DNS Tunneling / Covert C2 Channel",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.command_and_control",
+    "attack.t1071.004"
+  ],
+  "description": "Detects DNS tunneling \u2014 unusually long/frequent DNS queries",
+  "logsource": {
+    "category": "dns",
+    "product": "zeek"
+  },
+  "query": {
+    "bool": {}
+  },
+  "source_file": "detection-rules/sigma/network/T1071.004_dns_tunneling.yml"
+}

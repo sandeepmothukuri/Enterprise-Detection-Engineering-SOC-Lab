@@ -17,7 +17,7 @@ fail() { echo -e "  ${C_RED}✗${C_RESET}  $*" >&2; exit 1; }
 step() { echo -e "\n${C_BOLD}${C_CYAN}── $* ──${C_RESET}"; }
 
 SCENARIO="${1:-apt29}"
-OS_PASS="${OPENSEARCH_PASSWORD:-}"
+OS_PASS="${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-}"
 
 # Load password from .env if not in environment
 if [[ -z "$OS_PASS" && -f .env ]]; then

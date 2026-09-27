@@ -1,0 +1,27 @@
+{
+  "id": "c4f8d2e5-6b3a-4c0f-d8e3-4g0f3b8e5c1f",
+  "title": "Malicious Scheduled Task Creation",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.persistence",
+    "attack.t1053.005"
+  ],
+  "description": "Detects creation of suspicious scheduled tasks for persistence",
+  "logsource": {
+    "product": "windows",
+    "service": "security"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "EventID": 4698
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/persistence/T1053.005_scheduled_task.yml"
+}

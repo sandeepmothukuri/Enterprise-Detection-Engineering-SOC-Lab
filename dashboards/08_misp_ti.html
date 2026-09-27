@@ -1,162 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MISP Threat Intel — SOC Lab</title>
-<link rel="stylesheet" href="soc-theme.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MISP Threat Intelligence — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .galaxy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
 
+  <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">SOC Lab v2</div>
-    <ul class="sidebar-nav">
-      <li><a href="index.html">⌂ Portal</a></li>
-      <li><a href="01_soc_overview.html">Overview</a></li>
-      <li><a href="02_opensearch_siem.html">OpenSearch SIEM</a></li>
-      <li><a href="03_zeek_network.html">Zeek NSM</a></li>
-      <li><a href="04_suricata_ids.html">Suricata IDS</a></li>
-      <li><a href="05_ai_agents.html">AI Agents</a></li>
-      <li><a href="06_iris_cases.html">DFIR-IRIS</a></li>
-      <li><a href="07_caldera_attack.html">Caldera</a></li>
-      <li><a href="08_misp_ti.html" class="active">MISP Threat Intel</a></li>
-      <li><a href="09_velociraptor.html">Velociraptor</a></li>
-      <li><a href="10_responder_redteam.html">Red Team</a></li>
-    </ul>
-    <div class="sidebar-footer">MITRE ATT&amp;CK v14</div>
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html" class="active"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
   </nav>
 
-  <div class="main-wrap">
-    <header class="topbar">
-      <span class="topbar-title">MISP — Threat Intelligence Platform</span>
-      <div class="topbar-meta">
-        <span class="status-dot green"></span> 4 feeds active
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🌍</span> MISP Threat Intelligence &amp; Attribution Platform</div>
+    <span class="topbar-meta">MISP 2.4 Core • REST API Active • Port :8080</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="exportMispAttributes()">📥 Export Suricata IP Rules</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card low"><div class="kpi-label">Active Events</div><div class="kpi-value">14</div><div class="kpi-sub">Threat Actor Campaigns</div></div>
+      <div class="kpi-card high"><div class="kpi-label">Correlated Attributes</div><div class="kpi-value">2,840</div><div class="kpi-sub">IPs, Hashes, Domains</div></div>
+      <div class="kpi-card critical"><div class="kpi-label">Live Telemetry Sightings</div><div class="kpi-value">19</div><div class="kpi-sub">Matches in Zeek/OpenSearch</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Taxonomies &amp; Galaxies</div><div class="kpi-value">18</div><div class="kpi-sub">MITRE ATT&amp;CK, CISA</div></div>
+    </div>
+
+    <!-- IOC Search Bar -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-body" style="padding:var(--space-4);">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="mispSearchInput" placeholder="Search MISP attributes: IP (e.g. 192.168.1.105), domain, hash, or malware family..." style="flex:1;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:4px;font-family:var(--font-mono);font-size:12px;">
+          <button class="btn btn-primary btn-sm" onclick="searchMisp()">🔍 Search MISP</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetMispSearch()">Reset</button>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--text-muted);">Quick Lookups:</span>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="applyMispQuery('192.168.1.105')">IP: 192.168.1.105</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="applyMispQuery('cdn-update-sync.com')">Domain: cdn-update-sync.com</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="applyMispQuery('APT29')">Actor: APT29</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="applyMispQuery('Cobalt Strike')">Malware: Cobalt Strike</button>
+        </div>
       </div>
-    </header>
+    </div>
 
-    <main class="content">
+    <!-- Active Threat Events Table -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <span class="card-title">📁 Published MISP Threat Events &amp; Campaign Attribution</span>
+        <span class="badge badge-accent">3 Core Events</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="mispEventTable">
+          <thead><tr><th>Event ID</th><th>Event Title</th><th>Threat Level</th><th>Galaxy Attribution</th><th>Attributes</th><th>Sightings</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">#1042</td>
+              <td><b>APT-TI-2026-04 — Cozy Bear Cobalt Strike C2 Infrastructure</b></td>
+              <td><span class="badge badge-critical">High (Level 1)</span></td>
+              <td><span class="galaxy-badge">misp-galaxy:threat-actor="APT29"</span></td>
+              <td class="mono">42 IOCs</td>
+              <td><span class="badge badge-critical">14 Sightings</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Exported STIX bundle for Event #1042.')">Export STIX</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#1038</td>
+              <td><b>FIN7 / Carbanak Point-of-Sale Scraper &amp; Memory Injection</b></td>
+              <td><span class="badge badge-high">Medium (Level 2)</span></td>
+              <td><span class="galaxy-badge">misp-galaxy:threat-actor="FIN7"</span></td>
+              <td class="mono">18 IOCs</td>
+              <td><span class="badge badge-low">0 Sightings</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Exported STIX bundle for Event #1038.')">Export STIX</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#1035</td>
+              <td><b>Internal Red Team Responder &amp; NBT-NS Poisoning Artifacts</b></td>
+              <td><span class="badge badge-medium">Low (Level 3)</span></td>
+              <td><span class="galaxy-badge">misp-galaxy:tool="Responder"</span></td>
+              <td class="mono">9 IOCs</td>
+              <td><span class="badge badge-high">5 Sightings</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Exported STIX bundle for Event #1035.')">Export STIX</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">Total IOCs</div><div class="kpi-value">12,847</div><div class="kpi-sub">Across all feeds</div></div>
-        <div class="kpi-card critical"><div class="kpi-label">Malicious Hits (24h)</div><div class="kpi-value">9</div><div class="kpi-sub">Matched to SIEM</div></div>
-        <div class="kpi-card high"><div class="kpi-label">Events</div><div class="kpi-value">234</div><div class="kpi-sub">14 this week</div></div>
-        <div class="kpi-card"><div class="kpi-label">Sharing Groups</div><div class="kpi-value">3</div><div class="kpi-sub">ISAC, Internal, R&D</div></div>
+    <!-- Active Indicators Breakdown -->
+    <div class="grid-2">
+      <!-- Indicators Table -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏷️ Active Threat Indicators (IOCs)</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table" id="mispIocTable">
+            <thead><tr><th>Type</th><th>Value</th><th>Category</th><th>IDS Export</th></tr></thead>
+            <tbody>
+              <tr><td>ip-dst</td><td class="mono">198.51.100.42</td><td>Network Activity</td><td><span class="badge badge-low">Exported (Suricata)</span></td></tr>
+              <tr><td>domain</td><td class="mono">cdn-update-sync.com</td><td>Network Activity</td><td><span class="badge badge-low">Exported (Zeek)</span></td></tr>
+              <tr><td>sha256</td><td class="mono" style="font-size:10px;">e3b0c44298fc1c149afbf4c8...</td><td>Payload Delivery</td><td><span class="badge badge-low">Exported (YARA)</span></td></tr>
+              <tr><td>named-pipe</td><td class="mono">\\.\pipe\msse-3912</td><td>System Artifact</td><td><span class="badge badge-low">Exported (Sigma)</span></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="grid-2">
-
-        <!-- IOC Lookup -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">🔍 IOC Lookup</span></div>
-          <div class="card-body">
-            <div style="display:flex;gap:8px;margin-bottom:16px">
-              <input id="ioc-input" class="ioc-input" type="text" placeholder="IP, domain, hash, email..." value="185.220.101.45" style="flex:1;background:var(--bg-card-alt);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;font-family:var(--font-mono);font-size:13px">
-              <button class="btn btn-primary" onclick="lookupIOC()">Search</button>
-            </div>
-            <div id="ioc-result" style="display:none" class="log-block"></div>
+      <!-- Threat Actor Galaxy Card -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🕵️ Threat Actor Profile: APT29 (Cozy Bear / Nobelium)</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+            <b>Nation-State Sponsor:</b> Russian Foreign Intelligence Service (SVR)<br>
+            <b>Target Sectors:</b> Government, Defense, Think Tanks, Enterprise IT Infrastructure<br>
+            <b>Primary TTPs:</b> Token Impersonation (T1134), LSASS Memory Dumping (T1003.001), Cobalt Strike Named Pipe C2 (T1055, T1071.001).
+          </div>
+          <div style="background:var(--bg-base);padding:10px;border-radius:4px;border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-accent);">
+            • Connected MISP Events: <b>4</b><br>
+            • Active Detections in Lab: <b>8 Sigma Rules &amp; 3 Suricata Signatures</b><br>
+            • Caldera Adversary Profile: <code>apt29_cozy_bear.yml</code>
           </div>
         </div>
-
-        <!-- IOC Type Doughnut -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">📊 IOC Types</span></div>
-          <div class="card-body">
-            <div class="chart-wrap" style="height:220px">
-              <canvas id="iocChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- APT-29 Attribution -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">🎭 APT-29 Attribution</span>
-            <span class="badge badge-critical">CONFIRMED</span>
-          </div>
-          <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-              <div><div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Actor</div><div style="color:var(--text-primary);font-weight:600">APT-29 / Cozy Bear</div></div>
-              <div><div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Nation State</div><div style="color:var(--text-primary);font-weight:600">Russia (SVR)</div></div>
-              <div><div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Motivation</div><div style="color:var(--text-primary)">Espionage</div></div>
-              <div><div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Active Since</div><div style="color:var(--text-primary)">2008</div></div>
-            </div>
-            <div style="margin-bottom:8px;color:var(--text-secondary);font-size:13px">Confidence</div>
-            <div class="progress-bar"><div class="progress-fill" style="width:85%;background:var(--critical)"></div></div>
-            <div style="text-align:right;color:var(--text-muted);font-size:12px;margin-top:4px">85%</div>
-            <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
-              <span class="technique-tag">T1566.001</span>
-              <span class="technique-tag">T1059.001</span>
-              <span class="technique-tag">T1003.001</span>
-              <span class="technique-tag">T1071.004</span>
-              <span class="technique-tag">T1550.002</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Feed Status -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">📡 Feed Status</span></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead><tr><th>Feed Name</th><th>IOCs</th><th>Updated</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td>CIRCL OSINT Feed</td><td class="mono">3,412</td><td class="mono">6h ago</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Abuse.ch URLhaus</td><td class="mono">4,891</td><td class="mono">2h ago</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>MISP Galaxies — APT</td><td class="mono">1,240</td><td class="mono">1d ago</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Feodo Botnet Tracker</td><td class="mono">892</td><td class="mono">4h ago</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>Custom Internal Feed</td><td class="mono">412</td><td class="mono">30m ago</td><td><span class="badge badge-low">ACTIVE</span></td></tr>
-                <tr><td>AlienVault OTX</td><td class="mono">2,000</td><td class="mono">12h ago</td><td><span class="badge badge-medium">STALE</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
 </div>
 
 <script>
-const KNOWN_IOCS = {
-  '185.220.101.45': {verdict:'MALICIOUS', type:'IP', actor:'APT-29', confidence:'HIGH', tags:['Tor Exit Node','C2','Exfil'], seen:'2026-04-25 02:14 UTC'},
-  '45.132.227.89':  {verdict:'MALICIOUS', type:'IP', actor:'APT-29', confidence:'MED',  tags:['VPN Anomaly','Geo:Romania'], seen:'2026-04-25 03:45 UTC'},
-  'c2.malicious-apt.net': {verdict:'MALICIOUS', type:'Domain', actor:'APT-29', confidence:'HIGH', tags:['DNS Tunnel','C2'], seen:'2026-04-25 03:12 UTC'},
-};
-function lookupIOC() {
-  const val = document.getElementById('ioc-input').value.trim();
-  const box = document.getElementById('ioc-result');
-  box.style.display = 'block';
-  const hit = KNOWN_IOCS[val];
-  if (hit) {
-    box.style.border = '1px solid var(--critical)';
-    box.innerHTML = `<div style="color:var(--critical);font-weight:700;margin-bottom:8px">⚠ ${hit.verdict} — ${hit.type}</div>
-<div>Actor: <b>${hit.actor}</b> · Confidence: <b>${hit.confidence}</b></div>
-<div>First seen: ${hit.seen}</div>
-<div style="margin-top:8px">Tags: ${hit.tags.map(t=>`<span class="technique-tag">${t}</span>`).join(' ')}</div>`;
-  } else {
-    box.style.border = '1px solid var(--success)';
-    box.innerHTML = `<div style="color:var(--success);font-weight:700">✔ NOT FOUND — No matches in MISP feeds</div><div style="color:var(--text-muted);margin-top:4px">Query: ${val}</div>`;
-  }
+function applyMispQuery(q) {
+  document.getElementById('mispSearchInput').value = q;
+  searchMisp();
 }
 
-// IOC type chart
-new Chart(document.getElementById('iocChart'), {
-  type:'doughnut',
-  data:{
-    labels:['IP Address','Domain','URL','File Hash','Email','User-Agent'],
-    datasets:[{
-      data:[4200,3100,2400,1800,900,447],
-      backgroundColor:['#3b82f6','#ef4444','#f97316','#eab308','#22c55e','#8b5cf6'],
-      borderWidth:0
-    }]
-  },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}
-  }
-});
+function searchMisp() {
+  const q = document.getElementById('mispSearchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#mispEventTable tbody tr, #mispIocTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = (!q || r.innerText.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
+function resetMispSearch() {
+  document.getElementById('mispSearchInput').value = '';
+  searchMisp();
+}
+
+function exportMispAttributes() {
+  alert('Exported 142 malicious IP indicators formatted as Suricata drop rules (/etc/suricata/rules/misp_feed.rules).');
+}
 </script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

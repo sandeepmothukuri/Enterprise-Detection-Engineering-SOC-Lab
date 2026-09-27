@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MITRE D3FEND Defensive Matrix — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .d3fend-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    @media(max-width:1100px){ .d3fend-grid { grid-template-columns: repeat(2, 1fr); } }
+    .d3-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .d3-col-header {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .d3-cards-list {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 480px;
+    }
+    .d3-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .d3-item:hover {
+      border-color: var(--accent);
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+    .d3-item.active {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .d3-code {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-accent);
+      margin-bottom: 2px;
+    }
+    .d3-title {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .d3-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html" class="active"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🛡️</span> MITRE D3FEND™ Defensive Countermeasure Matrix</div>
+    <span class="topbar-meta">Model • Harden • Detect • Isolate • Deceive</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="exportD3fendJson()">💾 Export D3FEND Layer</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Top KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card low">
+        <div class="kpi-label">D3FEND Controls Active</div>
+        <div class="kpi-value">34</div>
+        <div class="kpi-sub">Across 5 Primary Tactics</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">ATT&amp;CK Coverage Ratio</div>
+        <div class="kpi-value">82%</div>
+        <div class="kpi-sub">Countermeasure Mapped</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Identified Defense Gaps</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">Deception &amp; Isolation</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Automated SOAR Controls</div>
+        <div class="kpi-value">12</div>
+        <div class="kpi-sub">StackStorm Workflows</div>
+      </div>
+    </div>
+
+    <!-- 5 D3FEND Tactics Columns -->
+    <div class="d3fend-grid">
+      <!-- 1. Model -->
+      <div class="d3-col">
+        <div class="d3-col-header" style="color:#60a5fa;">
+          <span>📐 Model</span>
+          <span class="badge badge-accent">6 Active</span>
+        </div>
+        <div class="d3-cards-list">
+          <div class="d3-item" onclick="inspectD3fend('d3-ani', 'Asset Network Mapping', 'Discovers and maps subnet broadcast domains and active IP leases.', 'Zeek conn.log & DHCP sniffer')">
+            <div class="d3-code">D3-ANI</div>
+            <div class="d3-title">Asset Network Mapping</div>
+            <div class="d3-sub">Maps LAN endpoints &amp; DC</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-spm', 'System Process Modeling', 'Establishes baseline process lineage and parent-child hierarchies.', 'Sysmon Event ID 1 Profiling')">
+            <div class="d3-code">D3-SPM</div>
+            <div class="d3-title">System Process Modeling</div>
+            <div class="d3-sub">Parent-child tree baseline</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-unm', 'User Network Modeling', 'Tracks normal Kerberos ticket granting and admin logon times.', 'Winlogbeat 4624/4672')">
+            <div class="d3-code">D3-UNM</div>
+            <div class="d3-title">User Network Modeling</div>
+            <div class="d3-sub">Admin logon baseline</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Harden -->
+      <div class="d3-col">
+        <div class="d3-col-header" style="color:#f59e0b;">
+          <span>🛡️ Harden</span>
+          <span class="badge badge-medium">9 Active</span>
+        </div>
+        <div class="d3-cards-list">
+          <div class="d3-item" onclick="inspectD3fend('d3-lsa', 'LSA Protection Hardening', 'Enables RunAsPPL on lsass.exe to prevent unauthorized memory read.', 'Windows Registry RunAsPPL=1')">
+            <div class="d3-code">D3-LSA</div>
+            <div class="d3-title">LSA Protection (PPL)</div>
+            <div class="d3-sub">Blocks Mimikatz T1003.001</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-clm', 'PowerShell Constrained Language', 'Restricts PowerShell execution mode to ConstrainedLanguage.', 'AppLocker / Device Guard')">
+            <div class="d3-code">D3-CLM</div>
+            <div class="d3-title">PS Constrained Mode</div>
+            <div class="d3-sub">Blocks T1059.001 Scripts</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-nbd', 'LLMNR/NetBIOS Disable', 'Disables multicast name resolution to prevent poison attacks.', 'GPO NetBIOS Options=2')">
+            <div class="d3-code">D3-NBD</div>
+            <div class="d3-title">Disable LLMNR/NBT-NS</div>
+            <div class="d3-sub">Neutralizes Responder T1557</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Detect -->
+      <div class="d3-col">
+        <div class="d3-col-header" style="color:#00ff9d;">
+          <span>👁️ Detect</span>
+          <span class="badge badge-low">14 Active</span>
+        </div>
+        <div class="d3-cards-list">
+          <div class="d3-item active" onclick="inspectD3fend('d3-pma', 'Process Memory Analysis', 'Detects unmapped RWX memory pages and shellcode injectors.', 'Velociraptor malfind & Sigma')">
+            <div class="d3-code">D3-PMA</div>
+            <div class="d3-title">Process Memory Analysis</div>
+            <div class="d3-sub">Catches Process Hollowing</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-nfa', 'Network Flow Analysis', 'Detects beaconing cadence, jitter, and abnormal outbound ports.', 'Suricata & Zeek NSM')">
+            <div class="d3-code">D3-NFA</div>
+            <div class="d3-title">Network Flow Analysis</div>
+            <div class="d3-sub">Detects C2 Beaconing</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-fea', 'File Encryption Analysis', 'Detects mass file renames, canary traps, and ransomware entropy.', 'Auditd & Sysmon Event 11')">
+            <div class="d3-code">D3-FEA</div>
+            <div class="d3-title">File Encryption Analysis</div>
+            <div class="d3-sub">Ransomware canary alerts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Isolate -->
+      <div class="d3-col">
+        <div class="d3-col-header" style="color:#f43f5e;">
+          <span>🔒 Isolate</span>
+          <span class="badge badge-critical">3 Active</span>
+        </div>
+        <div class="d3-cards-list">
+          <div class="d3-item" onclick="inspectD3fend('d3-nei', 'Network Endpoint Isolation', 'Cuts host connectivity except to SOC SIEM/Velociraptor management IP.', 'StackStorm & Windows Firewall')">
+            <div class="d3-code">D3-NEI</div>
+            <div class="d3-title">Host Network Isolation</div>
+            <div class="d3-sub">SOAR automated isolation</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-pki', 'Process Kill & Quarantining', 'Terminates rogue process tree and locks disk binary in quarantine.', 'Velociraptor VQL Kill')">
+            <div class="d3-code">D3-PKI</div>
+            <div class="d3-title">Process Kill &amp; Lockdown</div>
+            <div class="d3-sub">Kills malicious PID</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Deceive -->
+      <div class="d3-col">
+        <div class="d3-col-header" style="color:#a855f7;">
+          <span>🎭 Deceive</span>
+          <span class="badge badge-accent">2 Active</span>
+        </div>
+        <div class="d3-cards-list">
+          <div class="d3-item" onclick="inspectD3fend('d3-hct', 'Honeypot Canary Tokens', 'Plants fake AWS API keys and fake admin credentials in LSASS.', 'Canarytokens & HoneyCreds')">
+            <div class="d3-code">D3-HCT</div>
+            <div class="d3-title">Honey Credentials in RAM</div>
+            <div class="d3-sub">Triggers alert on dump</div>
+          </div>
+          <div class="d3-item" onclick="inspectD3fend('d3-dfa', 'Decoy File Artifacts', 'Places canary document traps in sensitive file shares.', 'Samba file audit hooks')">
+            <div class="d3-code">D3-DFA</div>
+            <div class="d3-title">Decoy Canary Files</div>
+            <div class="d3-sub">Early ransomware trap</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspector Panel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔍 Selected Defensive Technique Details</div>
+        <span id="inspectCode" class="badge badge-accent">D3-PMA</span>
+      </div>
+      <div class="card-body">
+        <h3 id="inspectTitle" style="margin:0 0 6px;color:var(--text-primary);">Process Memory Analysis</h3>
+        <p id="inspectDesc" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+          Detects unmapped RWX memory pages and shellcode injectors inside running Windows process address spaces.
+        </p>
+        <div style="display:flex;gap:20px;font-size:12px;">
+          <div><b>Active Sensor:</b> <span id="inspectSensor" class="mono">Velociraptor malfind &amp; Sigma</span></div>
+          <div><b>Defends Against ATT&amp;CK:</b> <span class="badge badge-critical">T1055 (Process Injection)</span>, <span class="badge badge-high">T1003.001 (LSASS Dump)</span></div>
+          <div><b>Status:</b> <span class="badge badge-low">Operational (Zero Drift)</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+function inspectD3fend(code, title, desc, sensor) {
+  document.getElementById('inspectCode').textContent = code.toUpperCase();
+  document.getElementById('inspectTitle').textContent = title;
+  document.getElementById('inspectDesc').textContent = desc;
+  document.getElementById('inspectSensor').textContent = sensor;
+  
+  document.querySelectorAll('.d3-item').forEach(i => i.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function exportD3fendJson() {
+  const d3Data = {
+    name: "Enterprise SOC Lab D3FEND Coverage",
+    version: "v2.0",
+    date: new Date().toISOString(),
+    tactics: ["Model", "Harden", "Detect", "Isolate", "Deceive"],
+    total_controls: 34,
+    coverage_score: "82%"
+  };
+  const blob = new Blob([JSON.stringify(d3Data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mitre_d3fend_soc_layer.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  alert('✓ Exported MITRE D3FEND layer JSON.');
+}
+</script>
+</body>
+</html>

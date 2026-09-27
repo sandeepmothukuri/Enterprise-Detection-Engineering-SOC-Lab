@@ -75,6 +75,29 @@ jobs:
           assert len(keys) >= 15, f'Expected at least 15 env vars, got {len(keys)}'
           "
 
+      - name: Transpile Sigma rules to OpenSearch Query DSL
+        run: |
+          echo "Transpiling Sigma rules to OpenSearch Query DSL..."
+          python3 tools/transpile-sigma-to-opensearch.py
+          echo "  ✅ Sigma-to-OpenSearch transpilation verified"
+
+      - name: Run Detection & Telemetry Test Harness (Offline)
+        run: |
+          echo "Running automated detection test harness..."
+          python3 tools/test-e2e-harness.py --mode offline
+          echo "  ✅ Detection test harness passed"
+
+      - name: Validate OpenSearch Dashboards Export (NDJSON)
+        run: |
+          echo "Validating Dashboards NDJSON..."
+          python3 -c "
+          import json
+          with open('dashboards/opensearch_dashboards_export.ndjson') as f:
+              objs = [json.loads(line) for line in f if line.strip()]
+          print(f'  ✅ Dashboards NDJSON contains {len(objs)} valid saved objects')
+          assert len(objs) >= 5, f'Expected at least 5 objects, found {len(objs)}'
+          "
+
       - name: Lint Python AI agents
         run: |
           pip install pyflakes --break-system-packages 2>/dev/null || pip install pyflakes

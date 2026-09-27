@@ -6,6 +6,37 @@
   <title>SOC Overview — SOC Lab</title>
   <link rel="stylesheet" href="soc-theme.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      width: 540px; max-width: 90vw; padding: var(--space-5); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .toast-popup {
+      position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent);
+      color: #fff; padding: 12px 18px; border-radius: 6px; font-size: 12px; z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
@@ -20,7 +51,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Dashboards</div>
-      <ul class="sidebar-nav">
+            <ul class="sidebar-nav">
         <li class="nav-item"><a href="01_soc_overview.html" class="active"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
         <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
         <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
@@ -31,6 +62,15 @@
         <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
         <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
         <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
       </ul>
     </div>
     <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
@@ -38,12 +78,13 @@
 
   <header class="topbar">
     <div class="topbar-title"><span class="page-icon">📊</span> SOC Overview</div>
-    <span class="topbar-meta" id="last-update">—</span>
+    <span class="topbar-meta" id="last-update">Updated Just now</span>
     <div class="topbar-right">
       <div class="ws-indicator">
-        <div class="ws-dot" id="ws-dot"></div>
-        <span id="ws-label" style="color:var(--text-muted);font-size:11px;">WebSocket</span>
+        <div class="ws-dot connected" id="ws-dot"></div>
+        <span id="ws-label" style="color:var(--low);font-size:11px;">Live</span>
       </div>
+      <button class="btn btn-primary btn-sm" onclick="openSimModal()">+ Simulate Alert</button>
       <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
     </div>
   </header>
@@ -75,9 +116,15 @@
 
     <div class="grid-2-1 mb-4">
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="flex-wrap:wrap;gap:8px;">
           <span class="card-title">🔴 Live Alert Feed</span>
-          <span class="badge badge-critical" id="feed-count">Live</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="text" id="feed-search" placeholder="Search alerts..." oninput="filterAlerts()" style="background:var(--bg-base);border:1px solid var(--border);color:var(--text-primary);padding:3px 8px;border-radius:4px;font-size:11px;width:120px;">
+            <button class="filter-btn active" onclick="setSevFilter('all', this)">All</button>
+            <button class="filter-btn" onclick="setSevFilter('critical', this)">Crit</button>
+            <button class="filter-btn" onclick="setSevFilter('high', this)">High</button>
+            <button class="filter-btn" onclick="setSevFilter('medium', this)">Med</button>
+          </div>
         </div>
         <div id="alert-feed" class="alert-feed" style="max-height:380px;overflow-y:auto;"></div>
       </div>
@@ -136,6 +183,46 @@
   </main>
 </div>
 
+<!-- Modal for Simulation -->
+<div class="modal-overlay" id="simModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4);">
+      <h3 style="margin:0;font-size:15px;color:var(--text-primary)">⚡ Trigger Synthetic SOC Event</h3>
+      <button onclick="closeSimModal()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">&times;</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Attack Scenario</label>
+        <select id="simScenario" class="input" style="width:100%;">
+          <option value="T1003.001">T1003.001 - LSASS Memory Credential Dump (Mimikatz)</option>
+          <option value="T1557.001">T1557.001 - LLMNR / NBT-NS Poisoning Broadcast</option>
+          <option value="T1059.001">T1059.001 - Obfuscated PowerShell Execution (Base64)</option>
+          <option value="T1021.002">T1021.002 - Lateral Movement via Admin SMB Share</option>
+          <option value="T1486">T1486 - Ransomware Data Encryption Pre-staging</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Target Hostname</label>
+        <input type="text" id="simHost" class="input" value="WORKSTATION-09" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Severity</label>
+        <select id="simSev" class="input" style="width:100%;">
+          <option value="critical">CRITICAL</option>
+          <option value="high">HIGH</option>
+          <option value="medium">MEDIUM</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeSimModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="executeSimulation()">🚀 Inject Alert</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-popup" id="toast"></div>
+
 <script>
 Chart.defaults.color = '#8898aa';
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
@@ -181,89 +268,107 @@ new Chart(document.getElementById('sourceChart').getContext('2d'), {
 });
 
 const ALERTS = [
-  { sev:'critical', title:'T1557.001 · LLMNR/NBNS Poisoning',    meta:'192.168.1.105 → 10.0.0.1 · Responder' },
-  { sev:'critical', title:'T1003.001 · LSASS Memory Dump',       meta:'mimikatz.exe · WORKSTATION-12' },
-  { sev:'high',     title:'T1059.001 · PowerShell EncodedCmd',   meta:'EncodedCommand · WORKSTATION-07' },
-  { sev:'high',     title:'T1110 · Brute Force (47 failures)',   meta:'src:10.0.0.200 → WIN-DC01' },
-  { sev:'high',     title:'T1021.002 · Lateral Move via SMB',    meta:'WORKSTATION-07 → FILESERVER-01' },
-  { sev:'medium',   title:'T1053.005 · Scheduled Task Created',  meta:'\\Microsoft\\Windows\\update · WIN-DC01' },
-  { sev:'medium',   title:'T1046 · Network Port Scan',           meta:'Nmap SYN · 10.0.0.55 · 254 hosts' },
-  { sev:'medium',   title:'T1547.001 · Registry Run Key',        meta:'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' },
-  { sev:'low',      title:'T1041 · Exfiltration over C2',        meta:'DNS tunneling · iodine-like pattern' },
+  { id:'alt-1', sev:'critical', title:'T1557.001 · LLMNR/NBNS Poisoning',    meta:'192.168.1.105 → 10.0.0.1 · Responder' },
+  { id:'alt-2', sev:'critical', title:'T1003.001 · LSASS Memory Dump',       meta:'mimikatz.exe · WORKSTATION-12' },
+  { id:'alt-3', sev:'high',     title:'T1059.001 · PowerShell EncodedCmd',   meta:'EncodedCommand · WORKSTATION-07' },
+  { id:'alt-4', sev:'high',     title:'T1110 · Brute Force (47 failures)',   meta:'src:10.0.0.200 → WIN-DC01' },
+  { id:'alt-5', sev:'high',     title:'T1021.002 · Lateral Move via SMB',    meta:'WORKSTATION-07 → FILESERVER-01' },
+  { id:'alt-6', sev:'medium',   title:'T1053.005 · Scheduled Task Created',  meta:'\\Microsoft\\Windows\\update · WIN-DC01' },
+  { id:'alt-7', sev:'medium',   title:'T1046 · Network Port Scan',           meta:'Nmap SYN · 10.0.0.55 · 254 hosts' },
+  { id:'alt-8', sev:'medium',   title:'T1547.001 · Registry Run Key',        meta:'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' },
+  { id:'alt-9', sev:'low',      title:'T1041 · Exfiltration over C2',        meta:'DNS tunneling · iodine-like pattern' },
 ];
+
+let activeFilter = 'all';
+let rawAlerts = [...ALERTS];
 
 function tsNow() {
   const n = new Date();
   return [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
 }
 
-function buildItem(a, ts) {
-  return `<div class="alert-item">
-    <div class="alert-dot ${a.sev}"></div>
-    <div class="alert-content">
-      <div class="alert-title">${a.title}</div>
-      <div class="alert-meta"><span>${a.meta}</span></div>
+function renderFeed() {
+  const q = document.getElementById('feed-search').value.toLowerCase();
+  const feed = document.getElementById('alert-feed');
+  const filtered = rawAlerts.filter(a => {
+    const matchFilter = activeFilter === 'all' || a.sev === activeFilter;
+    const matchQuery = !q || a.title.toLowerCase().includes(q) || a.meta.toLowerCase().includes(q);
+    return matchFilter && matchQuery;
+  });
+
+  feed.innerHTML = filtered.map(a => `
+    <div class="alert-item" style="cursor:pointer;" onclick="showToast('Alert Triage: ${a.title}')">
+      <div class="alert-dot ${a.sev}"></div>
+      <div class="alert-content">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-meta"><span>${a.meta}</span></div>
+      </div>
+      <div class="alert-time">${a.time || tsNow()}</div>
     </div>
-    <div class="alert-time">${ts||tsNow()}</div>
-  </div>`;
+  `).join('');
 }
 
-const feed = document.getElementById('alert-feed');
-feed.innerHTML = ALERTS.map((a,i) => {
-  const d = new Date(); d.setSeconds(d.getSeconds() - i*180);
-  return buildItem(a, [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':'));
-}).join('');
+function setSevFilter(sev, el) {
+  activeFilter = sev;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
 
-let evtIdx = 0;
-function injectFeedItem(data) {
-  const a = data || ALERTS[evtIdx++ % ALERTS.length];
-  const item = document.createElement('div');
-  item.className = 'alert-item new';
-  item.innerHTML = buildItem(a, tsNow()).replace('<div class="alert-item">', '').replace('</div>','');
-  // rebuild cleanly
-  feed.insertAdjacentHTML('afterbegin', `<div class="alert-item new">${buildItem(a, tsNow()).match(/<div class="alert-dot[^>]+>[\s\S]*<\/div>\s*<\/div>/)?.[0]||''}</div>`);
-  // simpler approach:
-  const el = document.createElement('div');
-  el.className = 'alert-item new';
-  el.innerHTML = `
-    <div class="alert-dot ${a.sev}"></div>
-    <div class="alert-content">
-      <div class="alert-title">${a.title}</div>
-      <div class="alert-meta"><span>${a.meta}</span></div>
-    </div>
-    <div class="alert-time">${tsNow()}</div>`;
-  feed.prepend(el);
-  if (feed.children.length > 20) feed.removeChild(feed.lastElementChild);
+function filterAlerts() {
+  renderFeed();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+function openSimModal() {
+  document.getElementById('simModal').classList.add('open');
+}
+
+function closeSimModal() {
+  document.getElementById('simModal').classList.remove('open');
+}
+
+function executeSimulation() {
+  const scenario = document.getElementById('simScenario').value;
+  const host = document.getElementById('simHost').value;
+  const sev = document.getElementById('simSev').value;
+
+  const newAlert = {
+    id: 'alt-' + Date.now(),
+    sev: sev,
+    title: `${scenario} · Triggered Event`,
+    meta: `src: Synthetic Attacker → ${host}`,
+    time: tsNow()
+  };
+
+  rawAlerts.unshift(newAlert);
+  renderFeed();
+  closeSimModal();
+  showToast(`⚡ Alert injected & indexed: ${scenario}`);
+
+  // update KPI
+  const critEl = document.getElementById('kpi-crit');
+  const highEl = document.getElementById('kpi-high');
+  const totalEl = document.getElementById('kpi-total');
+  if (sev === 'critical') critEl.textContent = parseInt(critEl.textContent) + 1;
+  if (sev === 'high') highEl.textContent = parseInt(highEl.textContent) + 1;
+  totalEl.textContent = (parseInt(totalEl.textContent.replace(',','')) + 1).toLocaleString();
   document.getElementById('last-update').textContent = 'Updated ' + tsNow();
 }
 
-// WebSocket
-(function connectWS() {
-  try {
-    const ws = new WebSocket('ws://localhost:8765');
-    const dot = document.getElementById('ws-dot');
-    const lbl = document.getElementById('ws-label');
-    ws.onopen = () => { dot.className='ws-dot connected'; lbl.style.color='var(--low)'; lbl.textContent='Live'; };
-    ws.onclose = () => { dot.className='ws-dot'; lbl.style.color='var(--text-muted)'; lbl.textContent='Offline'; setTimeout(connectWS, 5000); };
-    ws.onmessage = e => {
-      try {
-        const d = JSON.parse(e.data);
-        if (d.type === 'stats') {
-          const el = document.getElementById('kpi-total');
-          if (el) el.textContent = d.event_count > 999 ? (d.event_count/1000).toFixed(1)+'k' : d.event_count;
-        }
-        if (d.hits?.length) d.hits.forEach(h => injectFeedItem({
-          sev: (h._source?.severity||'low').toLowerCase(),
-          title: h._source?.rule_name || 'Alert',
-          meta: `${h._source?.src_ip||''} · ${h._source?.mitre_technique||''}`
-        }));
-      } catch(_) {}
-    };
-  } catch(_) {
-    // Simulate when offline
-    setInterval(() => injectFeedItem(), 10000);
-  }
-})();
+// Initial render
+rawAlerts.forEach((a, i) => {
+  const d = new Date(); d.setSeconds(d.getSeconds() - i * 180);
+  a.time = [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+});
+renderFeed();
 </script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

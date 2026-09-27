@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threat Hunting & Query Sandbox — SOC Lab</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .editor-box {
+      background: #0a0e1a;
+      border: 1px solid #1f2d4a;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #60a5fa;
+      width: 100%;
+      height: 140px;
+      resize: vertical;
+      outline: none;
+    }
+    .editor-box:focus { border-color: var(--accent); }
+    .sample-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .sample-chip:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .results-table-wrap {
+      max-height: 340px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html" class="active"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🔎</span> Threat Hunting & Query Sandbox</div>
+    <span class="topbar-meta"><span class="status-dot up"></span> Multi-Engine Query Sandbox (VQL • EQL • OpenSearch • Lucene)</span>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="exportResultsCSV()">💾 Export CSV</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <div class="grid-4 mb-4">
+      <div class="kpi-card info">
+        <div class="kpi-label">Active Hunt Hypotheses</div>
+        <div class="kpi-value">6</div>
+        <div class="kpi-sub">proactive sweeps</div>
+      </div>
+      <div class="kpi-card low">
+        <div class="kpi-label">Query Latency</div>
+        <div class="kpi-value" id="hunt-latency">42ms</div>
+        <div class="kpi-sub">OpenSearch & VQL</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Suspicious Entities</div>
+        <div class="kpi-value" id="hunt-hits">4</div>
+        <div class="kpi-sub">anomalies flagged</div>
+      </div>
+      <div class="kpi-card medium">
+        <div class="kpi-label">Endpoints Queried</div>
+        <div class="kpi-value">12</div>
+        <div class="kpi-sub">Velociraptor agents</div>
+      </div>
+    </div>
+
+    <!-- Query Editor Card -->
+    <div class="card mb-4">
+      <div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="card-title">💻 Hunting Query Console</span>
+          <select id="query-engine" class="input" style="font-size:11px;padding:3px 8px;" onchange="updateEnginePlaceholder()">
+            <option value="vql">Velociraptor VQL</option>
+            <option value="eql">OpenSearch EQL (Event Query Language)</option>
+            <option value="lucene">Lucene / KQL Syntax</option>
+            <option value="sigma">Sigma Rule Filter Syntax</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="clearQuery()">Clear</button>
+          <button class="btn btn-primary btn-sm" id="exec-btn" onclick="executeQuery()">▶ Execute Hunt Query</button>
+        </div>
+      </div>
+      <div class="card-body">
+        
+        <!-- Pre-built Hunt Presets -->
+        <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;">
+          <span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;margin-right:4px;">Presets:</span>
+          <span class="sample-chip" onclick="loadSample('lsass')">🎯 Hunt LSASS Access (VQL)</span>
+          <span class="sample-chip" onclick="loadSample('ps_b64')">📜 Base64 PowerShell (EQL)</span>
+          <span class="sample-chip" onclick="loadSample('lateral')">🚪 Lateral SMB Shares (EQL)</span>
+          <span class="sample-chip" onclick="loadSample('dns_tunnel')">🌐 High Entropy DNS (VQL)</span>
+          <span class="sample-chip" onclick="loadSample('schtasks')">⏰ Suspicious Tasks (Lucene)</span>
+        </div>
+
+        <textarea id="query-input" class="editor-box" spellcheck="false">SELECT Name, CommandLine, Pid, Ppid, Username
+FROM pslist()
+WHERE CommandLine =~ '(?i)(mimikatz|sekurlsa|dump|comsvcs)'</textarea>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="card">
+      <div class="card-header" style="justify-content:space-between;">
+        <span class="card-title" id="results-title">📊 Hunt Results (4 records found)</span>
+        <span class="badge badge-accent" id="results-badge">Execution: 42ms</span>
+      </div>
+      <div class="card-body results-table-wrap" style="padding-top:var(--space-2);">
+        <table class="data-table" id="results-table">
+          <thead id="results-head">
+            <tr>
+              <th>Timestamp</th>
+              <th>Host</th>
+              <th>Process / Entity</th>
+              <th>Command Line / Detail</th>
+              <th>PID</th>
+              <th>User</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+const SAMPLES = {
+  lsass: {
+    engine: "vql",
+    query: `SELECT Name, CommandLine, Pid, Ppid, Username\nFROM pslist()\nWHERE CommandLine =~ '(?i)(mimikatz|sekurlsa|dump|comsvcs)'`,
+    results: [
+      { ts: "2026-09-27 12:44:10", host: "WORKSTATION-12", entity: "rundll32.exe", detail: "rundll32.exe C:\\Windows\\System32\\comsvcs.dll, MiniDump 624 lsass.dmp full", pid: "4920", user: "CORP\\administrator" },
+      { ts: "2026-09-27 12:44:11", host: "WORKSTATION-12", entity: "lsass.exe", detail: "GrantedAccess: 0x1010 (PROCESS_VM_READ | PROCESS_QUERY_INFORMATION)", pid: "624", user: "NT AUTHORITY\\SYSTEM" },
+      { ts: "2026-09-27 12:38:05", host: "WORKSTATION-07", entity: "mimikatz.exe", detail: "mimikatz.exe privilege::debug sekurlsa::logonpasswords exit", pid: "8102", user: "CORP\\jsmith" },
+      { ts: "2026-09-27 12:12:44", host: "FILESERVER-01", entity: "procdump.exe", detail: "procdump64.exe -ma lsass.exe C:\\Temp\\lsass.dmp", pid: "3114", user: "CORP\\administrator" }
+    ]
+  },
+  ps_b64: {
+    engine: "eql",
+    query: `process where process.name == "powershell.exe" and process.command_line : "* -enc *" or process.command_line : "* -EncodedCommand *"`,
+    results: [
+      { ts: "2026-09-27 12:41:20", host: "WORKSTATION-07", entity: "powershell.exe", detail: "powershell.exe -W Hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBj...", pid: "7104", user: "CORP\\alee" },
+      { ts: "2026-09-27 12:35:12", host: "WORKSTATION-09", entity: "powershell.exe", detail: "powershell.exe -ExecutionPolicy Bypass -enc KABOAGUAdwAtAE8AYgBq...", pid: "5512", user: "CORP\\bwilliams" }
+    ]
+  },
+  lateral: {
+    engine: "eql",
+    query: `network where destination.port == 445 and source.ip != "10.0.0.1" and winlog.event_data.ShareName : "*ADMIN$*"`,
+    results: [
+      { ts: "2026-09-27 12:40:02", host: "FILESERVER-01", entity: "System", detail: "SMB Share Connected: \\\\FILESERVER-01\\ADMIN$ from 10.0.0.100", pid: "4", user: "CORP\\administrator" },
+      { ts: "2026-09-27 12:39:55", host: "WIN-DC01", entity: "System", detail: "SMB Share Connected: \\\\WIN-DC01\\C$ from 10.0.0.100", pid: "4", user: "CORP\\administrator" }
+    ]
+  },
+  dns_tunnel: {
+    engine: "vql",
+    query: `SELECT Query, QueryType, Response, ClientIP\nFROM zeek_dns()\nWHERE length(Query) > 60 AND Query =~ '(?i)\\.c2\\.attacker\\.com$'`,
+    results: [
+      { ts: "2026-09-27 12:42:01", host: "WORKSTATION-07", entity: "zeek.dns", detail: "dGhpcyBpcyBhbiBleGZpbHRyYXRpb24gcGF5bG9hZC4uLg.t1.c2.attacker.com (Length: 72)", pid: "-", user: "10.0.0.55" },
+      { ts: "2026-09-27 12:42:03", host: "WORKSTATION-07", entity: "zeek.dns", detail: "c2VjcmV0X2tleV9kYXRhX3N0YWdpbmdfZmlsZXNfeXpt.t1.c2.attacker.com (Length: 74)", pid: "-", user: "10.0.0.55" }
+    ]
+  },
+  schtasks: {
+    engine: "lucene",
+    query: `winlog.event_id: 4698 AND winlog.event_data.TaskName: (*update* OR *sync* OR *telemetry*)`,
+    results: [
+      { ts: "2026-09-27 12:43:50", host: "WIN-DC01", entity: "schtasks.exe", detail: "Task Registered: \\Microsoft\\Windows\\UpdateSync -> cmd.exe /c C:\\Temp\\svc.exe", pid: "9120", user: "NT AUTHORITY\\SYSTEM" }
+    ]
+  }
+};
+
+let currentResults = SAMPLES.lsass.results;
+
+function loadSample(key) {
+  const s = SAMPLES[key];
+  document.getElementById('query-engine').value = s.engine;
+  document.getElementById('query-input').value = s.query;
+  currentResults = s.results;
+  renderResults(currentResults, Math.floor(Math.random() * 30) + 15);
+}
+
+function updateEnginePlaceholder() {
+  const eng = document.getElementById('query-engine').value;
+  if (eng === 'vql') {
+    document.getElementById('query-input').value = "SELECT * FROM pslist() LIMIT 50";
+  } else if (eng === 'eql') {
+    document.getElementById('query-input').value = "process where process.name == 'cmd.exe' and process.parent.name == 'excel.exe'";
+  } else if (eng === 'lucene') {
+    document.getElementById('query-input').value = "event.code: 4625 AND source.ip: 10.0.0.*";
+  } else {
+    document.getElementById('query-input').value = "selection:\n  Image|endswith: '\\rundll32.exe'\ncondition: selection";
+  }
+}
+
+function clearQuery() {
+  document.getElementById('query-input').value = "";
+}
+
+function renderResults(records, latency) {
+  document.getElementById('results-title').textContent = `📊 Hunt Results (${records.length} records found)`;
+  document.getElementById('results-badge').textContent = `Execution: ${latency}ms`;
+  document.getElementById('hunt-latency').textContent = `${latency}ms`;
+  document.getElementById('hunt-hits').textContent = records.length;
+
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = "";
+
+  records.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono text-xs text-muted">${r.ts}</td>
+      <td><span class="badge badge-accent">${r.host}</span></td>
+      <td style="font-weight:600;">${r.entity}</td>
+      <td class="mono text-xs" style="color:#67e8f9;max-width:320px;word-break:break-all;">${r.detail}</td>
+      <td class="mono text-xs">${r.pid}</td>
+      <td class="mono text-xs text-secondary">${r.user}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px;" onclick="window.quickPrompt('Investigate host ${r.host} for ${r.entity}')">🤖 Copilot</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function executeQuery() {
+  const btn = document.getElementById('exec-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Executing…';
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = '▶ Execute Hunt Query';
+    const latency = Math.floor(Math.random() * 40) + 20;
+    renderResults(currentResults, latency);
+    window.showSocToast(`✓ Hunt query executed successfully (${currentResults.length} hits returned in ${latency}ms)`);
+  }, 450);
+}
+
+function exportResultsCSV() {
+  let csv = "Timestamp,Host,Entity,Detail,PID,User\n";
+  currentResults.forEach(r => {
+    csv += `"${r.ts}","${r.host}","${r.entity}","${r.detail.replace(/"/g, '""')}","${r.pid}","${r.user}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `threat_hunt_results_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  window.showSocToast('✓ Exported Threat Hunt results to CSV');
+}
+
+renderResults(SAMPLES.lsass.results, 42);
+</script>
+</body>
+</html>

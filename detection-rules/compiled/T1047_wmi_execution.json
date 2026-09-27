@@ -1,0 +1,47 @@
+{
+  "id": "b3e7c1d4-5a2f-4b9e-c7d2-3f9e1a7c4b2d",
+  "title": "WMI Remote Code Execution",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.execution",
+    "attack.t1047",
+    "attack.lateral_movement"
+  ],
+  "description": "Detects WMI usage for remote execution \u2014 common APT lateral movement",
+  "logsource": {
+    "category": "process_creation",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "Image": {
+              "value": "*\\wmic.exe"
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "CommandLine": "/node:"
+                }
+              },
+              {
+                "match_phrase": {
+                  "CommandLine": "process call create"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/execution/T1047_wmi_execution.yml"
+}

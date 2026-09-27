@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Asset Inventory &amp; EDR Health — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .agent-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .pill-green { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .pill-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .pill-red { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html" class="active"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🖥️</span> Asset Inventory &amp; EDR Health Radar</div>
+    <span class="topbar-meta">Fleet Telemetry • Sensor Health • CISA KEV Vulnerability Tracker</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="pingFleetHealth()">🔄 Ping Agent Fleet</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Top KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card low">
+        <div class="kpi-label">Managed Endpoints</div>
+        <div class="kpi-value">18</div>
+        <div class="kpi-sub">100% Agent Coverage</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">Vulnerable Hosts (KEV)</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">CVE-2024-30078 &amp; Spooler</div>
+      </div>
+      <div class="kpi-card high">
+        <div class="kpi-label">Unhealthy Sensors</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-sub">Auditd daemon lag on SRV-02</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Rogue MACs Detected</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">Subnet DHCP verified</div>
+      </div>
+    </div>
+
+    <!-- Endpoint Fleet Table -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <div class="card-title">🖥️ Enterprise Asset Inventory &amp; Sensor Telemetry Health</div>
+        <input type="text" class="input" style="font-size:11px;padding:3px 8px;width:220px;" placeholder="Search hostname, IP, OS..." onkeyup="filterAssets(this.value)">
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="assetTable">
+          <thead>
+            <tr>
+              <th>Hostname</th>
+              <th>IP Address</th>
+              <th>OS &amp; Build</th>
+              <th>Sysmon / Auditd</th>
+              <th>Filebeat Shipper</th>
+              <th>Velociraptor EDR</th>
+              <th>Active CVEs</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>DC-CORP-01</b></td>
+              <td class="mono">192.168.1.10</td>
+              <td>Windows Server 2022 (20348)</td>
+              <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
+              <td><span class="agent-pill pill-green">Streaming (0s lag)</span></td>
+              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+            </tr>
+            <tr class="row-suspicious">
+              <td><b>WORKSTATION-12</b></td>
+              <td class="mono">192.168.1.105</td>
+              <td>Windows 11 Pro 23H2</td>
+              <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
+              <td><span class="agent-pill pill-green">Streaming (0s lag)</span></td>
+              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="badge badge-critical">CVE-2024-30078 (9.8)</span></td>
+              <td><span class="badge badge-critical">Compromised</span></td>
+            </tr>
+            <tr>
+              <td><b>WORKSTATION-14</b></td>
+              <td class="mono">192.168.1.107</td>
+              <td>Windows 11 Pro 23H2</td>
+              <td><span class="agent-pill pill-green">Sysmon v15.1</span></td>
+              <td><span class="agent-pill pill-green">Streaming</span></td>
+              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+            </tr>
+            <tr>
+              <td><b>SRV-UBUNTU-PROD</b></td>
+              <td class="mono">192.168.1.50</td>
+              <td>Ubuntu 24.04 LTS (Kernel 6.8)</td>
+              <td><span class="agent-pill pill-green">Auditd 3.1.2</span></td>
+              <td><span class="agent-pill pill-green">Streaming</span></td>
+              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="badge badge-low">0 KEV</span></td>
+              <td><span class="badge badge-low">Healthy</span></td>
+            </tr>
+            <tr>
+              <td><b>SRV-DB-PROD-02</b></td>
+              <td class="mono">192.168.1.52</td>
+              <td>Debian 12 Bookworm</td>
+              <td><span class="agent-pill pill-yellow">Auditd Lag (4m)</span></td>
+              <td><span class="agent-pill pill-green">Streaming</span></td>
+              <td><span class="agent-pill pill-green">Online</span></td>
+              <td><span class="badge badge-high">CVE-2023-48795</span></td>
+              <td><span class="badge badge-medium">Warning</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Vulnerability Radar & CVE Intel -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔥 CISA Known Exploited Vulnerabilities (KEV) Tracker</div>
+          <span class="badge badge-critical">2 Exploited in Wild</span>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <b>CVE-2024-30078 (Windows Wi-Fi Driver RCE)</b>
+              <span class="badge badge-critical">CVSS 9.8</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);">
+              Unauthenticated attacker can send malicious packet to wireless adapter to execute arbitrary code with SYSTEM privileges.
+            </div>
+            <div style="font-size:11px;color:var(--text-accent);margin-top:4px;">
+              Affected: <code>WORKSTATION-12</code> | Remediation: Patch KB5039211 queued in SOAR.
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <b>CVE-2023-48795 (Terrapin SSH Protocol Prefix Truncation)</b>
+              <span class="badge badge-high">CVSS 5.9</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);">
+              Vulnerability in SSH transport protocol allows Man-in-the-Middle attacker to truncate handshake messages.
+            </div>
+            <div style="font-size:11px;color:var(--text-accent);margin-top:4px;">
+              Affected: <code>SRV-DB-PROD-02</code> | Remediation: Disable ChaCha20-Poly1305 ciphers.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔍 Rogue Device &amp; Shadow IT Sniffer</div>
+          <span class="badge badge-low">Zeek DHCP Verified</span>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+            Continuously monitors ARP requests, DHCP lease allocations, and passive TCP SYN scans to discover unmanaged devices.
+          </div>
+          <div style="background:var(--bg-base);padding:10px;border-radius:4px;border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">
+            [✓] Passive ARP scan on 192.168.1.0/24 complete.<br>
+            • Total Live MACs: 18 (18 registered in CAASM catalog).<br>
+            • Unmanaged DHCP Discover requests (24h): 0<br>
+            • Rogue Wi-Fi Access Points detected: 0<br>
+            • Status: All active endpoints have authenticated Sysmon/Auditd telemetry agents.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+function filterAssets(q) {
+  const rows = document.querySelectorAll('#assetTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function pingFleetHealth() {
+  alert('Fleet health ping complete: 18/18 agents acknowledged heartbeat within 120ms.');
+}
+</script>
+</body>
+</html>

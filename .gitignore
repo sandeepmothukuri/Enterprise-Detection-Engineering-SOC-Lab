@@ -29,6 +29,7 @@ build/
 ai-agents/.crewai/
 ai-agents/db/
 ai-agents/*.db
+*.db
 
 # Logs
 *.log

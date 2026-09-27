@@ -7,40 +7,40 @@
 <link rel="stylesheet" href="soc-theme.css">
 <style>
   body { background:var(--bg-base); font-family:var(--font-sans); color:var(--text-primary); margin:0; }
-  .portal-header { position:sticky; top:0; z-index:100; background:rgba(10,14,26,0.95); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 var(--space-6); height:var(--header-h); }
+  .portal-header { position:sticky; top:0; z-index:100; background:var(--bg-surface); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 var(--space-6); height:var(--header-h); }
   .portal-logo { font-size:18px; font-weight:700; color:var(--text-primary); letter-spacing:-.02em; }
-  .portal-logo span { color:var(--accent); }
+  .portal-logo span { color:var(--accent); text-shadow:0 0 12px var(--accent-glow); }
   .portal-meta { display:flex; align-items:center; gap:var(--space-4); font-size:13px; color:var(--text-muted); }
   .portal-clock { font-family:var(--font-mono); color:var(--text-secondary); }
-  .hero-bar { background:linear-gradient(135deg,rgba(59,130,246,0.12) 0%,rgba(139,92,246,0.08) 100%); border-bottom:1px solid var(--border); padding:var(--space-6) var(--space-6) var(--space-5); }
-  .hero-bar h2 { margin:0 0 6px; font-size:22px; font-weight:700; }
+  .hero-bar { background:linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 100%); border-bottom:1px solid var(--border); padding:var(--space-6) var(--space-6) var(--space-5); }
+  .hero-bar h2 { margin:0 0 6px; font-size:22px; font-weight:700; text-shadow:0 0 20px var(--accent-glow); }
   .hero-bar p  { margin:0 0 var(--space-5); color:var(--text-secondary); font-size:14px; max-width:700px; }
   .hero-kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:var(--space-3); }
   @media(max-width:900px){ .hero-kpis { grid-template-columns:repeat(3,1fr); } }
   .portal-body { padding:var(--space-6); }
   .section-title { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin:0 0 var(--space-4); }
   .dash-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:var(--space-4); margin-bottom:var(--space-6); }
-  .dash-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); text-decoration:none; color:inherit; display:block; transition:border-color .15s,transform .15s; }
-  .dash-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .dash-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); text-decoration:none; color:inherit; display:block; box-shadow:0 4px 16px rgba(0,0,0,0.4); transition:border-color .15s,transform .15s,box-shadow .15s; }
+  .dash-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 24px var(--accent-glow); }
   .dash-card-icon { font-size:24px; margin-bottom:var(--space-2); }
   .dash-card-name { font-size:15px; font-weight:600; margin-bottom:4px; }
   .dash-card-desc { font-size:12px; color:var(--text-muted); margin-bottom:var(--space-3); }
   .dash-card-tags { display:flex; gap:6px; flex-wrap:wrap; }
   .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:var(--space-3); margin-bottom:var(--space-6); }
-  .tool-link { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:var(--space-3) var(--space-4); text-decoration:none; color:var(--text-secondary); font-size:13px; display:flex; align-items:center; gap:8px; transition:border-color .15s,color .15s; }
-  .tool-link:hover { border-color:var(--accent); color:var(--text-primary); }
+  .tool-link { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:var(--space-3) var(--space-4); text-decoration:none; color:var(--text-secondary); font-size:13px; display:flex; align-items:center; gap:8px; transition:border-color .15s,color .15s,box-shadow .15s; }
+  .tool-link:hover { border-color:var(--accent); color:var(--text-primary); box-shadow:0 4px 16px var(--accent-glow); }
   .tool-port { margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); }
   .qs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:var(--space-4); margin-bottom:var(--space-6); }
-  .qs-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4); }
+  .qs-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4); box-shadow:0 4px 16px rgba(0,0,0,0.4); }
   .qs-card h4 { margin:0 0 var(--space-3); font-size:13px; color:var(--text-secondary); font-weight:600; }
-  .ticker { position:fixed; bottom:0; left:0; right:0; background:rgba(10,14,26,0.95); border-top:1px solid var(--border); padding:6px var(--space-4); display:flex; align-items:center; gap:var(--space-4); font-size:12px; overflow:hidden; }
-  .ticker-label { color:var(--accent); font-weight:700; font-family:var(--font-mono); white-space:nowrap; }
+  .ticker { position:fixed; bottom:0; left:0; right:0; background:var(--bg-surface); border-top:1px solid var(--border); padding:6px var(--space-4); display:flex; align-items:center; gap:var(--space-4); font-size:12px; overflow:hidden; }
+  .ticker-label { color:var(--accent); font-weight:700; font-family:var(--font-mono); white-space:nowrap; text-shadow:0 0 8px var(--accent-glow); }
   .ticker-track { flex:1; overflow:hidden; }
   .ticker-inner { display:flex; gap:var(--space-6); animation:scroll-left 40s linear infinite; white-space:nowrap; }
   @keyframes scroll-left { from{transform:translateX(0)} to{transform:translateX(-50%)} }
   .ticker-item { color:var(--text-muted); }
-  .ticker-item .t-high { color:var(--high); }
-  .ticker-item .t-crit { color:var(--critical); }
+  .ticker-item .t-high { color:var(--high); text-shadow:0 0 6px var(--high); }
+  .ticker-item .t-crit { color:var(--critical); text-shadow:0 0 6px var(--critical); }
   pb { padding-bottom: 40px; display:block; }
 </style>
 </head>
@@ -55,18 +55,18 @@
 </header>
 <div class="hero-bar">
   <h2>Security Operations Command Center</h2>
-  <p>Full-stack SOC lab — SIEM, NSM, SOAR, Threat Intel, DFIR, Attack Simulation, and AI-powered analysis. 100% open-source, runs locally via Docker Compose.</p>
+  <p>Full-stack SOC lab — SIEM, NSM, SOAR, Threat Intel, DFIR, Attack Simulation, Detection Engineering, and AI Copilot. 100% open-source.</p>
   <div class="hero-kpis">
     <div class="kpi-card critical"><div class="kpi-label">Critical Alerts</div><div class="kpi-value">9</div><div class="kpi-sub">↑ 3 new</div></div>
     <div class="kpi-card high"><div class="kpi-label">High Severity</div><div class="kpi-value">127</div><div class="kpi-sub">14 unreviewed</div></div>
     <div class="kpi-card"><div class="kpi-label">Events (24h)</div><div class="kpi-value">48K</div><div class="kpi-sub">↑ 12%</div></div>
     <div class="kpi-card"><div class="kpi-label">Open Cases</div><div class="kpi-value">2</div><div class="kpi-sub">IRIS tracked</div></div>
-    <div class="kpi-card"><div class="kpi-label">IOCs Active</div><div class="kpi-value">12,847</div><div class="kpi-sub">4 feeds</div></div>
+    <div class="kpi-card"><div class="kpi-label">Sigma Rules</div><div class="kpi-value">13</div><div class="kpi-sub">100% transpiled</div></div>
     <div class="kpi-card"><div class="kpi-label">Detection Rate</div><div class="kpi-value">85%</div><div class="kpi-sub">APT-29 sim</div></div>
   </div>
 </div>
 <div class="portal-body">
-  <div class="section-title">Dashboards</div>
+  <div class="section-title">SOC Dashboards</div>
   <div class="dash-grid">
     <a href="01_soc_overview.html" class="dash-card"><div class="dash-card-icon">🖥️</div><div class="dash-card-name">SOC Overview</div><div class="dash-card-desc">Live alert feed, MITRE heatmap, sensor status, top IPs</div><div class="dash-card-tags"><span class="badge badge-critical">Live</span><span class="badge badge-low">WebSocket</span></div></a>
     <a href="02_opensearch_siem.html" class="dash-card"><div class="dash-card-icon">🔍</div><div class="dash-card-name">OpenSearch SIEM</div><div class="dash-card-desc">24h event timeline, severity breakdown, ElastAlert2 rules</div><div class="dash-card-tags"><span class="badge badge-high">9 critical</span></div></a>
@@ -78,6 +78,15 @@
     <a href="08_misp_ti.html" class="dash-card"><div class="dash-card-icon">🕵️</div><div class="dash-card-name">MISP Threat Intel</div><div class="dash-card-desc">IOC lookup, feeds, events and attribution</div><div class="dash-card-tags"><span class="badge badge-low">IOC</span></div></a>
     <a href="09_velociraptor.html" class="dash-card"><div class="dash-card-icon">🦖</div><div class="dash-card-name">Velociraptor DFIR</div><div class="dash-card-desc">Live forensic hunts, endpoint analysis and VQL</div><div class="dash-card-tags"><span class="badge badge-critical">DFIR</span></div></a>
     <a href="10_responder_redteam.html" class="dash-card"><div class="dash-card-icon">🔴</div><div class="dash-card-name">Red Team / Responder</div><div class="dash-card-desc">LLMNR/NBT-NS lab evidence and blue-team response timeline</div><div class="dash-card-tags"><span class="badge badge-critical">Lab only</span></div></a>
+    <a href="11_detection_engineering.html" class="dash-card"><div class="dash-card-icon">🛠️</div><div class="dash-card-name">Detection Engineering</div><div class="dash-card-desc">Sigma rule lifecycle, pySigma transpiler, CI test harness</div><div class="dash-card-tags"><span class="badge badge-low">13 Rules</span><span class="badge badge-accent">CI Harness</span></div></a>
+    <a href="12_purple_team.html" class="dash-card"><div class="dash-card-icon">🎯</div><div class="dash-card-name">Purple Team Matrix</div><div class="dash-card-desc">Synchronized Red-to-Blue correlation, MTTD/MTTR, SOAR flowchart</div><div class="dash-card-tags"><span class="badge badge-critical">Red vs Blue</span><span class="badge badge-low">SOAR</span></div></a>
+    <a href="13_threat_hunting.html" class="dash-card"><div class="dash-card-icon">🔎</div><div class="dash-card-name">Threat Hunting Sandbox</div><div class="dash-card-desc">Multi-engine query console (VQL, EQL, Lucene), hunting presets, CSV export</div><div class="dash-card-tags"><span class="badge badge-info">VQL</span><span class="badge badge-low">EQL</span></div></a>
+    <a href="14_cloud_security.html" class="dash-card"><div class="dash-card-icon">☁️</div><div class="dash-card-name">Cloud SOC &amp; Posture</div><div class="dash-card-desc">AWS GuardDuty, Azure Sentinel, GCP SCC, IAM privilege escalation radar</div><div class="dash-card-tags"><span class="badge badge-accent">Multi-Cloud</span><span class="badge badge-critical">GuardDuty</span></div></a>
+    <a href="15_malware_analysis.html" class="dash-card"><div class="dash-card-icon">🧬</div><div class="dash-card-name">Malware &amp; Memory Sandbox</div><div class="dash-card-desc">Live YARA compiler, PE section entropy, Volatility 3 malfind triage</div><div class="dash-card-tags"><span class="badge badge-critical">YARA</span><span class="badge badge-high">Volatility</span></div></a>
+    <a href="16_d3fend_matrix.html" class="dash-card"><div class="dash-card-icon">🛡️</div><div class="dash-card-name">MITRE D3FEND Matrix</div><div class="dash-card-desc">Model, Harden, Detect, Isolate, Deceive defensive countermeasures</div><div class="dash-card-tags"><span class="badge badge-low">D3FEND</span><span class="badge badge-info">34 Controls</span></div></a>
+    <a href="17_asset_inventory.html" class="dash-card"><div class="dash-card-icon">🖥️</div><div class="dash-card-name">Asset &amp; EDR Health Radar</div><div class="dash-card-desc">Fleet telemetry, Sysmon/Auditd lag, CISA KEV vulnerability tracker</div><div class="dash-card-tags"><span class="badge badge-low">18 Hosts</span><span class="badge badge-critical">KEV Radar</span></div></a>
+    <a href="18_threat_intel_feeds.html" class="dash-card"><div class="dash-card-icon">📡</div><div class="dash-card-name">Threat Feeds Hub</div><div class="dash-card-desc">Abuse.ch, ThreatFox, AlienVault OTX, CISA KEV, STIX 2.1 graph visualizer</div><div class="dash-card-tags"><span class="badge badge-critical">Real-time</span><span class="badge badge-accent">STIX 2.1</span></div></a>
+    <a href="19_network_topology.html" class="dash-card"><div class="dash-card-icon">🗺️</div><div class="dash-card-name">Network Topology Visualizer</div><div class="dash-card-desc">Interactive SVG flow graph, subnets, packet flow animator, node inspector</div><div class="dash-card-tags"><span class="badge badge-low">Live Tap</span><span class="badge badge-info">Interactive</span></div></a>
   </div>
   <div class="section-title">Direct Tool Access</div>
   <div class="tools-grid">
@@ -91,24 +100,20 @@
     <a href="http://localhost:11434" target="_blank" class="tool-link">🧠 Ollama LLM <span class="tool-port">:11434</span></a>
     <a href="http://localhost:9200" target="_blank" class="tool-link">📦 OpenSearch API <span class="tool-port">:9200</span></a>
   </div>
-  <div class="section-title">Quick Start</div>
+  <div class="section-title">Quick Start & Operations</div>
   <div class="qs-grid">
-    <div class="qs-card"><h4>1 · Setup &amp; Deploy</h4><div class="log-block">git clone &lt;repo&gt; soc-lab &amp;&amp; cd soc-lab
-chmod +x setup.sh health-check.sh simulate-attack.sh
-sudo ./setup.sh</div></div>
-    <div class="qs-card"><h4>2 · Run APT-29 Simulation</h4><div class="log-block">./simulate-attack.sh apt29
-# Injects MITRE ATT&amp;CK events into OpenSearch
-
-./simulate-attack.sh verify
-# Confirms events were indexed</div></div>
-    <div class="qs-card"><h4>3 · Capture Evidence Screenshots</h4><div class="log-block">./tools/capture-live-screenshots.sh
-# Native tool UIs are captured when reachable.
-# Zeek/Suricata/Responder use project evidence views.
-# See dashboards/screenshots/capture-manifest.json</div></div>
+    <div class="qs-card"><h4>1 · Setup &amp; Deploy</h4><div class="log-block">docker compose up -d nginx
+# Starts the lightweight Web Command Center on :8080
+# Full stack: docker compose up -d</div></div>
+    <div class="qs-card"><h4>2 · Run CI Test Harness</h4><div class="log-block">python tools/test-e2e-harness.py
+# Validates 5/5 detection scenarios against Sigma & ElastAlert2</div></div>
+    <div class="qs-card"><h4>3 · Transpile Sigma to OpenSearch</h4><div class="log-block">python tools/transpile-sigma-to-opensearch.py
+# Converts 13 rules into native OpenSearch Query DSL</div></div>
   </div>
 </div>
 <pb></pb>
 <div class="ticker"><span class="ticker-label">LIVE</span><div class="ticker-track"><div class="ticker-inner" id="ticker-inner"><span class="ticker-item"><span class="t-crit">[CRITICAL]</span> Detection evidence is captured from the running lab; no fabricated screenshot data is generated.</span><span class="ticker-item"><span class="t-high">[HIGH]</span> Use the capture manifest to verify source URL and capture timestamp.</span></div></div></div>
+<script src="soc-copilot.js"></script>
 <script>
 function updateClock(){const d=new Date();document.getElementById('clock').textContent=d.toISOString().slice(11,19)+' UTC';}
 updateClock();setInterval(updateClock,1000);

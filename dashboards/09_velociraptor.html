@@ -1,195 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Velociraptor DFIR — SOC Lab</title>
-<link rel="stylesheet" href="soc-theme.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Velociraptor Live DFIR &amp; VQL Hunts — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .hunt-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .hunt-running { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .hunt-done { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+  </style>
 </head>
 <body>
 <div class="layout">
 
+  <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">SOC Lab v2</div>
-    <ul class="sidebar-nav">
-      <li><a href="index.html">⌂ Portal</a></li>
-      <li><a href="01_soc_overview.html">Overview</a></li>
-      <li><a href="02_opensearch_siem.html">OpenSearch SIEM</a></li>
-      <li><a href="03_zeek_network.html">Zeek NSM</a></li>
-      <li><a href="04_suricata_ids.html">Suricata IDS</a></li>
-      <li><a href="05_ai_agents.html">AI Agents</a></li>
-      <li><a href="06_iris_cases.html">DFIR-IRIS</a></li>
-      <li><a href="07_caldera_attack.html">Caldera</a></li>
-      <li><a href="08_misp_ti.html">MISP Threat Intel</a></li>
-      <li><a href="09_velociraptor.html" class="active">Velociraptor</a></li>
-      <li><a href="10_responder_redteam.html">Red Team</a></li>
-    </ul>
-    <div class="sidebar-footer">MITRE ATT&amp;CK v14</div>
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html" class="active"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
   </nav>
 
-  <div class="main-wrap">
-    <header class="topbar">
-      <span class="topbar-title">Velociraptor — Live Forensics &amp; DFIR</span>
-      <div class="topbar-meta">
-        <span class="status-dot green"></span> 4 agents online
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🦖</span> Velociraptor Live DFIR &amp; VQL Artifact Engine</div>
+    <span class="topbar-meta">Server: <span style="color:var(--low);">● Online</span> • HTTPS GUI :8889 • gRPC Active</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="dispatchNewHunt()">+ Launch New Hunt</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card low"><div class="kpi-label">Connected Clients</div><div class="kpi-value">18 / 18</div><div class="kpi-sub">100% Online</div></div>
+      <div class="kpi-card critical"><div class="kpi-label">Suspicious Detections</div><div class="kpi-value">2</div><div class="kpi-sub">Injected Threads (malfind)</div></div>
+      <div class="kpi-card high"><div class="kpi-label">Active Forensic Hunts</div><div class="kpi-value">3</div><div class="kpi-sub">1 Running • 2 Completed</div></div>
+      <div class="kpi-card info"><div class="kpi-label">VQL Artifacts Loaded</div><div class="kpi-value">340</div><div class="kpi-sub">Windows, Linux, MacOS</div></div>
+    </div>
+
+    <!-- Active Forensic Hunts Table -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <span class="card-title">🏹 Active Fleet Forensic Hunts (Artifact Collections)</span>
+        <span class="badge badge-low">3 Hunts</span>
       </div>
-    </header>
-
-    <main class="content">
-
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">Online Clients</div><div class="kpi-value">4</div><div class="kpi-sub">Windows + Linux</div></div>
-        <div class="kpi-card high"><div class="kpi-label">Active Hunts</div><div class="kpi-value">2</div><div class="kpi-sub">Running now</div></div>
-        <div class="kpi-card"><div class="kpi-label">Completed</div><div class="kpi-value">7</div><div class="kpi-sub">This week</div></div>
-        <div class="kpi-card critical"><div class="kpi-label">Suspicious Procs</div><div class="kpi-value">3</div><div class="kpi-sub">Flagged for review</div></div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Hunt ID</th><th>Artifact Name</th><th>Target Fleet</th><th>Progress</th><th>Matches</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="row-suspicious">
+              <td class="mono">H.C812A4</td>
+              <td><b>Windows.Detection.Malfind (Process Injection Scan)</b></td>
+              <td class="mono">All Windows 11/2022</td>
+              <td class="mono">18 / 18 (100%)</td>
+              <td><span class="badge badge-critical">1 Host Hit (PID 3912)</span></td>
+              <td><span class="hunt-status hunt-done">Completed</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Downloading memory dump tarball for PID 3912.')">💾 Download Tar</button></td>
+            </tr>
+            <tr>
+              <td class="mono">H.D904B1</td>
+              <td><b>Windows.EventLogs.AlternateLogonFailures (4625 Spray)</b></td>
+              <td class="mono">Domain Controllers</td>
+              <td class="mono">2 / 2 (100%)</td>
+              <td><span class="badge badge-high">128 Failed Logins</span></td>
+              <td><span class="hunt-status hunt-done">Completed</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Exporting event log CSV.')">Export CSV</button></td>
+            </tr>
+            <tr>
+              <td class="mono">H.F319C2</td>
+              <td><b>Windows.System.ScheduledTasks (Persistence Audit)</b></td>
+              <td class="mono">All Endpoints</td>
+              <td class="mono">14 / 18 (78%)</td>
+              <td><span class="badge badge-low">0 Anomalies</span></td>
+              <td><span class="hunt-status hunt-running">● Running</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Hunt paused.')">Pause</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
-      <!-- Hunt cards -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-4);margin-bottom:var(--space-5)">
-
-        <div class="hunt-card running">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="hunt-name">LSASS Access Hunt</div>
-            <span class="badge badge-accent">RUNNING</span>
-          </div>
-          <div class="hunt-meta">Windows.Memory.ProcessMemory · All Windows</div>
-          <div class="hunt-progress">
-            <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:72%"></div></div>
-            <span>72%</span>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">3/4 clients complete · 1 finding</div>
-        </div>
-
-        <div class="hunt-card complete">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="hunt-name">Scheduled Tasks</div>
-            <span class="badge badge-low">COMPLETE</span>
-          </div>
-          <div class="hunt-meta">Windows.System.ScheduledTasks · WIN-DC01</div>
-          <div class="hunt-progress">
-            <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:100%;background:var(--success)"></div></div>
-            <span>100%</span>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">2 suspicious tasks found</div>
-        </div>
-
-        <div class="hunt-card running">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="hunt-name">Network Connections</div>
-            <span class="badge badge-accent">RUNNING</span>
-          </div>
-          <div class="hunt-meta">Windows.Network.Netstat · WKSTN-FINANCE-01</div>
-          <div class="hunt-progress">
-            <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:45%"></div></div>
-            <span>45%</span>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Scanning active connections</div>
-        </div>
-
-        <div class="hunt-card queued">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="hunt-name">Registry Persistence</div>
-            <span class="badge badge-medium">QUEUED</span>
-          </div>
-          <div class="hunt-meta">Windows.Registry.RunKeys · All Windows</div>
-          <div class="hunt-progress">
-            <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:0%"></div></div>
-            <span>0%</span>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Waiting to start</div>
-        </div>
-
-      </div>
-
-      <!-- Process analysis -->
-      <div class="card">
-        <div class="card-header"><span class="card-title">🔬 Process Analysis — WKSTN-FINANCE-01</span></div>
-        <div class="card-body">
-          <table class="data-table">
-            <thead><tr><th>PID</th><th>Name</th><th>Parent</th><th>User</th><th>Network</th><th>Risk</th></tr></thead>
-            <tbody>
-              <tr class="row-suspicious"><td class="mono">4892</td><td class="mono">svc.exe</td><td class="mono">svchost.exe</td><td>CORP\jsmith</td><td class="mono">185.220.101.45:443</td><td><span class="badge badge-critical">SUSPICIOUS</span></td></tr>
-              <tr class="row-suspicious"><td class="mono">3441</td><td class="mono">rundll32.exe</td><td class="mono">powershell.exe</td><td>CORP\jsmith</td><td>—</td><td><span class="badge badge-high">WARNING</span></td></tr>
-              <tr class="row-suspicious"><td class="mono">2108</td><td class="mono">powershell.exe</td><td class="mono">WINWORD.EXE</td><td>CORP\jsmith</td><td class="mono">185.220.101.45:80</td><td><span class="badge badge-critical">SUSPICIOUS</span></td></tr>
-              <tr><td class="mono">784</td><td class="mono">svchost.exe</td><td class="mono">services.exe</td><td>SYSTEM</td><td>—</td><td><span class="badge badge-low">CLEAN</span></td></tr>
-              <tr><td class="mono">1024</td><td class="mono">explorer.exe</td><td class="mono">userinit.exe</td><td>CORP\jsmith</td><td>—</td><td><span class="badge badge-low">CLEAN</span></td></tr>
-              <tr><td class="mono">2344</td><td class="mono">MsMpEng.exe</td><td class="mono">services.exe</td><td>SYSTEM</td><td>—</td><td><span class="badge badge-low">CLEAN</span></td></tr>
-            </tbody>
-          </table>
+    <!-- Live Interactive VQL Query Console -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <span class="card-title">💻 Interactive VQL (Velociraptor Query Language) Console</span>
+        <div>
+          <button class="btn btn-ghost btn-sm" onclick="loadVqlTemplate('pslist')">Process List</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadVqlTemplate('malfind')">Malfind Injections</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadVqlTemplate('tasks')">Scheduled Tasks</button>
+          <button class="btn btn-primary btn-sm" onclick="runVqlQuery()">Execute VQL</button>
         </div>
       </div>
-
-      <!-- VQL Console -->
-      <div class="card" style="margin-top:var(--space-4)">
-        <div class="card-header">
-          <span class="card-title">⌨️ VQL Query Console</span>
-          <span class="badge badge-low">Simulated</span>
-        </div>
-        <div class="card-body">
-          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-            <button class="btn" onclick="runVQL('pslist')">Process List</button>
-            <button class="btn" onclick="runVQL('netstat')">Netstat</button>
-            <button class="btn" onclick="runVQL('sched')">Scheduled Tasks</button>
-            <button class="btn" onclick="runVQL('reg')">Run Keys</button>
-          </div>
-          <div id="vql-out" class="log-block" style="min-height:120px">-- Select a query above to execute VQL --</div>
-        </div>
+      <div class="card-body">
+        <textarea id="vqlEditor" class="input" style="width:100%;height:100px;font-family:var(--font-mono);font-size:11px;resize:vertical;" spellcheck="false">SELECT Pid, Name, CommandLine, Exe, Username,
+       format(format="%x", args=PebBaseAddress) AS PebHex
+FROM pslist()
+WHERE Name =~ "explorer|rundll32|powershell"</textarea>
+        <div id="vqlResult" style="margin-top:10px;padding:10px;background:var(--bg-base);border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);display:none;max-height:160px;overflow-y:auto;"></div>
       </div>
+    </div>
 
-    </main>
-  </div>
+    <!-- Client Fleet Health -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🖥️ Connected Velociraptor Endpoints (Telemetry Agents)</span>
+        <span class="badge badge-low">18 Online</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Client ID</th><th>Hostname</th><th>IP Address</th><th>OS &amp; Kernel</th><th>Agent Version</th><th>Last Heartbeat</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="row-suspicious">
+              <td class="mono">C.1054a8b2</td>
+              <td><b>WORKSTATION-12</b></td>
+              <td class="mono">192.168.1.105</td>
+              <td>Windows 11 Pro (10.0.22631)</td>
+              <td class="mono">v0.7.2-linux</td>
+              <td class="mono" style="color:var(--low);">4s ago</td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Opening interactive live shell on WORKSTATION-12...')">⚡ Open VQL Shell</button></td>
+            </tr>
+            <tr>
+              <td class="mono">C.9841c2d0</td>
+              <td><b>DC-CORP-01</b></td>
+              <td class="mono">192.168.1.10</td>
+              <td>Windows Server 2022 (10.0.20348)</td>
+              <td class="mono">v0.7.2-linux</td>
+              <td class="mono" style="color:var(--low);">8s ago</td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Opening interactive live shell on DC-CORP-01...')">⚡ Open VQL Shell</button></td>
+            </tr>
+            <tr>
+              <td class="mono">C.7142f9e3</td>
+              <td><b>SRV-UBUNTU-PROD</b></td>
+              <td class="mono">192.168.1.50</td>
+              <td>Ubuntu 24.04 (Linux 6.8.0)</td>
+              <td class="mono">v0.7.2-linux</td>
+              <td class="mono" style="color:var(--low);">12s ago</td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Opening interactive live shell on SRV-UBUNTU-PROD...')">⚡ Open VQL Shell</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
-const VQL_OUTPUT = {
-  pslist: `SELECT Pid, Ppid, Name, Username, CommandLine, CreateTime
+function loadVqlTemplate(type) {
+  const ed = document.getElementById('vqlEditor');
+  if (type === 'pslist') {
+    ed.value = `SELECT Pid, Name, CommandLine, Exe, Username,
+       format(format="%x", args=PebBaseAddress) AS PebHex
 FROM pslist()
-WHERE Name =~ "powershell|rundll|cmd|wscript|cscript|svc\\.exe"
+WHERE Name =~ "explorer|rundll32|powershell"`;
+  } else if (type === 'malfind') {
+    ed.value = `SELECT Pid, ProcessName, Address, HexDump, Protection
+FROM Artifact.Windows.Detection.Malfind()
+WHERE Protection =~ "EXECUTE_READWRITE"`;
+  } else if (type === 'tasks') {
+    ed.value = `SELECT Name, Command, Arguments, Enabled, Author
+FROM Artifact.Windows.System.ScheduledTasks()
+WHERE Command =~ "\\.exe|powershell|cmd"`;
+  }
+}
 
-Pid   | Ppid  | Name           | Username     | CommandLine
-------|-------|----------------|--------------|------------------------------------------
-4892  | 1240  | svc.exe        | CORP\\jsmith  | C:\\ProgramData\\svc.exe
-3441  | 2108  | rundll32.exe   | CORP\\jsmith  | rundll32.exe comsvcs.dll MiniDump ...
-2108  | 4210  | powershell.exe | CORP\\jsmith  | powershell.exe -enc SQBFAFgAIAAo...
+function runVqlQuery() {
+  const res = document.getElementById('vqlResult');
+  res.style.display = 'block';
+  res.innerHTML = `<b>VQL Execution Result (Host: WORKSTATION-12):</b><br>
+✓ Query completed in <b>42ms</b>. Returned 2 rows.<br>
+• Row 1: <code>{ "Pid": 3912, "Name": "explorer.exe", "Protection": "PAGE_EXECUTE_READWRITE", "Address": "0x18a4d900000", "Finding": "Injected MZ Header Detected" }</code><br>
+• Row 2: <code>{ "Pid": 4480, "Name": "svchost.exe", "Protection": "PAGE_EXECUTE_READ", "Address": "0x21c7a100000", "Finding": "Unlinked PEB Module" }</code>`;
+}
 
-3 rows returned in 0.42s`,
-
-  netstat: `SELECT Pid, FamilyString, Type, Status, Laddr.IP, Laddr.Port, Raddr.IP, Raddr.Port
-FROM netstat()
-WHERE Status = "ESTABLISHED" AND NOT Raddr.IP =~ "^(10\\.|127\\.)"
-
-Pid   | Family | Type | Status      | Local IP     | Port | Remote IP        | Port
-------|--------|------|-------------|--------------|------|------------------|-----
-4892  | IPv4   | TCP  | ESTABLISHED | 10.0.1.50    | 52411| 185.220.101.45   | 443
-2108  | IPv4   | TCP  | ESTABLISHED | 10.0.1.50    | 49120| 185.220.101.45   | 80
-
-2 rows returned in 0.31s  ⚠ External connections flagged`,
-
-  sched: `SELECT Name, Command, Arguments, Enabled, NextRunTime
-FROM scheduled_tasks()
-WHERE Command =~ "powershell|cmd|wscript|cscript|ProgramData"
-
-Name                  | Command        | Arguments
-----------------------|----------------|-------------------------------------------
-WindowsUpdaterSvc     | powershell.exe | -w hidden -enc SQBFAFgAIAAo...
-MicrosoftEdgeUpdate   | C:\\ProgramData\\svc.exe | --persist --interval 300
-
-⚠ 2 suspicious tasks detected — created 2026-04-25 02:24 UTC`,
-
-  reg: `SELECT Key, ValueName, ValueData
-FROM read_reg_key(globs=["HKEY_USERS\\\\*\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run"])
-
-Key                                           | ValueName         | ValueData
-----------------------------------------------|-------------------|---------------------------
-HKEY_USERS\\S-1-5-21-...\\...Run              | WindowsUpdater    | C:\\ProgramData\\svc.exe
-HKEY_USERS\\S-1-5-21-...\\...Run              | OneDriveStandalone| C:\\Users\\...\\OneDrive.exe
-
-⚠ WindowsUpdaterSvc — not a legitimate Windows entry`
-};
-
-function runVQL(q) {
-  document.getElementById('vql-out').textContent = VQL_OUTPUT[q] || '-- No output --';
+function dispatchNewHunt() {
+  alert('New fleet forensic hunt dispatched to 18 endpoints via Velociraptor gRPC server.');
 }
 </script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

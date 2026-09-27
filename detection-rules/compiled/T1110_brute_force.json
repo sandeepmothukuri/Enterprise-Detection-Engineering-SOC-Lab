@@ -1,0 +1,27 @@
+{
+  "id": "f7i1g5h8-9e6d-7f3i-g1h6-7j3i6e1h8f4i",
+  "title": "Brute Force Authentication Attack",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.credential_access",
+    "attack.t1110"
+  ],
+  "description": "Detects repeated authentication failures indicating brute force",
+  "logsource": {
+    "product": "windows",
+    "service": "security"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "EventID": 4625
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/credential-access/T1110_brute_force.yml"
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Threat Intelligence Feed Hub — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .feed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .feed-abuse { background: rgba(239, 68, 68, 0.15); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .feed-otx { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .feed-cisa { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+            <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html" class="active"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">📡</span> Live Threat Intelligence Feed Hub</div>
+    <span class="topbar-meta">Abuse.ch • ThreatFox • AlienVault OTX • CISA KEV • STIX/TAXII 2.1</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="syncFeedsNow()">🔄 Force Feed Sync</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Top KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card low">
+        <div class="kpi-label">Active Threat Feeds</div>
+        <div class="kpi-value">6</div>
+        <div class="kpi-sub">Auto-synced every 15m</div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-label">IOC Hits in Telemetry</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-sub">Zeek &amp; Suricata Matched</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Indicators Cached</div>
+        <div class="kpi-value">124K</div>
+        <div class="kpi-sub">IPs, Hashes, Domains</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">MISP Export Pipeline</div>
+        <div class="kpi-value">Active</div>
+        <div class="kpi-sub">Zero Ingestion Errors</div>
+      </div>
+    </div>
+
+    <!-- Feed Sources Grid -->
+    <div class="grid-3" style="margin-bottom:var(--space-4);">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="feed-badge feed-abuse">Abuse.ch</span> ThreatFox &amp; URLhaus</div>
+          <span class="badge badge-low">Streaming</span>
+        </div>
+        <div class="card-body" style="font-size:12px;color:var(--text-secondary);">
+          <div>Real-time malware sharing platform for indicators of compromise (IOCs) associated with botnets and infostealers.</div>
+          <div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;">
+            • Cached: <b>42,190 IOCs</b> | Sync: 2m ago<br>
+            • Threat Types: Cobalt Strike, Lumma, RedLine
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="feed-badge feed-otx">AlienVault</span> Open Threat Exchange</div>
+          <span class="badge badge-low">Connected</span>
+        </div>
+        <div class="card-body" style="font-size:12px;color:var(--text-secondary);">
+          <div>Crowdsourced computer-security platform containing pulses and campaign indicators from global threat research teams.</div>
+          <div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;">
+            • Cached: <b>68,400 Pulses</b> | Sync: 8m ago<br>
+            • Focus: APT29, Ransomware C2 Infrastructure
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="feed-badge feed-cisa">CISA KEV</span> Known Exploited Catalog</div>
+          <span class="badge badge-low">Up to date</span>
+        </div>
+        <div class="card-body" style="font-size:12px;color:var(--text-secondary);">
+          <div>Authoritative government catalog of vulnerabilities actively exploited in the wild by state-sponsored and cybercrime actors.</div>
+          <div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;">
+            • Cached: <b>1,148 CVEs</b> | Sync: 1h ago<br>
+            • Priority: Binding Operational Directive 22-01
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Ingested Indicators Stream Table -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <div class="card-title">🚨 Real-Time Inbound Indicator Stream &amp; SIEM Telemetry Correlation</div>
+        <input type="text" class="input" style="font-size:11px;padding:3px 8px;width:240px;" placeholder="Search indicator, threat, feed..." onkeyup="filterFeeds(this.value)">
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="data-table" id="feedTable">
+          <thead>
+            <tr>
+              <th>Ingested Time</th>
+              <th>Feed Source</th>
+              <th>Indicator Value</th>
+              <th>IOC Type</th>
+              <th>Malware Family / Threat</th>
+              <th>SIEM Match</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-suspicious">
+              <td class="mono">13:06:12 UTC</td>
+              <td><span class="feed-badge feed-abuse">ThreatFox</span></td>
+              <td class="mono"><b>192.168.1.105:4444</b></td>
+              <td>IP:Port</td>
+              <td><span class="badge badge-critical">Cobalt Strike C2</span></td>
+              <td><span class="badge badge-critical">MATCH (Zeek conn.log)</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('SOAR block action dispatched to OPNsense firewall.')">⚡ Block IP</button></td>
+            </tr>
+            <tr class="row-suspicious">
+              <td class="mono">13:02:45 UTC</td>
+              <td><span class="feed-badge feed-otx">AlienVault OTX</span></td>
+              <td class="mono"><b>cdn-update-sync.com</b></td>
+              <td>Domain</td>
+              <td><span class="badge badge-high">APT29 Cozy Bear</span></td>
+              <td><span class="badge badge-high">MATCH (Zeek dns.log)</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Domain sinkholed via local DNS.')">Sinkhole</button></td>
+            </tr>
+            <tr>
+              <td class="mono">12:58:10 UTC</td>
+              <td><span class="feed-badge feed-abuse">URLhaus</span></td>
+              <td class="mono">http://malicious-drop.ru/payload.exe</td>
+              <td>URL</td>
+              <td><span class="badge badge-medium">Lumma Stealer</span></td>
+              <td><span class="badge badge-low">No Hits (Clean)</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Indicator pushed to MISP.')">Push MISP</button></td>
+            </tr>
+            <tr>
+              <td class="mono">12:44:22 UTC</td>
+              <td><span class="feed-badge feed-cisa">CISA KEV</span></td>
+              <td class="mono">CVE-2024-30078</td>
+              <td>CVE</td>
+              <td><span class="badge badge-critical">Windows Wi-Fi RCE</span></td>
+              <td><span class="badge badge-high">MATCH (WORKSTATION-12)</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="alert('Patch deployment queued.')">Patch Fleet</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STIX / TAXII Graph Query Sandbox -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🌐 STIX 2.1 Threat Actor &amp; Campaign Visualizer</div>
+        <button class="btn btn-primary btn-sm" onclick="runStixQuery()">Render Graph</button>
+      </div>
+      <div class="card-body">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">
+          Query STIX 2.1 relational objects (Threat Actor ➔ Attack Pattern ➔ Malware ➔ Infrastructure ➔ Observed Data).
+        </div>
+        <div style="background:var(--bg-base);padding:12px;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--text-accent);">
+          [STIX Graph]: <b>[ThreatActor: APT29]</b> ──(uses)──&gt; <b>[Malware: Cobalt Strike]</b> ──(targets)──&gt; <b>[Vulnerability: CVE-2024-30078]</b><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──(communicates-with)──&gt; <b>[IPv4: 192.168.1.105]</b>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="soc-copilot.js"></script>
+<script>
+function filterFeeds(q) {
+  const rows = document.querySelectorAll('#feedTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function syncFeedsNow() {
+  alert('Threat Intelligence sync triggered. Ingested 3,412 new indicators from Abuse.ch, AlienVault OTX, and CISA KEV.');
+}
+
+function runStixQuery() {
+  alert('STIX 2.1 graph rendered: 14 interconnected nodes resolved across active APT29 campaign.');
+}
+</script>
+</body>
+</html>

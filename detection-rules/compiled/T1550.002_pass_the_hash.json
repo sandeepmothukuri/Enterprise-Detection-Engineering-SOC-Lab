@@ -1,0 +1,51 @@
+{
+  "id": "i0l4j8k1-2h9g-0i6l-j4k9-0m6l9h4k1i7l",
+  "title": "Pass-the-Hash Attack",
+  "status": "production",
+  "severity": "high",
+  "tags": [
+    "attack.lateral_movement",
+    "attack.t1550.002"
+  ],
+  "description": "Detects pass-the-hash attacks using harvested NTLM hashes",
+  "logsource": {
+    "product": "windows",
+    "service": "security"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "EventID": 4624
+          }
+        },
+        {
+          "term": {
+            "LogonType": 3
+          }
+        },
+        {
+          "match_phrase": {
+            "AuthenticationPackageName": "NTLM"
+          }
+        },
+        {
+          "term": {
+            "KeyLength": 0
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "wildcard": {
+            "SubjectUserName": {
+              "value": "*$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/lateral-movement/T1550.002_pass_the_hash.yml"
+}

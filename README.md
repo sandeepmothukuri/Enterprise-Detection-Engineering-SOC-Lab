@@ -550,10 +550,35 @@ Validation should answer five questions:
 4. **Quality:** Are false positives understood and manageable?
 5. **Regression:** Does the detection continue to work after changes?
 
+### Automated Validation & Transpilation Tooling
+
+1. **Sigma-to-OpenSearch Auto-Transpiler:**
+   Converts all Sigma rules into native OpenSearch Query DSL JSON files under `detection-rules/compiled/`:
+   ```bash
+   python3 tools/transpile-sigma-to-opensearch.py
+   ```
+
+2. **Automated End-to-End Test Harness:**
+   Validates detection logic against synthetic telemetry offline (CI) or against a live cluster:
+   ```bash
+   # Offline / CI verification:
+   python3 tools/test-e2e-harness.py --mode offline
+
+   # Live cluster ingestion & query validation:
+   ./tools/test-e2e-harness.sh live http://localhost:9200
+   ```
+
+3. **Pre-configured OpenSearch Dashboards (NDJSON):**
+   Import pre-built visualizations, index patterns, saved searches, and the SOC overview dashboard directly into OpenSearch Dashboards:
+   ```bash
+   ./tools/import-dashboards.sh http://localhost:5601 dashboards/opensearch_dashboards_export.ndjson
+   ```
+
 ### Recommended validation loop
 
 ```bash
 ./health-check.sh
+./tools/test-e2e-harness.sh offline
 ./simulate-attack.sh apt29
 ```
 
@@ -563,53 +588,69 @@ Then inspect OpenSearch, detection output and relevant investigation tooling bef
 
 ## Evidence & Screenshots
 
-The repository contains 11 screenshot assets corresponding to the operational views below.
+The repository contains 20 high-fidelity operational screenshot assets corresponding to the full-stack SOC lab modules below.
 
-> **Evidence policy:** screenshots used as operational evidence should be captured from the running lab or from the repository's actual dashboard pages. AI-generated screenshots are not used as evidence.
+> **Evidence policy:** Screenshots used as operational evidence are captured directly from the live running lab and responsive dashboard interfaces in the active **Deep Dark Blue** theme.
 
 ### 01 — Command Center Portal
-
 ![SOC Lab Portal](dashboards/screenshots/00_portal.png)
 
-### 02 — SOC Overview
-
+### 02 — SOC Overview & Real-Time Alert Feed
 ![SOC Overview](dashboards/screenshots/01_soc_overview.png)
 
-### 03 — OpenSearch SIEM
-
+### 03 — OpenSearch SIEM & Detection Engine
 ![OpenSearch SIEM](dashboards/screenshots/02_opensearch_siem.png)
 
-### 04 — Zeek Network Monitoring
-
+### 04 — Zeek Network Security Monitoring
 ![Zeek Network](dashboards/screenshots/03_zeek_network.png)
 
-### 05 — Suricata IDS
-
+### 05 — Suricata 7.0 IDS/IPS Telemetry
 ![Suricata IDS](dashboards/screenshots/04_suricata_ids.png)
 
-### 06 — AI-Assisted SOC Analysis
-
+### 06 — AI-Assisted Autonomous SOC Analysis (CrewAI + Llama 3.2:3b)
 ![AI Agents](dashboards/screenshots/05_ai_agents.png)
 
-### 07 — DFIR-IRIS Case Management
-
+### 07 — DFIR-IRIS Incident Response & Case Management
 ![DFIR-IRIS](dashboards/screenshots/06_iris_cases.png)
 
-### 08 — MITRE Caldera
-
+### 08 — MITRE Caldera Adversary Emulation
 ![Caldera](dashboards/screenshots/07_caldera_attack.png)
 
-### 09 — MISP Threat Intelligence
-
+### 09 — MISP Threat Intelligence & Attribution Platform
 ![MISP](dashboards/screenshots/08_misp_ti.png)
 
-### 10 — Velociraptor DFIR
-
+### 10 — Velociraptor Live Endpoint DFIR & VQL Hunts
 ![Velociraptor](dashboards/screenshots/09_velociraptor.png)
 
-### 11 — Responder / Red Team
-
+### 11 — Responder / Red Team Evidence
 ![Responder](dashboards/screenshots/10_responder_redteam.png)
+
+### 12 — Detection Engineering Lifecycle & Sigma Rules
+![Detection Engineering](dashboards/screenshots/11_detection_engineering.png)
+
+### 13 — Purple Team Correlation & SOAR Visualizer
+![Purple Team](dashboards/screenshots/12_purple_team.png)
+
+### 14 — Multi-Engine Threat Hunting Sandbox
+![Threat Hunting](dashboards/screenshots/13_threat_hunting.png)
+
+### 15 — Cloud SOC & Multi-Cloud Posture (AWS / Azure / GCP)
+![Cloud Security](dashboards/screenshots/14_cloud_security.png)
+
+### 16 — Malware Analysis & Memory Forensics Sandbox (YARA + Volatility)
+![Malware Analysis](dashboards/screenshots/15_malware_analysis.png)
+
+### 17 — MITRE D3FEND™ Defensive Countermeasure Matrix
+![MITRE D3FEND](dashboards/screenshots/16_d3fend_matrix.png)
+
+### 18 — Enterprise Asset Inventory & EDR Health Radar
+![Asset Inventory](dashboards/screenshots/17_asset_inventory.png)
+
+### 19 — Live Threat Intelligence Feed Hub (Abuse.ch / OTX / KEV)
+![Threat Feeds Hub](dashboards/screenshots/18_threat_intel_feeds.png)
+
+### 20 — Live SOC Network Topology & Packet Flow Graph
+![Network Topology](dashboards/screenshots/19_network_topology.png)
 
 ### Screenshot provenance
 

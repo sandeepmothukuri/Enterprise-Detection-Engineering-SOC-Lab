@@ -1,198 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DFIR-IRIS Cases — SOC Lab</title>
-<link rel="stylesheet" href="soc-theme.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DFIR-IRIS Case Management — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <style>
+    .case-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-4);
+      border-left: 4px solid var(--critical);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .case-card.high { border-left-color: var(--high); }
+    .case-card.medium { border-left-color: var(--medium); }
+    .evidence-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-accent);
+    }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); width: 90%; max-width: 760px;
+      padding: var(--space-6); box-shadow: 0 10px 40px rgba(0,0,0,0.7); max-height: 90vh; overflow-y: auto;
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #reportModal, #reportModal * { visibility: visible; }
+      #reportModal { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
 
+  <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">SOC Lab v2</div>
-    <ul class="sidebar-nav">
-      <li><a href="index.html">⌂ Portal</a></li>
-      <li><a href="01_soc_overview.html">Overview</a></li>
-      <li><a href="02_opensearch_siem.html">OpenSearch SIEM</a></li>
-      <li><a href="03_zeek_network.html">Zeek NSM</a></li>
-      <li><a href="04_suricata_ids.html">Suricata IDS</a></li>
-      <li><a href="05_ai_agents.html">AI Agents</a></li>
-      <li><a href="06_iris_cases.html" class="active">DFIR-IRIS</a></li>
-      <li><a href="07_caldera_attack.html">Caldera</a></li>
-      <li><a href="08_misp_ti.html">MISP Threat Intel</a></li>
-      <li><a href="09_velociraptor.html">Velociraptor</a></li>
-      <li><a href="10_responder_redteam.html">Red Team</a></li>
-    </ul>
-    <div class="sidebar-footer">MITRE ATT&amp;CK v14</div>
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html" class="active"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
   </nav>
 
-  <div class="main-wrap">
-    <header class="topbar">
-      <span class="topbar-title">DFIR-IRIS 2.4 — Case Management</span>
-      <div class="topbar-meta">
-        <span class="status-dot yellow"></span> 2 active cases
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">📋</span> DFIR-IRIS Incident Response &amp; Case Management</div>
+    <span class="topbar-meta">IRIS v2.4.1 • REST API Connected • Port :8443</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openExecutiveReport()">📄 Generate Executive DFIR Report</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card critical"><div class="kpi-label">Open Critical Cases</div><div class="kpi-value">2</div><div class="kpi-sub">APT-29 &amp; LLMNR Poison</div></div>
+      <div class="kpi-card high"><div class="kpi-label">Tracked IOC Artifacts</div><div class="kpi-value">19</div><div class="kpi-sub">Hashes, IPs, Named Pipes</div></div>
+      <div class="kpi-card"><div class="kpi-label">Mean Time to Detect (MTTD)</div><div class="kpi-value">1.4s</div><div class="kpi-sub">ElastAlert2 Pipeline</div></div>
+      <div class="kpi-card low"><div class="kpi-label">Mean Time to Respond (MTTR)</div><div class="kpi-value">3.8s</div><div class="kpi-sub">StackStorm SOAR Workflows</div></div>
+    </div>
+
+    <!-- Active Incident Cases -->
+    <div class="case-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <span class="badge badge-critical" style="margin-bottom:4px;">CASE #001 · CRITICAL</span>
+          <h2 style="font-size:16px;color:var(--text-primary);margin:0;">APT-29 Cobalt Strike Injection &amp; Credential Access on WORKSTATION-12</h2>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Lead Investigator: L3 DFIR Specialist • Opened: 2026-09-27 12:30 UTC</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="alert('Host WORKSTATION-12 isolated at network boundary via StackStorm.')">⚡ Isolate Host</button>
+          <button class="btn btn-primary btn-sm" onclick="openExecutiveReport()">📄 View Case DFIR</button>
+        </div>
       </div>
-    </header>
-
-    <main class="content">
-
-      <div class="kpi-row">
-        <div class="kpi-card critical"><div class="kpi-label">Open Cases</div><div class="kpi-value">2</div><div class="kpi-sub">Escalated</div></div>
-        <div class="kpi-card high"><div class="kpi-label">In Progress</div><div class="kpi-value">1</div><div class="kpi-sub">Analyst assigned</div></div>
-        <div class="kpi-card"><div class="kpi-label">Closed (30d)</div><div class="kpi-value">14</div><div class="kpi-sub">Avg MTTR: 4.2h</div></div>
-        <div class="kpi-card"><div class="kpi-label">IOCs Tracked</div><div class="kpi-value">47</div><div class="kpi-sub">Across all cases</div></div>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+        Adversary utilized Wi-Fi driver vulnerability (CVE-2024-30078) to execute shellcode and inject a Cobalt Strike Beacon into <code>explorer.exe</code> (PID 3912). Acquired <code>SeDebugPrivilege</code> and executed LSASS memory dump via <code>rundll32.exe comsvcs.dll</code>.
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="evidence-tag">Host: WORKSTATION-12 (192.168.1.105)</span>
+        <span class="evidence-tag">Attacker C2: 198.51.100.42:80</span>
+        <span class="evidence-tag">Injected PID: 3912 (explorer.exe)</span>
+        <span class="evidence-tag">Target: lsass.exe</span>
+        <span class="evidence-tag">MITRE: T1003.001, T1055, T1071.001</span>
       </div>
+    </div>
 
-      <!-- Case Cards -->
-      <div class="grid-2">
-
-        <div class="case-card open">
-          <div class="flex items-center gap-3">
-            <span class="badge badge-critical">CRITICAL</span>
-            <span style="color:var(--text-primary);font-weight:600">INC-2026-001 · APT-29 Intrusion</span>
-          </div>
-          <div style="color:var(--text-muted);font-size:13px;margin:8px 0">Opened: 2026-04-25 02:14 UTC · Analyst: jsmith</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span class="technique-tag">T1566.001</span>
-            <span class="technique-tag">T1059.001</span>
-            <span class="technique-tag">T1003.001</span>
-            <span class="technique-tag">T1021.002</span>
-            <span class="technique-tag">T1041</span>
-          </div>
-          <div style="margin-top:12px;color:var(--text-secondary);font-size:13px">
-            13-step kill chain. WKSTN-FINANCE-01 compromised. Lateral movement to SRV-HR-02 and DC-CORP-01. 4.2 GB exfiltrated.
-          </div>
+    <div class="case-card high">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <span class="badge badge-high" style="margin-bottom:4px;">CASE #002 · HIGH</span>
+          <h2 style="font-size:16px;color:var(--text-primary);margin:0;">LLMNR / NBT-NS Poisoning &amp; NTLMv2 Hash Capture (Responder Emulation)</h2>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Lead Investigator: SOC Threat Hunter • Opened: 2026-09-27 11:15 UTC</div>
         </div>
-
-        <div class="case-card open">
-          <div class="flex items-center gap-3">
-            <span class="badge badge-high">HIGH</span>
-            <span style="color:var(--text-primary);font-weight:600">INC-2026-002 · Brute Force Campaign</span>
-          </div>
-          <div style="color:var(--text-muted);font-size:13px;margin:8px 0">Opened: 2026-04-25 03:41 UTC · Analyst: alee</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span class="technique-tag">T1110.001</span>
-            <span class="technique-tag">T1078</span>
-          </div>
-          <div style="margin-top:12px;color:var(--text-secondary);font-size:13px">
-            Password spray from 10.0.99.15 against 38 accounts. 3 accounts locked out. Origin: internal VLAN — compromised host suspected.
-          </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="alert('GPO policy pushed to disable LLMNR subnet-wide.')">🛡️ Apply GPO Fix</button>
         </div>
-
-        <div class="case-card in-progress">
-          <div class="flex items-center gap-3">
-            <span class="badge badge-medium">MEDIUM</span>
-            <span style="color:var(--text-primary);font-weight:600">INC-2026-003 · Insider Threat</span>
-          </div>
-          <div style="color:var(--text-muted);font-size:13px;margin:8px 0">Opened: 2026-04-24 18:05 UTC · Analyst: bwilliams</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span class="technique-tag">T1039</span>
-            <span class="technique-tag">T1560.001</span>
-            <span class="technique-tag">T1567.002</span>
-          </div>
-          <div style="margin-top:12px;color:var(--text-secondary);font-size:13px">
-            User rchen accessed 847 legal files, created 7z archive, uploaded 2.3 GB to Dropbox outside hours. HR engaged. Evidence preserved.
-          </div>
-        </div>
-
-        <div class="case-card closed">
-          <div class="flex items-center gap-3">
-            <span class="badge badge-low">CLOSED</span>
-            <span style="color:var(--text-primary);font-weight:600">INC-2026-004 · Phishing Wave</span>
-          </div>
-          <div style="color:var(--text-muted);font-size:13px;margin:8px 0">Closed: 2026-04-23 14:30 UTC · MTTR: 3.5h</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span class="technique-tag">T1566.001</span>
-            <span class="technique-tag">T1053.005</span>
-            <span class="technique-tag">T1547.001</span>
-          </div>
-          <div style="margin-top:12px;color:var(--text-secondary);font-size:13px">
-            12 users received malicious macro. 2 executed. Hosts reimaged. YARA rule deployed. Email gateway block updated.
-          </div>
-        </div>
-
       </div>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+        Kali Linux rogue node (192.168.1.100) broadcasted spoofed LLMNR responses for mistyped SMB file shares. Captured NTLMv2 password hash for user <code>CORP\jsmith</code> and attempted Pass-the-Hash against DC-CORP-01.
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="evidence-tag">Attacker: 192.168.1.100</span>
+        <span class="evidence-tag">Target User: CORP\jsmith</span>
+        <span class="evidence-tag">Protocol: UDP 5355 (LLMNR)</span>
+        <span class="evidence-tag">MITRE: T1557.001, T1550.002</span>
+      </div>
+    </div>
 
-      <!-- INC-2026-001 Attack Timeline -->
-      <div class="card" style="margin-top:var(--space-5)">
+    <!-- Timeline & IOCs Grid -->
+    <div class="grid-2-1">
+      <!-- Chronological Attack Timeline -->
+      <div class="card">
         <div class="card-header">
-          <span class="card-title">🕐 INC-2026-001 Attack Timeline</span>
-          <span class="badge badge-critical">IN PROGRESS</span>
+          <span class="card-title">⏱️ Chronological Attack Timeline (IRIS Case 001)</span>
+          <span class="badge badge-low">Verified Telemetry</span>
         </div>
         <div class="card-body">
           <div class="timeline">
             <div class="tl-item">
               <div class="tl-dot critical"></div>
               <div class="tl-content">
-                <div class="tl-time">02:14 UTC</div>
-                <div class="tl-title">Spearphishing Email Delivered</div>
-                <div class="tl-desc">Malicious Office macro attachment to finance@corp.local from spoofed HR domain · <span class="technique-tag">T1566.001</span></div>
+                <div class="tl-time">12:30:14 UTC — Exploitation &amp; Initial Access</div>
+                <div class="tl-title">Heap Overflow on Wi-Fi Driver Adapter</div>
+                <div class="tl-desc">Suricata alert SID 2048192 triggered on inbound raw packet to 192.168.1.105.</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot critical"></div>
+              <div class="tl-content">
+                <div class="tl-time">12:30:28 UTC — Execution &amp; Injection</div>
+                <div class="tl-title">Cobalt Strike Stager Injected into explorer.exe (PID 3912)</div>
+                <div class="tl-desc">Sysmon Event ID 8 (CreateRemoteThread) &amp; Velociraptor malfind detection.</div>
               </div>
             </div>
             <div class="tl-item">
               <div class="tl-dot high"></div>
               <div class="tl-content">
-                <div class="tl-time">02:19 UTC</div>
-                <div class="tl-title">PowerShell Payload Executed</div>
-                <div class="tl-desc">Encoded IEX download cradle — staged C2 implant from 185.220.101.45 · <span class="technique-tag">T1059.001</span></div>
+                <div class="tl-time">12:31:02 UTC — Credential Access</div>
+                <div class="tl-title">LSASS Memory Dump via rundll32.exe comsvcs.dll</div>
+                <div class="tl-desc">Sigma Rule T1003.001 matched in OpenSearch SIEM. StackStorm alerted SOC analyst.</div>
               </div>
             </div>
             <div class="tl-item">
-              <div class="tl-dot high"></div>
+              <div class="tl-dot low"></div>
               <div class="tl-content">
-                <div class="tl-time">02:24 UTC</div>
-                <div class="tl-title">Persistence Established</div>
-                <div class="tl-desc">Scheduled task + registry run key created · <span class="technique-tag">T1053.005</span> <span class="technique-tag">T1547.001</span></div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot critical"></div>
-              <div class="tl-content">
-                <div class="tl-time">02:31 UTC</div>
-                <div class="tl-title">LSASS Dumped</div>
-                <div class="tl-desc">Credential extraction via rundll32 · Domain credentials obtained · <span class="technique-tag">T1003.001</span></div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot critical"></div>
-              <div class="tl-content">
-                <div class="tl-time">02:47 UTC</div>
-                <div class="tl-title">Lateral Movement to DC</div>
-                <div class="tl-desc">Pass-the-hash to DC-CORP-01 and SRV-HR-02 via SMB · <span class="technique-tag">T1550.002</span> <span class="technique-tag">T1021.002</span></div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot critical"></div>
-              <div class="tl-content">
-                <div class="tl-time">03:12 UTC</div>
-                <div class="tl-title">Data Exfiltration</div>
-                <div class="tl-desc">4.2 GB over HTTPS to Tor exit 185.220.101.45 · DNS tunnel C2 channel · <span class="technique-tag">T1041</span> <span class="technique-tag">T1071.004</span></div>
+                <div class="tl-time">12:31:40 UTC — Containment &amp; SOAR Response</div>
+                <div class="tl-title">Automated Host Quarantine &amp; User Credential Revocation</div>
+                <div class="tl-desc">StackStorm workflow <code>isolate_host.py</code> isolated host interface. IRIS case created.</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- IOC Tracker -->
-      <div class="card" style="margin-top:var(--space-5)">
-        <div class="card-header"><span class="card-title">🔎 IOC Tracker — INC-2026-001</span></div>
-        <div class="card-body">
+      <!-- IOC Artifact Registry -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏷️ Case IOC Registry</span>
+          <button class="btn btn-ghost btn-sm" onclick="alert('Pushed 19 IOCs to MISP Threat Intel repository.')">Sync to MISP</button>
+        </div>
+        <div class="card-body" style="padding:0;">
           <table class="data-table">
-            <thead><tr><th>IOC</th><th>Type</th><th>Confidence</th><th>MISP</th><th>Added</th></tr></thead>
+            <thead><tr><th>Type</th><th>Value</th><th>Verdict</th></tr></thead>
             <tbody>
-              <tr><td class="mono">185.220.101.45</td><td>IP</td><td><span class="badge badge-critical">HIGH</span></td><td><span class="badge badge-low">Synced</span></td><td class="mono">02:20</td></tr>
-              <tr><td class="mono">c2.malicious-apt.net</td><td>Domain</td><td><span class="badge badge-critical">HIGH</span></td><td><span class="badge badge-low">Synced</span></td><td class="mono">03:15</td></tr>
-              <tr><td class="mono">a1b2c3d4e5f6...sha256</td><td>File Hash</td><td><span class="badge badge-high">MED</span></td><td><span class="badge badge-medium">Pending</span></td><td class="mono">02:22</td></tr>
-              <tr><td class="mono">CORP\jsmith (compromised)</td><td>Account</td><td><span class="badge badge-critical">HIGH</span></td><td>—</td><td class="mono">02:35</td></tr>
-              <tr><td class="mono">45.132.227.89</td><td>IP</td><td><span class="badge badge-high">MED</span></td><td><span class="badge badge-low">Synced</span></td><td class="mono">03:45</td></tr>
+              <tr><td>SHA256</td><td class="mono" style="font-size:10px;">e3b0c44298fc...ca495991b</td><td><span class="badge badge-critical">Malicious</span></td></tr>
+              <tr><td>IPv4</td><td class="mono">198.51.100.42</td><td><span class="badge badge-critical">Attacker C2</span></td></tr>
+              <tr><td>Domain</td><td class="mono">cdn-update-sync.com</td><td><span class="badge badge-high">C2 Domain</span></td></tr>
+              <tr><td>Pipe</td><td class="mono">\\.\pipe\msse-3912</td><td><span class="badge badge-high">Cobalt Pipe</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
+    </div>
+  </main>
+</div>
 
-    </main>
+<!-- Executive DFIR Report Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;">
+      <h2 style="font-size:18px;color:var(--text-primary);margin:0;">📋 Executive DFIR Incident Report — CASE #001</h2>
+      <div>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print / Save PDF</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeReportModal()">✕</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+      <div style="background:var(--bg-base);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">
+        <b>Incident Classification:</b> <span class="badge badge-critical">CRITICAL (Tier-3 Escalation)</span><br>
+        <b>Affected System:</b> <code>WORKSTATION-12 (192.168.1.105)</code> | <b>Department:</b> Finance &amp; Accounting<br>
+        <b>Attribution:</b> APT-29 (Cozy Bear) TTPs | <b>Investigation Status:</b> Contained &amp; Remediated
+      </div>
+      <h4 style="color:var(--text-primary);margin:10px 0 4px;">1. Executive Summary</h4>
+      <p>On 2026-09-27 at 12:30:14 UTC, the SOC detection engine identified unauthorized shellcode execution on WORKSTATION-12 followed by Cobalt Strike memory injection and LSASS credential dumping. Automated containment playbooks successfully quarantined the host within 3.8 seconds.</p>
+      
+      <h4 style="color:var(--text-primary);margin:10px 0 4px;">2. Root Cause Analysis</h4>
+      <p>Initial access was achieved via exploitation of unpatched wireless adapter driver vulnerability (CVE-2024-30078). Post-exploitation process injection targeted <code>explorer.exe</code>.</p>
+      
+      <h4 style="color:var(--text-primary);margin:10px 0 4px;">3. Corrective Actions Taken</h4>
+      <p>• Host network isolation executed via Windows Firewall &amp; OPNsense.<br>
+      • User credentials revoked and Kerberos TGT tickets invalidated.<br>
+      • Injected process thread terminated via Velociraptor VQL kernel driver.</p>
+    </div>
   </div>
 </div>
+
+<script>
+function openExecutiveReport() {
+  document.getElementById('reportModal').classList.add('active');
+}
+function closeReportModal() {
+  document.getElementById('reportModal').classList.remove('active');
+}
+</script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

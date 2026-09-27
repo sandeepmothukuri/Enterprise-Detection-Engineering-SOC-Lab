@@ -18,13 +18,19 @@ for file in \
   }
 done
 
-openssl verify -CAfile "$TEST_DIR/root-ca.pem" \
-  "$TEST_DIR/opensearch-node1.pem" \
-  "$TEST_DIR/opensearch-node2.pem" \
-  "$TEST_DIR/opensearch-admin.pem"
+# Convert MSYS paths to Windows paths for openssl (native Windows binary)
+# openssl on Windows/MSYS requires Windows-style paths
+win_test_dir="$(cygpath -w "$TEST_DIR" 2>/dev/null || echo "$TEST_DIR")"
+
+# Use Windows openssl with Windows paths
+/mingw64/bin/openssl.exe verify \
+  -CAfile "$win_test_dir\\root-ca.pem" \
+  "$win_test_dir\\opensearch-node1.pem" \
+  "$win_test_dir\\opensearch-node2.pem" \
+  "$win_test_dir\\opensearch-admin.pem"
 
 for name in opensearch-node1 opensearch-node2 opensearch-admin; do
-  subject="$(openssl x509 -in "$TEST_DIR/$name.pem" -noout -subject)"
+  subject="$("/mingw64/bin/openssl.exe" x509 -in "$win_test_dir\\$name.pem" -noout -subject)"
   grep -Fq "CN=$name" <<<"$subject"
 done
 

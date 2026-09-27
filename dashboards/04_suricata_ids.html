@@ -1,179 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Suricata IDS — SOC Lab</title>
-<link rel="stylesheet" href="soc-theme.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Suricata 7.0 IDS/IPS &amp; EVE Telemetry — SOC Lab v2</title>
+  <link rel="stylesheet" href="soc-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    .cat-pill {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      color: var(--text-secondary); padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; cursor: pointer; transition: var(--transition);
+    }
+    .cat-pill:hover, .cat-pill.active {
+      background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
 
+  <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">SOC Lab v2</div>
-    <ul class="sidebar-nav">
-      <li><a href="index.html">⌂ Portal</a></li>
-      <li><a href="01_soc_overview.html">Overview</a></li>
-      <li><a href="02_opensearch_siem.html">OpenSearch SIEM</a></li>
-      <li><a href="03_zeek_network.html">Zeek NSM</a></li>
-      <li><a href="04_suricata_ids.html" class="active">Suricata IDS</a></li>
-      <li><a href="05_ai_agents.html">AI Agents</a></li>
-      <li><a href="06_iris_cases.html">DFIR-IRIS</a></li>
-      <li><a href="07_caldera_attack.html">Caldera</a></li>
-      <li><a href="08_misp_ti.html">MISP Threat Intel</a></li>
-      <li><a href="09_velociraptor.html">Velociraptor</a></li>
-      <li><a href="10_responder_redteam.html">Red Team</a></li>
-    </ul>
-    <div class="sidebar-footer">MITRE ATT&amp;CK v14</div>
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand-icon" style="text-decoration:none;font-size:15px;">🛡️</a>
+      <div class="brand-text">
+        <span class="brand-title">SOC Lab v2</span>
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Dashboards</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item"><a href="01_soc_overview.html"><span class="nav-icon">📊</span><span>SOC Overview</span></a></li>
+        <li class="nav-item"><a href="02_opensearch_siem.html"><span class="nav-icon">🔍</span><span>OpenSearch SIEM</span></a></li>
+        <li class="nav-item"><a href="03_zeek_network.html"><span class="nav-icon">🌐</span><span>Zeek Network</span></a></li>
+        <li class="nav-item"><a href="04_suricata_ids.html" class="active"><span class="nav-icon">🚨</span><span>Suricata IDS</span></a></li>
+        <li class="nav-item"><a href="05_ai_agents.html"><span class="nav-icon">🤖</span><span>AI Agents</span></a></li>
+        <li class="nav-item"><a href="06_iris_cases.html"><span class="nav-icon">📋</span><span>DFIR-IRIS</span></a></li>
+        <li class="nav-item"><a href="07_caldera_attack.html"><span class="nav-icon">⚔️</span><span>Caldera</span></a></li>
+        <li class="nav-item"><a href="08_misp_ti.html"><span class="nav-icon">🌍</span><span>MISP Intel</span></a></li>
+        <li class="nav-item"><a href="09_velociraptor.html"><span class="nav-icon">🦖</span><span>Velociraptor</span></a></li>
+        <li class="nav-item"><a href="10_responder_redteam.html"><span class="nav-icon">🎭</span><span>Responder</span></a></li>
+        <li class="nav-item"><a href="11_detection_engineering.html"><span class="nav-icon">🛠️</span><span>Detection Eng</span></a></li>
+        <li class="nav-item"><a href="12_purple_team.html"><span class="nav-icon">🎯</span><span>Purple Team</span></a></li>
+        <li class="nav-item"><a href="13_threat_hunting.html"><span class="nav-icon">🔎</span><span>Threat Hunting</span></a></li>
+        <li class="nav-item"><a href="14_cloud_security.html"><span class="nav-icon">☁️</span><span>Cloud SOC</span></a></li>
+        <li class="nav-item"><a href="15_malware_analysis.html"><span class="nav-icon">🧬</span><span>Malware &amp; YARA</span></a></li>
+        <li class="nav-item"><a href="16_d3fend_matrix.html"><span class="nav-icon">🛡️</span><span>MITRE D3FEND</span></a></li>
+        <li class="nav-item"><a href="17_asset_inventory.html"><span class="nav-icon">🖥️</span><span>Asset &amp; EDR Health</span></a></li>
+        <li class="nav-item"><a href="18_threat_intel_feeds.html"><span class="nav-icon">📡</span><span>Threat Feeds Hub</span></a></li>
+        <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">SOC Lab v2.0 · OSS</div>
   </nav>
 
-  <div class="main-wrap">
-    <header class="topbar">
-      <span class="topbar-title">Suricata 7.0 — IDS/IPS</span>
-      <div class="topbar-meta">
-        <span class="status-dot green"></span> Engine running · EVE JSON active
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title"><span class="page-icon">🚨</span> Suricata 7.0 — IDS/IPS &amp; EVE Telemetry</div>
+    <span class="topbar-meta">Engine: <span style="color:var(--low);">● Online</span> • EVE JSON Stream: <code>/var/log/suricata/eve.json</code></span>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="simulateNewEveAlert()">+ Trigger IDS Alert</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Portal</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:var(--space-4);">
+      <div class="kpi-card critical"><div class="kpi-label">Blocked IPS Packets</div><div class="kpi-value" id="kpiBlocked">47</div><div class="kpi-sub">Inline Drop Active</div></div>
+      <div class="kpi-card high"><div class="kpi-label">Alerts (24h)</div><div class="kpi-value" id="kpiAlerts">1,834</div><div class="kpi-sub">↑ 22% vs baseline</div></div>
+      <div class="kpi-card"><div class="kpi-label">Rules Ingested</div><div class="kpi-value">38,412</div><div class="kpi-sub">ET Open + Custom SOC</div></div>
+      <div class="kpi-card low"><div class="kpi-label">Network Throughput</div><div class="kpi-value">2.4 Gbps</div><div class="kpi-sub">0 packet drops</div></div>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-body" style="padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--text-muted);">Filter Rule Category:</span>
+        <button class="cat-pill active" onclick="filterEveCategory('all')">All Signatures</button>
+        <button class="cat-pill" onclick="filterEveCategory('Exploit')">Exploits &amp; CVEs</button>
+        <button class="cat-pill" onclick="filterEveCategory('Trojan')">Trojan &amp; C2</button>
+        <button class="cat-pill" onclick="filterEveCategory('Scan')">Recon &amp; Scans</button>
+        <button class="cat-pill" onclick="filterEveCategory('Policy')">Policy Violations</button>
       </div>
-    </header>
+    </div>
 
-    <main class="content">
-
-      <div class="kpi-row">
-        <div class="kpi-card critical"><div class="kpi-label">Blocked (IPS)</div><div class="kpi-value">47</div><div class="kpi-sub">Last 60 min</div></div>
-        <div class="kpi-card high"><div class="kpi-label">Alerts (24h)</div><div class="kpi-value">1,834</div><div class="kpi-sub">↑ 22%</div></div>
-        <div class="kpi-card"><div class="kpi-label">Rules Loaded</div><div class="kpi-value">38,412</div><div class="kpi-sub">ET Open + custom</div></div>
-        <div class="kpi-card"><div class="kpi-label">Throughput</div><div class="kpi-value">2.4 Gbps</div><div class="kpi-sub">0 drops</div></div>
+    <!-- Live EVE JSON feed -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-header">
+        <span class="card-title">🔴 Live EVE JSON Alert Feed (Suricata 7.0 Engine Stream)</span>
+        <span class="badge badge-critical" id="alert-count">Live Stream (4 Active)</span>
       </div>
-
-      <div class="grid-2">
-
-        <!-- Live EVE JSON feed -->
-        <div class="card" style="grid-column:1/-1">
-          <div class="card-header">
-            <span class="card-title">🔴 Live EVE JSON Alert Feed</span>
-            <span class="badge badge-critical" id="alert-count">0 alerts</span>
+      <div class="card-body" style="padding:0;">
+        <div id="eve-feed" class="alert-feed" style="max-height:260px;overflow-y:auto;">
+          <div class="alert-item" data-cat="Exploit">
+            <div class="alert-dot critical"></div>
+            <div class="alert-content">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                <span style="font-weight:600;font-size:12px;">ET EXPLOIT Possible CVE-2024-30078 Windows Wi-Fi Driver Heap Overflow</span>
+                <span class="mono" style="font-size:10px;color:var(--text-muted);">13:12:04 UTC</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);">
+                Src: <code class="mono">192.168.1.100:54122</code> ➔ Dst: <code class="mono">192.168.1.105:135</code> | SID: <code class="mono">2048192</code> | Rev: 1 | Action: <b>alert</b>
+              </div>
+            </div>
           </div>
-          <div class="card-body">
-            <div id="eve-feed" class="alert-feed" style="height:220px;overflow-y:auto;"></div>
+          <div class="alert-item" data-cat="Trojan">
+            <div class="alert-dot high"></div>
+            <div class="alert-content">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                <span style="font-weight:600;font-size:12px;">ET TROJAN Cobalt Strike Beacon Malleable C2 HTTP POST Request</span>
+                <span class="mono" style="font-size:10px;color:var(--text-muted);">13:08:45 UTC</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);">
+                Src: <code class="mono">192.168.1.105:49812</code> ➔ Dst: <code class="mono">198.51.100.42:80</code> | SID: <code class="mono">2027110</code> | Rev: 4 | Action: <b>drop</b>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <!-- Category chart -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">📊 Alert Categories</span></div>
-          <div class="card-body">
-            <div class="chart-wrap" style="height:220px">
-              <canvas id="catChart"></canvas>
+          <div class="alert-item" data-cat="Scan">
+            <div class="alert-dot medium"></div>
+            <div class="alert-content">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                <span style="font-weight:600;font-size:12px;">ET SCAN Nmap Scripting Engine User-Agent Detected in HTTP GET</span>
+                <span class="mono" style="font-size:10px;color:var(--text-muted);">12:55:18 UTC</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);">
+                Src: <code class="mono">192.168.1.100:39104</code> ➔ Dst: <code class="mono">192.168.1.10:8080</code> | SID: <code class="mono">2009582</code> | Rev: 2 | Action: <b>alert</b>
+              </div>
+            </div>
+          </div>
+          <div class="alert-item" data-cat="Policy">
+            <div class="alert-dot low"></div>
+            <div class="alert-content">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                <span style="font-weight:600;font-size:12px;">SURICATA TLS SNI Mismatch / Self-Signed Internal Certificate</span>
+                <span class="mono" style="font-size:10px;color:var(--text-muted);">12:40:02 UTC</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);">
+                Src: <code class="mono">192.168.1.50:443</code> ➔ Dst: <code class="mono">192.168.1.105:51299</code> | SID: <code class="mono">2200074</code> | Rev: 1 | Action: <b>pass</b>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- 30-min timeline -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">⏱️ 30-min Alert Timeline</span></div>
-          <div class="card-body">
-            <div class="chart-wrap" style="height:220px">
-              <canvas id="tlChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Top signatures -->
-        <div class="card" style="grid-column:1/-1">
-          <div class="card-header"><span class="card-title">🔍 Top Signatures (24h)</span></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead><tr><th>SID</th><th>Signature</th><th>Category</th><th>Count</th><th>Last Seen</th><th>Action</th></tr></thead>
-              <tbody>
-                <tr><td class="mono">2030358</td><td>ET MALWARE Cobalt Strike Beacon</td><td>Malware</td><td class="mono">34</td><td class="mono">0m ago</td><td><span class="badge badge-critical">BLOCKED</span></td></tr>
-                <tr><td class="mono">2016570</td><td>ET DNS Query to Known Sinkhole</td><td>DNS</td><td class="mono">128</td><td class="mono">2m ago</td><td><span class="badge badge-high">ALERT</span></td></tr>
-                <tr><td class="mono">2019284</td><td>ET EXPLOIT SMB EternalBlue</td><td>Exploit</td><td class="mono">7</td><td class="mono">14m ago</td><td><span class="badge badge-critical">BLOCKED</span></td></tr>
-                <tr><td class="mono">2027865</td><td>ET SCAN Nmap Service Detection</td><td>Scan</td><td class="mono">412</td><td class="mono">5m ago</td><td><span class="badge badge-medium">ALERT</span></td></tr>
-                <tr><td class="mono">2024897</td><td>ET POLICY LLMNR Poisoning</td><td>Policy</td><td class="mono">89</td><td class="mono">1m ago</td><td><span class="badge badge-high">ALERT</span></td></tr>
-                <tr><td class="mono">2013028</td><td>ET TROJAN DNS Tunnel Detected</td><td>Trojan</td><td class="mono">23</td><td class="mono">8m ago</td><td><span class="badge badge-critical">BLOCKED</span></td></tr>
-                <tr><td class="mono">2033132</td><td>ET INFO Mimikatz User-Agent</td><td>Credential</td><td class="mono">5</td><td class="mono">22m ago</td><td><span class="badge badge-critical">BLOCKED</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
-    </main>
-  </div>
+    </div>
+
+    <!-- Charts & Signatures -->
+    <div class="grid-2">
+      <!-- Category chart -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">📊 Alert Categories Distribution</span></div>
+        <div class="card-body">
+          <div style="height:220px;">
+            <canvas id="catChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Signatures Table -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏆 Top Triggered Suricata Signatures</span></div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table">
+            <thead><tr><th>Signature SID</th><th>Name</th><th>Count</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">2048192</td><td>ET EXPLOIT Windows Driver Heap Overflow</td><td class="mono">421</td><td><span class="badge badge-critical">Alert</span></td></tr>
+              <tr><td class="mono">2027110</td><td>ET TROJAN Cobalt Strike Malleable C2</td><td class="mono">312</td><td><span class="badge badge-critical">Drop</span></td></tr>
+              <tr><td class="mono">2009582</td><td>ET SCAN Nmap User-Agent Scan</td><td class="mono">245</td><td><span class="badge badge-high">Alert</span></td></tr>
+              <tr><td class="mono">2012089</td><td>ET POLICY Outbound SMB Direct Connection</td><td class="mono">180</td><td><span class="badge badge-medium">Alert</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
-// EVE JSON feed
-const ALERTS = [
-  {ts:'00:00', sev:'critical', src:'185.220.101.45', sig:'ET MALWARE Cobalt Strike Beacon', sid:'2030358', action:'BLOCKED'},
-  {ts:'00:00', sev:'high',     src:'10.0.99.15',     sig:'ET SCAN Nmap OS Detection',       sid:'2027865', action:'ALERT'},
-  {ts:'00:00', sev:'critical', src:'10.0.1.50',      sig:'ET EXPLOIT SMB EternalBlue',      sid:'2019284', action:'BLOCKED'},
-  {ts:'00:00', sev:'high',     src:'10.0.1.50',      sig:'ET POLICY LLMNR Poisoning',       sid:'2024897', action:'ALERT'},
-  {ts:'00:00', sev:'critical', src:'10.0.3.45',      sig:'ET TROJAN DNS Tunnel Detected',   sid:'2013028', action:'BLOCKED'},
-  {ts:'00:00', sev:'medium',   src:'45.132.227.89',  sig:'ET DNS Query to Known Sinkhole',  sid:'2016570', action:'ALERT'},
-  {ts:'00:00', sev:'critical', src:'10.0.1.50',      sig:'ET INFO Mimikatz User-Agent',     sid:'2033132', action:'BLOCKED'},
-];
-let count = 0;
-function addAlert() {
-  const a = ALERTS[count % ALERTS.length];
-  const now = new Date().toISOString().replace('T',' ').substring(0,19);
-  const feed = document.getElementById('eve-feed');
-  const row = document.createElement('div');
-  row.className = 'alert-row';
-  row.innerHTML = `<span class="alert-time">${now}</span><span class="badge badge-${a.sev}" style="margin:0 8px">${a.sev.toUpperCase()}</span><span style="color:var(--text-muted);margin-right:8px">${a.src}</span><span style="color:var(--text-primary);flex:1">${a.sig}</span><span class="mono" style="color:var(--text-muted);font-size:11px">SID:${a.sid}</span><span class="badge badge-${a.action==='BLOCKED'?'critical':'medium'}" style="margin-left:8px">${a.action}</span>`;
-  feed.prepend(row);
-  count++;
-  document.getElementById('alert-count').textContent = count + ' alerts';
-  if (feed.children.length > 50) feed.lastChild.remove();
+function filterEveCategory(cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  
+  const items = document.querySelectorAll('#eve-feed .alert-item');
+  items.forEach(i => {
+    if (cat === 'all' || i.getAttribute('data-cat') === cat) {
+      i.style.display = 'flex';
+    } else {
+      i.style.display = 'none';
+    }
+  });
 }
-for (let i=0;i<6;i++) addAlert();
-setInterval(addAlert, 7000);
 
-// Category chart
+function simulateNewEveAlert() {
+  const feed = document.getElementById('eve-feed');
+  const now = new Date().toISOString().slice(11, 19) + ' UTC';
+  const item = document.createElement('div');
+  item.className = 'alert-item new';
+  item.setAttribute('data-cat', 'Exploit');
+  item.innerHTML = `
+    <div class="alert-dot critical"></div>
+    <div class="alert-content">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+        <span style="font-weight:600;font-size:12px;">ET EXPLOIT Kerberoasting Service Ticket Request T1558.003</span>
+        <span class="mono" style="font-size:10px;color:var(--text-muted);">${now}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);">
+        Src: <code class="mono">192.168.1.100:41902</code> ➔ Dst: <code class="mono">192.168.1.10:88</code> | SID: <code class="mono">2039180</code> | Action: <b>alert</b>
+      </div>
+    </div>
+  `;
+  feed.prepend(item);
+  document.getElementById('kpiAlerts').textContent = '1,835';
+}
+
 new Chart(document.getElementById('catChart'), {
-  type:'bar',
+  type:'doughnut',
   data:{
-    labels:['Malware','Scan','Exploit','Policy','Trojan','Credential','DNS'],
+    labels:['Exploit','Trojan','Scan','Policy','Malware'],
     datasets:[{
-      data:[412,834,120,234,89,45,100],
-      backgroundColor:['#ef4444','#f97316','#eab308','#3b82f6','#8b5cf6','#ec4899','#06b6d4'],
-      borderRadius:3, borderSkipped:false
-    }]
-  },
-  options:{
-    indexAxis:'y',
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
-      y:{ticks:{color:'#e2e8f0',font:{size:10}}, grid:{display:false}}
-    }
-  }
-});
-
-// 30-min timeline
-const labels30 = Array.from({length:30}, (_,i) => i % 5 === 0 ? `-${30-i}m` : '');
-const data30   = Array.from({length:30}, () => Math.floor(Math.random()*80+10));
-new Chart(document.getElementById('tlChart'), {
-  type:'bar',
-  data:{
-    labels:labels30,
-    datasets:[{
-      label:'Alerts',
-      data:data30,
-      backgroundColor:'rgba(239,68,68,0.6)',
-      borderRadius:3, borderSkipped:false
+      data:[421, 312, 245, 180, 676],
+      backgroundColor:['#f43f5e','#fb923c','#fbbf24','#38bdf8','#a855f7'],
+      borderWidth:0
     }]
   },
   options:{
     responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{ticks:{color:'#94a3b8',font:{size:10}}, grid:{display:false}},
-      y:{ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}}
-    }
+    plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}
   }
 });
 </script>
+<script src="soc-copilot.js"></script>
 </body>
 </html>

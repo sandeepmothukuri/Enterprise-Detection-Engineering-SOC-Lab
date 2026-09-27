@@ -1,0 +1,42 @@
+{
+  "id": "g8j2h6i9-0f7e-8g4j-h2i7-8k4j7f2i9g5j",
+  "title": "LLMNR/NBT-NS Poisoning \u2014 Responder Activity",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.credential_access",
+    "attack.t1557.001"
+  ],
+  "description": "Detects LLMNR/NBT-NS poisoning attacks \u2014 Responder tool usage",
+  "logsource": {
+    "category": "network_connection",
+    "product": "zeek"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "resp_p": 5355
+          }
+        },
+        {
+          "match_phrase": {
+            "proto": "udp"
+          }
+        },
+        {
+          "term": {
+            "resp_p": 137
+          }
+        },
+        {
+          "match_phrase": {
+            "proto": "udp"
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/credential-access/T1557_llmnr_poison.yml"
+}

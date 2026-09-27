@@ -139,8 +139,13 @@ docker compose up -d opensearch-node1 opensearch-node2
 
 info "Waiting for OpenSearch cluster to become healthy..."
 for i in $(seq 1 60); do
+<<<<<<< HEAD
   STATUS=$(curl -sk -u "admin:${os_password}" \
     https://localhost:9200/_cluster/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','red'))" 2>/dev/null || echo "red")
+=======
+  STATUS=$(curl -sk -u "admin:$(grep OPENSEARCH_INITIAL_ADMIN_PASSWORD .env | cut -d= -f2)" \
+    http://localhost:9200/_cluster/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','red'))" 2>/dev/null || echo "red")
+>>>>>>> ae12a8e (feat(dashboards): add 20-dashboard SOC suite, Deep Dark Blue theme, AI copilot, and high-res evidence screenshots)
   if [[ "$STATUS" == "green" || "$STATUS" == "yellow" ]]; then
     ok "OpenSearch cluster: ${STATUS}"
     break

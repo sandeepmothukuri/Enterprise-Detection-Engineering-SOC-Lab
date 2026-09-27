@@ -1,0 +1,622 @@
+{
+  "total_rules": 13,
+  "rules": [
+    {
+      "id": "e6h0f4g7-8d5c-6e2h-f0g5-6i2h5d0g7e3h",
+      "title": "LSASS Memory Access \u2014 Credential Dumping",
+      "status": "production",
+      "severity": "critical",
+      "tags": [
+        "attack.credential_access",
+        "attack.t1003.001"
+      ],
+      "description": "Detects attempts to dump credentials from LSASS memory (Mimikatz, etc.)",
+      "logsource": {
+        "category": "process_access",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "wildcard": {
+                "TargetImage": {
+                  "value": "*\\lsass.exe"
+                }
+              }
+            },
+            {
+              "terms": {
+                "GrantedAccess.keyword": [
+                  "0x1010",
+                  "0x1410",
+                  "0x147a",
+                  "0x1fffff"
+                ]
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "wildcard": {
+                      "SourceImage": {
+                        "value": "*\\MsMpEng.exe"
+                      }
+                    }
+                  },
+                  {
+                    "wildcard": {
+                      "SourceImage": {
+                        "value": "*\\csrss.exe"
+                      }
+                    }
+                  },
+                  {
+                    "wildcard": {
+                      "SourceImage": {
+                        "value": "*\\wininit.exe"
+                      }
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/credential-access/T1003.001_lsass_dump.yml"
+    },
+    {
+      "id": "f7i1g5h8-9e6d-7f3i-g1h6-7j3i6e1h8f4i",
+      "title": "Brute Force Authentication Attack",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.credential_access",
+        "attack.t1110"
+      ],
+      "description": "Detects repeated authentication failures indicating brute force",
+      "logsource": {
+        "product": "windows",
+        "service": "security"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "EventID": 4625
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/credential-access/T1110_brute_force.yml"
+    },
+    {
+      "id": "g8j2h6i9-0f7e-8g4j-h2i7-8k4j7f2i9g5j",
+      "title": "LLMNR/NBT-NS Poisoning \u2014 Responder Activity",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.credential_access",
+        "attack.t1557.001"
+      ],
+      "description": "Detects LLMNR/NBT-NS poisoning attacks \u2014 Responder tool usage",
+      "logsource": {
+        "category": "network_connection",
+        "product": "zeek"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "resp_p": 5355
+              }
+            },
+            {
+              "match_phrase": {
+                "proto": "udp"
+              }
+            },
+            {
+              "term": {
+                "resp_p": 137
+              }
+            },
+            {
+              "match_phrase": {
+                "proto": "udp"
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/credential-access/T1557_llmnr_poison.yml"
+    },
+    {
+      "id": "j1m5k9l2-3i0h-1j7m-k5l0-1n7m0i5l2j8m",
+      "title": "Windows Defender Disabled",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.defense_evasion",
+        "attack.t1562.001"
+      ],
+      "description": "Detects attempts to disable Windows Defender real-time protection",
+      "logsource": {
+        "category": "process_creation",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "CommandLine": "Set-MpPreference -DisableRealtimeMonitoring $true"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "sc stop WinDefend"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "sc config WinDefend start=disabled"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            },
+            {
+              "match_phrase": {
+                "TargetObject": "\\Windows Defender\\DisableAntiSpyware"
+              }
+            },
+            {
+              "match_phrase": {
+                "Details": "DWORD (0x00000001)"
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/defense-evasion/T1562.001_defender_disable.yml"
+    },
+    {
+      "id": "k2n6l0m3-4j1i-2k8n-l6m1-2o8n1j6m3k9n",
+      "title": "Network Port Scan (Zeek detection)",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.discovery",
+        "attack.t1046"
+      ],
+      "description": "Detects horizontal and vertical network scanning activity",
+      "logsource": {
+        "category": "network_connection",
+        "product": "zeek"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match_phrase": {
+                "note": "Scan::Port_Scan"
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/discovery/T1046_network_scan.yml"
+    },
+    {
+      "id": "b3e7c1d4-5a2f-4b9e-c7d2-3f9e1a7c4b2d",
+      "title": "WMI Remote Code Execution",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.execution",
+        "attack.t1047",
+        "attack.lateral_movement"
+      ],
+      "description": "Detects WMI usage for remote execution \u2014 common APT lateral movement",
+      "logsource": {
+        "category": "process_creation",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "wildcard": {
+                "Image": {
+                  "value": "*\\wmic.exe"
+                }
+              }
+            },
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "CommandLine": "/node:"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "process call create"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/execution/T1047_wmi_execution.yml"
+    },
+    {
+      "id": "a2fbc6b2-4a3e-41b7-8e6c-2f1d9c0e5a3f",
+      "title": "Suspicious Encoded PowerShell Execution",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.execution",
+        "attack.t1059.001",
+        "attack.defense_evasion",
+        "attack.t1027"
+      ],
+      "description": "Detects PowerShell with encoded/obfuscated commands \u2014 fileless malware, droppers",
+      "logsource": {
+        "category": "process_creation",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "wildcard": {
+                "Image": {
+                  "value": "*\\powershell.exe"
+                }
+              }
+            },
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "CommandLine": "-EncodedCommand"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "-enc "
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "IEX("
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "Invoke-Expression"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "DownloadString"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "CommandLine": "FromBase64String"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/execution/T1059.001_encoded_powershell.yml"
+    },
+    {
+      "id": "l3o7m1n4-5k2j-3l9o-m7n2-3p9o2k7n4l0o",
+      "title": "Data Exfiltration via C2 Channel",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.exfiltration",
+        "attack.t1041"
+      ],
+      "description": "Detects large outbound data transfers to suspicious external IPs",
+      "logsource": {
+        "category": "network_connection",
+        "product": "zeek"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "local_orig": true
+              }
+            },
+            {
+              "term": {
+                "local_resp": false
+              }
+            },
+            {
+              "term": {
+                "orig_bytes": 5000000
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "resp_h": "1.1.1.1"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "resp_h": "8.8.8.8"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/exfiltration/T1041_c2_exfil.yml"
+    },
+    {
+      "id": "h9k3i7j0-1g8f-9h5k-i3j8-9l5k8g3j0h6k",
+      "title": "Lateral Movement via SMB",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.lateral_movement",
+        "attack.t1021.002"
+      ],
+      "description": "Detects lateral movement via SMB file shares",
+      "logsource": {
+        "category": "network_connection",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "EventID": 3
+              }
+            },
+            {
+              "term": {
+                "DestinationPort": 445
+              }
+            },
+            {
+              "match_phrase": {
+                "Initiated": "true"
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "wildcard": {
+                      "Image": {
+                        "value": "*\\explorer.exe"
+                      }
+                    }
+                  },
+                  {
+                    "wildcard": {
+                      "Image": {
+                        "value": "*\\svchost.exe"
+                      }
+                    }
+                  },
+                  {
+                    "wildcard": {
+                      "Image": {
+                        "value": "*\\System"
+                      }
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/lateral-movement/T1021.002_smb_lateral.yml"
+    },
+    {
+      "id": "i0l4j8k1-2h9g-0i6l-j4k9-0m6l9h4k1i7l",
+      "title": "Pass-the-Hash Attack",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.lateral_movement",
+        "attack.t1550.002"
+      ],
+      "description": "Detects pass-the-hash attacks using harvested NTLM hashes",
+      "logsource": {
+        "product": "windows",
+        "service": "security"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "EventID": 4624
+              }
+            },
+            {
+              "term": {
+                "LogonType": 3
+              }
+            },
+            {
+              "match_phrase": {
+                "AuthenticationPackageName": "NTLM"
+              }
+            },
+            {
+              "term": {
+                "KeyLength": 0
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "wildcard": {
+                "SubjectUserName": {
+                  "value": "*$"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/lateral-movement/T1550.002_pass_the_hash.yml"
+    },
+    {
+      "id": "m4p8n2o5-6l3k-4m0p-n8o3-4q0p3l8o5m1p",
+      "title": "DNS Tunneling / Covert C2 Channel",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.command_and_control",
+        "attack.t1071.004"
+      ],
+      "description": "Detects DNS tunneling \u2014 unusually long/frequent DNS queries",
+      "logsource": {
+        "category": "dns",
+        "product": "zeek"
+      },
+      "query": {
+        "bool": {}
+      },
+      "source_file": "detection-rules/sigma/network/T1071.004_dns_tunneling.yml"
+    },
+    {
+      "id": "c4f8d2e5-6b3a-4c0f-d8e3-4g0f3b8e5c1f",
+      "title": "Malicious Scheduled Task Creation",
+      "status": "production",
+      "severity": "high",
+      "tags": [
+        "attack.persistence",
+        "attack.t1053.005"
+      ],
+      "description": "Detects creation of suspicious scheduled tasks for persistence",
+      "logsource": {
+        "product": "windows",
+        "service": "security"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "EventID": 4698
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/persistence/T1053.005_scheduled_task.yml"
+    },
+    {
+      "id": "d5g9e3f6-7c4b-5d1g-e9f4-5h1g4c9f6d2g",
+      "title": "Persistence via Registry Run Keys",
+      "status": "production",
+      "severity": "medium",
+      "tags": [
+        "attack.persistence",
+        "attack.t1547.001"
+      ],
+      "description": "Detects malware writing to registry Run/RunOnce keys for persistence",
+      "logsource": {
+        "category": "registry_set",
+        "product": "windows"
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "TargetObject": "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "TargetObject": "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "TargetObject": "\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "Image": "\\Program Files\\"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "Image": "\\Windows\\System32\\"
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ]
+        }
+      },
+      "source_file": "detection-rules/sigma/persistence/T1547.001_registry_run.yml"
+    }
+  ]
+}

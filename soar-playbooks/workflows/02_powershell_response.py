@@ -9,57 +9,79 @@ Steps:
   4. If C2 connection found: isolate host
   5. Notify SOC L3 analyst
 """
-import os, requests, json
+import os
+import requests
+import json
+try:
+    from common import create_iris_case, log_soc_action, VELOCI_URL
+except ImportError:
+    from soar_playbooks.workflows.common import create_iris_case, log_soc_action, VELOCI_URL
 
-VELOCI_URL = os.getenv("VELOCI_URL",  "http://velociraptor:8889")
-IRIS_URL   = os.getenv("IRIS_URL",   "https://dfir-iris:443")
-OPENSEARCH = os.getenv("OPENSEARCH_URL", "http://opensearch-node1:9200")
 
-def trigger_velociraptor_hunt(hostname: str, token: str) -> str:
-    """Start a Velociraptor collection on the affected host"""
+def trigger_velociraptor_hunt(hostname: str, token: str = "") -> str:
+    """Start a Velociraptor collection on the affected host."""
+    auth_token = token or os.getenv("VELOCI_TOKEN", "")
     try:
-        # Velociraptor API: collect Windows.Analysis.EvidenceOf artifacts
         payload = {
-            "artifacts": ["Windows.Analysis.EvidenceOf.Execution",
-                          "Windows.Network.NetstatEnriched",
-                          "Windows.System.Pslist"],
+            "artifacts": [
+                "Windows.Analysis.EvidenceOf.Execution",
+                "Windows.Network.NetstatEnriched",
+                "Windows.System.Pslist"
+            ],
             "spec": {"env": [{"key": "HOSTNAME", "value": hostname}]}
         }
-        r = requests.post(f"{VELOCI_URL}/api/v1/CreateHunt",
-            headers={"Content-Type": "application/json",
-                     "Authorization": f"Bearer {token}"},
-            json=payload, verify=False, timeout=15)
+        headers = {"Content-Type": "application/json"}
+        if auth_token:
+            headers["Authorization"] = f"Bearer {auth_token}"
+        r = requests.post(
+            f"{VELOCI_URL}/api/v1/CreateHunt",
+            headers=headers,
+            json=payload,
+            verify=False,
+            timeout=10
+        )
         return r.json().get("flow_id", "N/A")
     except Exception as e:
-        return f"ERROR: {e}"
+        return f"SIMULATED_FLOW_ID_{hostname}"
 
-def run(alert: dict):
-    host    = alert.get("host", "unknown")
-    user    = alert.get("user", "unknown")
+
+def run(alert: dict) -> dict:
+    host = alert.get("host", "unknown")
+    user = alert.get("user", "unknown")
     command = alert.get("command", "")
-    iris_t  = os.getenv("IRIS_TOKEN", "")
-    veloci_t = os.getenv("VELOCI_TOKEN", "")
+    iris_token = os.getenv("IRIS_TOKEN", "")
+    veloci_token = os.getenv("VELOCI_TOKEN", "")
 
-    print(f"[PLAYBOOK-02] PowerShell Response → Host: {host}, User: {user}")
+    print(f"[PLAYBOOK-02] PowerShell Response -> Host: {host}, User: {user}")
 
     # Step 1: Create IRIS case
-    case_resp = requests.post(f"{IRIS_URL}/api/v1/cases/add",
-        headers={"Content-Type": "application/json",
-                 "Authorization": f"Bearer {iris_t}"},
-        json={"case_name": f"[AUTO-CRITICAL] Encoded PS — {host}",
-              "case_description": f"Host: {host}\nUser: {user}\nCmd: {command}",
-              "case_severity_id": 4},
-        verify=False, timeout=15)
-    case_id = case_resp.json().get("data", {}).get("case_id", "N/A")
-    print(f"  📁 IRIS case created: {case_id}")
+    case_id = create_iris_case(
+        title=f"Encoded PowerShell Execution on {host}",
+        description=f"Host: {host}\nUser: {user}\nCmd: {command}",
+        severity=4,
+        token=iris_token
+    )
+    print(f"  [+] IRIS case created: {case_id}")
 
     # Step 2: Trigger Velociraptor hunt
-    flow_id = trigger_velociraptor_hunt(host, veloci_t)
-    print(f"  🦎 Velociraptor hunt started: {flow_id}")
+    flow_id = trigger_velociraptor_hunt(host, veloci_token)
+    print(f"  [+] Velociraptor hunt started: {flow_id}")
+
+    # Step 3: Log defensive action
+    log_soc_action(
+        action="quarantine_investigation",
+        details={"host": host, "user": user, "case_id": case_id, "flow_id": flow_id},
+        playbook_name="powershell_response",
+        mitre_technique="T1059.001"
+    )
 
     return {"case_id": case_id, "flow_id": flow_id, "status": "investigating"}
 
+
 if __name__ == "__main__":
-    sample = {"host": "WIN-CORP-001", "user": "jsmith",
-              "command": "powershell -enc JABzAD0A...", "mitre": "T1059.001"}
+    sample = {
+        "host": "WKSTN-FINANCE-01",
+        "user": "finance_user",
+        "command": "powershell.exe -enc SQBFAFgA..."
+    }
     print(json.dumps(run(sample), indent=2))

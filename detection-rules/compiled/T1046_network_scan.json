@@ -1,0 +1,27 @@
+{
+  "id": "k2n6l0m3-4j1i-2k8n-l6m1-2o8n1j6m3k9n",
+  "title": "Network Port Scan (Zeek detection)",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.discovery",
+    "attack.t1046"
+  ],
+  "description": "Detects horizontal and vertical network scanning activity",
+  "logsource": {
+    "category": "network_connection",
+    "product": "zeek"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "note": "Scan::Port_Scan"
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/discovery/T1046_network_scan.yml"
+}

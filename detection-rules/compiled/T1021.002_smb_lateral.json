@@ -1,0 +1,67 @@
+{
+  "id": "h9k3i7j0-1g8f-9h5k-i3j8-9l5k8g3j0h6k",
+  "title": "Lateral Movement via SMB",
+  "status": "production",
+  "severity": "medium",
+  "tags": [
+    "attack.lateral_movement",
+    "attack.t1021.002"
+  ],
+  "description": "Detects lateral movement via SMB file shares",
+  "logsource": {
+    "category": "network_connection",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "EventID": 3
+          }
+        },
+        {
+          "term": {
+            "DestinationPort": 445
+          }
+        },
+        {
+          "match_phrase": {
+            "Initiated": "true"
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "bool": {
+            "should": [
+              {
+                "wildcard": {
+                  "Image": {
+                    "value": "*\\explorer.exe"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "Image": {
+                    "value": "*\\svchost.exe"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "Image": {
+                    "value": "*\\System"
+                  }
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/lateral-movement/T1021.002_smb_lateral.yml"
+}

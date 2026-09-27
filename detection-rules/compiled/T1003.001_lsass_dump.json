@@ -1,0 +1,69 @@
+{
+  "id": "e6h0f4g7-8d5c-6e2h-f0g5-6i2h5d0g7e3h",
+  "title": "LSASS Memory Access \u2014 Credential Dumping",
+  "status": "production",
+  "severity": "critical",
+  "tags": [
+    "attack.credential_access",
+    "attack.t1003.001"
+  ],
+  "description": "Detects attempts to dump credentials from LSASS memory (Mimikatz, etc.)",
+  "logsource": {
+    "category": "process_access",
+    "product": "windows"
+  },
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "TargetImage": {
+              "value": "*\\lsass.exe"
+            }
+          }
+        },
+        {
+          "terms": {
+            "GrantedAccess.keyword": [
+              "0x1010",
+              "0x1410",
+              "0x147a",
+              "0x1fffff"
+            ]
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "bool": {
+            "should": [
+              {
+                "wildcard": {
+                  "SourceImage": {
+                    "value": "*\\MsMpEng.exe"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "SourceImage": {
+                    "value": "*\\csrss.exe"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "SourceImage": {
+                    "value": "*\\wininit.exe"
+                  }
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "source_file": "detection-rules/sigma/credential-access/T1003.001_lsass_dump.yml"
+}

@@ -375,8 +375,8 @@ services:
     volumes:
       - caldera-data:/app/data
       - ./config/caldera/local.yml:/app/conf/local.yml:ro
-      - ./attack-simulation/caldera/operations:/app/data/operations:ro
-      - ./attack-simulation/caldera/adversaries:/app/data/adversaries:ro
+      - ./config/caldera/operations:/app/data/operations:ro
+      - ./config/caldera/adversaries:/app/data/adversaries:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.90 }
     logging: *logging
@@ -478,11 +478,12 @@ services:
     container_name: soc-nginx
     hostname: nginx
     <<: *restart
-    depends_on: [opensearch-dashboards, dfir-iris, misp, velociraptor, caldera]
-    ports: ["80:80", "443:443"]
+    ports:
+      - "${PORTAL_PORT:-8080}:80"
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./config/nginx/certs:/etc/nginx/certs:ro
+      - ./dashboards:/usr/share/nginx/html:ro
     networks:
       soc-net: { ipv4_address: 172.20.0.200 }
     logging: *logging
