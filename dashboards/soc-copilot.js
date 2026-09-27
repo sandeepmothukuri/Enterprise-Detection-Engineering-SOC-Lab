@@ -500,22 +500,26 @@
     `;
     document.body.appendChild(drawer);
 
-    // 3. Inject Theme Switcher Button into Topbar
+    // 3. Inject Theme Switcher Button into Topbar (Exact single instance)
     const topbarRight = document.querySelector('.topbar-right') || document.querySelector('.portal-meta');
-    if (topbarRight) {
+    if (topbarRight && !document.getElementById('socThemeBtn')) {
       const wrapper = document.createElement('div');
+      wrapper.id = 'socThemeBtnWrapper';
       wrapper.style.cssText = 'display:flex;align-items:center;gap:8px;margin-right:6px;';
       
       const themeBtn = document.createElement('button');
+      themeBtn.id = 'socThemeBtn';
       themeBtn.className = 'soc-theme-btn';
       themeBtn.innerHTML = '🎨 Themes ▾';
       themeBtn.onclick = () => window.openSocThemeModal();
 
       const kBtn = document.createElement('button');
+      kBtn.id = 'socKioskBtn';
       kBtn.className = 'btn btn-ghost btn-sm';
       kBtn.style.padding = '3px 8px';
       kBtn.style.fontSize = '11px';
       kBtn.innerHTML = '📺 Kiosk';
+      kBtn.title = 'SOC Wallboard Kiosk Mode (Auto-rotates through dashboards)';
       kBtn.onclick = () => window.startKiosk();
 
       wrapper.appendChild(themeBtn);
