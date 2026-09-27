@@ -141,9 +141,13 @@
     <!-- Graph Charts Row 1: Ingestion Timeline & Severity Breakdown -->
     <div class="grid-2 mb-4">
       <div class="chart-container-card">
-        <div class="card-title">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <span>📈 24h Multi-Sensor Telemetry Ingestion Timeline (EPS)</span>
-          <span class="badge badge-accent">soc-logs-*</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="badge badge-accent" style="font-size:10px;">🖥️ Sysmon</span>
+            <span class="badge badge-low" style="font-size:10px;">📡 Zeek</span>
+            <span class="badge badge-critical" style="font-size:10px;">🛡️ Suricata</span>
+          </div>
         </div>
         <div class="chart-wrap" style="height:280px;">
           <canvas id="timelineChart"></canvas>
@@ -347,28 +351,31 @@ window.addEventListener('DOMContentLoaded', () => {
       labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', 'Now'],
       datasets: [
         {
-          label: 'Sysmon (Windows)',
+          label: '🖥️ Sysmon (Windows Endpoints)',
           data: [210, 240, 290, 480, 520, 610, 580, 490, 540],
           borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          backgroundColor: 'rgba(56, 189, 248, 0.12)',
           fill: true,
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: 3
         },
         {
-          label: 'Zeek (NSM Flows)',
+          label: '📡 Zeek (NSM Bro Network Flows)',
           data: [180, 190, 210, 340, 390, 410, 370, 310, 360],
           borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.05)',
+          backgroundColor: 'rgba(16, 185, 129, 0.08)',
           fill: true,
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: 3
         },
         {
-          label: 'Suricata (IDS)',
+          label: '🛡️ Suricata 7.0 (IDS/IPS Signatures)',
           data: [15, 12, 18, 45, 85, 92, 60, 40, 55],
           borderColor: '#f43f5e',
-          backgroundColor: 'rgba(244, 63, 94, 0.05)',
+          backgroundColor: 'rgba(244, 63, 94, 0.08)',
           fill: true,
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: 3
         }
       ]
     },
