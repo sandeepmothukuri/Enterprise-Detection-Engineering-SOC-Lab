@@ -44,7 +44,7 @@
       </div>
     </div>
     <div class="sidebar-section">
-            <ul class="sidebar-nav">
+                  <ul class="sidebar-nav">
         <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
         <li class="nav-item"><a href="01_soc_command_center.html"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
         <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
@@ -74,7 +74,10 @@
         <li class="nav-item"><a href="19_network_topology.html"><span class="nav-icon">🗺️</span><span>Network Topology</span></a></li>
       </ul>
     </div>
-    <div class="sidebar-footer">SOC Lab v2.0 · OpenSearch 2.13</div>
+    <div class="sidebar-footer" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+      <span>SOC Lab v2.0</span>
+      <button onclick="window.openSocThemeModal()" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-accent);padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;">🎨 Theme</button>
+    </div>
   </nav>
 
   <header class="topbar">
@@ -219,5 +222,6 @@ function runHarness() {
 
 window.addEventListener('DOMContentLoaded', renderRules);
 </script>
+  <script src="soc-copilot.js"></script>
 </body>
 </html>

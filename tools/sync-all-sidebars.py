@@ -57,6 +57,8 @@ def sync_sidebars():
     files = glob.glob(pattern)
     updated_count = 0
     
+    new_footer = '<div class="sidebar-footer" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">\n      <span>SOC Lab v2.0</span>\n      <button onclick="window.openSocThemeModal()" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-accent);padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;">🎨 Theme</button>\n    </div>'
+
     for fpath in files:
         fname = os.path.basename(fpath)
         with open(fpath, "r", encoding="utf-8") as f:
@@ -70,16 +72,24 @@ def sync_sidebars():
             content,
             flags=re.DOTALL
         )
+
+        # Match <div class="sidebar-footer">...</div>
+        replaced_content = re.sub(
+            r'<div class="sidebar-footer">.*?</div>',
+            new_footer,
+            replaced_content,
+            flags=re.DOTALL
+        )
         
         if count > 0:
             with open(fpath, "w", encoding="utf-8") as f:
                 f.write(replaced_content)
-            print(f"[+] Synchronized sidebar in {fname}")
+            print(f"[+] Synchronized sidebar & footer in {fname}")
             updated_count += 1
         else:
             print(f"[-] No sidebar-nav tag found in {fname}")
 
-    print(f"\n[+] Successfully synchronized sidebars across {updated_count} dashboard files.")
+    print(f"\n[+] Successfully synchronized sidebars and theme buttons across {updated_count} dashboard files.")
 
 if __name__ == "__main__":
     sync_sidebars()

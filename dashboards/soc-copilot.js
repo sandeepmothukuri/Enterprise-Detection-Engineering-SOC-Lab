@@ -1,13 +1,102 @@
 /**
- * SOC Lab — Universal AI Copilot (CrewAI + Llama 3.2:3b) & Kiosk Controller
- * Version 2.2 — Context-Aware Autonomous SOC Operations Assistant
+ * SOC Lab — Universal AI Copilot (CrewAI + Llama 3.2:3b), Theme Switcher & Kiosk Controller
+ * Version 2.5 — Enterprise Visual Design System & Theme Engine
  */
 
 (function initSocCopilot() {
-  // Styles for Copilot & Kiosk
+  // Pre-load theme on immediate script execution
+  const activeTheme = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
+  document.documentElement.setAttribute('data-theme', activeTheme);
+
+  // Styles for Copilot, Kiosk & Theme Modal
   const style = document.createElement('style');
   style.id = 'soc-copilot-styles';
   style.textContent = `
+    /* Theme Modal Styles */
+    .soc-theme-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10005;
+    }
+    .soc-theme-modal.open { display: flex; }
+    .soc-theme-modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 720px;
+      max-width: 95vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    }
+    .soc-theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .soc-theme-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .soc-theme-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--accent-glow);
+    }
+    .soc-theme-card.active {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .soc-theme-swatches {
+      display: flex;
+      gap: 4px;
+      height: 18px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .soc-theme-swatch {
+      flex: 1;
+      height: 100%;
+    }
+
+    /* Topbar Theme Trigger Button */
+    .soc-theme-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-accent);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .soc-theme-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
     /* Floating Copilot Launcher */
     .soc-copilot-btn {
       position: fixed;
@@ -162,17 +251,6 @@
       border-bottom-right-radius: 2px;
       box-shadow: 0 4px 14px rgba(29,78,216,0.3);
     }
-    .soc-msg pre {
-      background: var(--bg-base);
-      padding: 8px 10px;
-      border-radius: 4px;
-      margin: 6px 0;
-      font-family: monospace;
-      font-size: 11px;
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      color: var(--text-accent);
-    }
 
     .soc-copilot-chips {
       padding: 8px 12px;
@@ -261,28 +339,105 @@
   `;
   document.head.appendChild(style);
 
-  // Kiosk playlist
-  const KIOSK_PAGES = [
-    '01_soc_overview.html',
-    '02_opensearch_siem.html',
-    '03_zeek_network.html',
-    '04_suricata_ids.html',
-    '05_ai_agents.html',
-    '06_iris_cases.html',
-    '07_caldera_attack.html',
-    '08_misp_ti.html',
-    '09_velociraptor.html',
-    '10_responder_redteam.html',
-    '11_detection_engineering.html',
-    '12_purple_team.html',
-    '13_threat_hunting.html',
-    '14_cloud_security.html',
-    '15_malware_analysis.html',
-    '16_d3fend_matrix.html',
-    '17_asset_inventory.html',
-    '18_threat_intel_feeds.html',
-    '19_network_topology.html'
+  // Themes list
+  const THEMES = [
+    { id: 'darkblue', name: '🌌 Deep Dark Blue', desc: 'Royal Navy / Default SOC Theme', bg: '#070d1e', surface: '#0c1530', accent: '#38bdf8', crit: '#f43f5e' },
+    { id: 'oled', name: '🕶️ OLED Pitch-Blue', desc: 'Pure Pitch Black & Cyber Neon', bg: '#00030a', surface: '#020817', accent: '#00d2ff', crit: '#ff2a55' },
+    { id: 'obsidian', name: '🥷 Obsidian Stealth', desc: 'CrowdStrike / SentinelOne Minimalist', bg: '#0b0e14', surface: '#0f141c', accent: '#3b82f6', crit: '#ef4444' },
+    { id: 'indigo', name: '⚡ Linear Indigo', desc: 'Modern Vercel / Linear Glow', bg: '#08090d', surface: '#0e0f17', accent: '#6366f1', crit: '#f43f5e' },
+    { id: 'nordic', name: '🧊 Nordic Slate', desc: 'GitHub Dark / Arctic Navy', bg: '#0d1117', surface: '#161b22', accent: '#38bdf8', crit: '#f85149' },
+    { id: 'emerald', name: '📟 Cyber Emerald', desc: 'Matrix / Threat Hunter Green', bg: '#020905', surface: '#05150c', accent: '#00ff9d', crit: '#ff3366' },
+    { id: 'synthwave', name: '🔮 Synthwave Violet', desc: 'Darktrace Neon Violet Glow', bg: '#08040f', surface: '#10081e', accent: '#d946ef', crit: '#ff0055' },
+    { id: 'amber', name: '☀️ Solar Amber', desc: 'Splunk / Datadog Gold', bg: '#0a0804', surface: '#141008', accent: '#f59e0b', crit: '#ef4444' }
   ];
+
+  function createThemeModal() {
+    const modal = document.createElement('div');
+    modal.className = 'soc-theme-modal';
+    modal.id = 'socThemeModal';
+    modal.onclick = (e) => {
+      if (e.target === modal) window.closeSocThemeModal();
+    };
+
+    const current = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
+
+    const cardsHtml = THEMES.map(t => `
+      <div class="soc-theme-card ${t.id === current ? 'active' : ''}" onclick="window.setSocTheme('${t.id}')">
+        <div style="font-weight:700;font-size:13px;color:var(--text-primary);display:flex;justify-content:space-between;align-items:center;">
+          <span>${t.name}</span>
+          ${t.id === current ? '<span style="color:var(--accent);font-size:11px;">✓ Active</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);">${t.desc}</div>
+        <div class="soc-theme-swatches">
+          <div class="soc-theme-swatch" style="background:${t.bg};" title="Base: ${t.bg}"></div>
+          <div class="soc-theme-swatch" style="background:${t.surface};" title="Surface: ${t.surface}"></div>
+          <div class="soc-theme-swatch" style="background:${t.accent};" title="Accent: ${t.accent}"></div>
+          <div class="soc-theme-swatch" style="background:${t.crit};" title="Alert: ${t.crit}"></div>
+        </div>
+      </div>
+    `).join('');
+
+    modal.innerHTML = `
+      <div class="soc-theme-modal-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;">
+          <div>
+            <h3 style="margin:0;font-size:18px;color:var(--text-primary);">🎨 Choose SOC Platform Theme</h3>
+            <p style="margin:4px 0 0;font-size:12px;color:var(--text-secondary);">Select your preferred high-contrast theme. Persisted automatically across all dashboards.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="window.closeSocThemeModal()" style="font-size:16px;">✕</button>
+        </div>
+        <div class="soc-theme-grid" id="socThemeGrid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  window.openSocThemeModal = function() {
+    let m = document.getElementById('socThemeModal');
+    if (!m) {
+      createThemeModal();
+      m = document.getElementById('socThemeModal');
+    }
+    m.classList.add('open');
+  };
+
+  window.closeSocThemeModal = function() {
+    const m = document.getElementById('socThemeModal');
+    if (m) m.classList.remove('open');
+  };
+
+  window.setSocTheme = function(themeId) {
+    document.documentElement.setAttribute('data-theme', themeId);
+    localStorage.setItem('soc_dashboard_theme', themeId);
+    
+    // Update select if exists
+    const sel = document.getElementById('socThemeSelect');
+    if (sel) sel.value = themeId;
+
+    // Refresh modal cards
+    const grid = document.getElementById('socThemeGrid');
+    if (grid) {
+      grid.innerHTML = THEMES.map(t => `
+        <div class="soc-theme-card ${t.id === themeId ? 'active' : ''}" onclick="window.setSocTheme('${t.id}')">
+          <div style="font-weight:700;font-size:13px;color:var(--text-primary);display:flex;justify-content:space-between;align-items:center;">
+            <span>${t.name}</span>
+            ${t.id === themeId ? '<span style="color:var(--accent);font-size:11px;">✓ Active</span>' : ''}
+          </div>
+          <div style="font-size:11px;color:var(--text-secondary);">${t.desc}</div>
+          <div class="soc-theme-swatches">
+            <div class="soc-theme-swatch" style="background:${t.bg};" title="Base: ${t.bg}"></div>
+            <div class="soc-theme-swatch" style="background:${t.surface};" title="Surface: ${t.surface}"></div>
+            <div class="soc-theme-swatch" style="background:${t.accent};" title="Accent: ${t.accent}"></div>
+            <div class="soc-theme-swatch" style="background:${t.crit};" title="Alert: ${t.crit}"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.showSocToast(`🎨 Theme Changed: <b>${themeId.toUpperCase()}</b>`);
+  };
 
   function createCopilotUI() {
     // 1. Floating Launcher
@@ -304,6 +459,7 @@
           <div class="soc-copilot-header-sub">CrewAI • Multi-Agent Autonomous SOC Engine</div>
         </div>
         <div class="soc-copilot-ctrls">
+          <button class="soc-copilot-btn-icon" title="Themes" onclick="window.openSocThemeModal()">🎨</button>
           <button class="soc-copilot-btn-icon" title="Clear Chat" onclick="window.clearSocChat()">🗑️</button>
           <button class="soc-copilot-btn-icon" title="Export Markdown" onclick="window.exportSocChat()">💾</button>
           <button class="soc-copilot-btn-icon" style="font-size:18px;" onclick="window.toggleSocCopilot()">&times;</button>
@@ -331,10 +487,10 @@
         </div>
       </div>
       <div class="soc-copilot-chips">
-        <span class="soc-chip" onclick="window.quickPrompt('Investigate critical alert on WORKSTATION-12')">🔍 Investigate Alert</span>
+        <span class="soc-chip" onclick="window.quickPrompt('Investigate critical alert on WIN-DC01')">🔍 Investigate WIN-DC01</span>
         <span class="soc-chip" onclick="window.quickPrompt('Draft Sigma rule for Mimikatz LSASS access')">⚙️ Draft Sigma Rule</span>
         <span class="soc-chip" onclick="window.quickPrompt('Containment playbook for LLMNR poisoning')">🛡️ Containment Steps</span>
-        <span class="soc-chip" onclick="window.quickPrompt('Query MISP reputation for IP 192.168.1.105')">🌍 MISP Query</span>
+        <span class="soc-chip" onclick="window.openSocThemeModal()">🎨 Switch Color Theme</span>
         <span class="soc-chip" onclick="window.quickPrompt('Generate SOC executive weekly summary')">📋 Weekly Report</span>
       </div>
       <div class="soc-copilot-input-bar">
@@ -344,46 +500,16 @@
     `;
     document.body.appendChild(drawer);
 
-    // 3. Kiosk Banner
-    const kiosk = document.createElement('div');
-    kiosk.className = 'kiosk-bar';
-    kiosk.id = 'socKioskBar';
-    kiosk.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#e8edf5;font-weight:600;">
-        <span style="color:#ef4444;animation:copilot-pulse 1s infinite;">●</span> SOC WALLBOARD KIOSK MODE
-        <span id="kioskPageLabel" style="color:#8898aa;font-weight:400;font-size:11px;">(Auto-cycling every 20s)</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px;" onclick="window.kioskNext()">Next ➔</button>
-        <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px;color:#ef4444;" onclick="window.exitKiosk()">Exit Kiosk (Esc)</button>
-      </div>
-      <div class="kiosk-progress" id="kioskProgress"></div>
-    `;
-    document.body.appendChild(kiosk);
-
-    // 4. Inject Theme Switcher & Kiosk Buttons into Topbar
+    // 3. Inject Theme Switcher Button into Topbar
     const topbarRight = document.querySelector('.topbar-right') || document.querySelector('.portal-meta');
     if (topbarRight) {
       const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'display:flex;align-items:center;gap:6px;margin-right:6px;';
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:8px;margin-right:6px;';
       
-      const themeSelect = document.createElement('select');
-      themeSelect.id = 'socThemeSelect';
-      themeSelect.className = 'input';
-      themeSelect.style.cssText = 'font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;background:var(--bg-card);color:var(--text-accent);border:1px solid var(--border);';
-      themeSelect.innerHTML = `
-        <option value="darkblue">🌌 Deep Dark Blue</option>
-        <option value="oled">🕶️ OLED Pitch-Blue</option>
-        <option value="obsidian">🛡️ Obsidian Stealth</option>
-        <option value="indigo">⚡ Linear Indigo</option>
-        <option value="nordic">🧊 Nordic Slate</option>
-        <option value="emerald">📟 Cyber Emerald</option>
-        <option value="synthwave">🔮 Synthwave Violet</option>
-        <option value="amber">☀️ Solar Amber</option>
-        <option value="teal">🌊 Tokyo Teal</option>
-      `;
-      themeSelect.value = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
-      themeSelect.onchange = (e) => window.setSocTheme(e.target.value);
+      const themeBtn = document.createElement('button');
+      themeBtn.className = 'soc-theme-btn';
+      themeBtn.innerHTML = '🎨 Themes ▾';
+      themeBtn.onclick = () => window.openSocThemeModal();
 
       const kBtn = document.createElement('button');
       kBtn.className = 'btn btn-ghost btn-sm';
@@ -392,24 +518,13 @@
       kBtn.innerHTML = '📺 Kiosk';
       kBtn.onclick = () => window.startKiosk();
 
-      wrapper.appendChild(themeSelect);
+      wrapper.appendChild(themeBtn);
       wrapper.appendChild(kBtn);
       topbarRight.prepend(wrapper);
     }
+
+    createThemeModal();
   }
-
-  // Theme Switching Logic
-  window.setSocTheme = function(themeId) {
-    document.documentElement.setAttribute('data-theme', themeId);
-    localStorage.setItem('soc_dashboard_theme', themeId);
-    const sel = document.getElementById('socThemeSelect');
-    if (sel) sel.value = themeId;
-    window.showSocToast(`🎨 Theme Applied: <b>${themeId.toUpperCase()}</b>`);
-  };
-
-  // Pre-load theme on immediate script run
-  const initialTheme = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
-  document.documentElement.setAttribute('data-theme', initialTheme);
 
   function toggleCopilot() {
     const d = document.getElementById('socCopilotDrawer');
@@ -494,41 +609,20 @@ detection:
   condition: selection
 level: critical</pre>
 <b>OpenSearch Query DSL Mapping:</b><br>
-Target Index: <code>sysmon-*</code> | Ingested via Vector.`;
-      } else if (lower.includes('workstation') || lower.includes('alert') || lower.includes('investigate')) {
+Target Index: <code>soc-logs-*</code> | Ingested via Vector.`;
+      } else if (lower.includes('win-dc01') || lower.includes('alert') || lower.includes('investigate')) {
         resp = `<b>[Threat Analyst Agent]</b><br>
-<b>Investigation Summary: WORKSTATION-12</b> (10.0.0.100)<br>
-• <b>Correlated Events:</b> 47 related telemetry hits across Sysmon & Zeek.<br>
-• <b>MITRE ATT&CK:</b> T1003.001 (LSASS Dump), T1059.001 (Encoded PowerShell).<br>
-• <b>Threat Actor Attribution:</b> <b>APT-29 (Cozy Bear)</b> with 88% confidence score.<br>
-• <b>Recommended Action:</b> Trigger StackStorm <code>quarantine_host.py</code> on WORKSTATION-12 and rotate Domain Admin credentials.`;
-      } else if (lower.includes('llmnr') || lower.includes('containment') || lower.includes('responder')) {
-        resp = `<b>[Incident Responder Agent]</b><br>
-<b>Containment Blueprint for T1557.001 (LLMNR/NBT-NS Poisoning):</b><br>
-1. <b>Network Perimeter:</b> Block Rogue IP <code>192.168.1.105</code> at VLAN 10 switch interface.<br>
-2. <b>Group Policy:</b> Deploy GPO <code>Turn off multicast name resolution -> Enabled</code>.<br>
-3. <b>SMB Hardening:</b> Enforce <code>Digitally sign communications -> Always</code> on all DC endpoints.<br>
-4. <b>Credential Hygiene:</b> Reset NTLMv2 hashes for affected user accounts.`;
-      } else if (lower.includes('misp') || lower.includes('192.168.1.105') || lower.includes('ioc')) {
-        resp = `<b>[Threat Hunter Agent]</b><br>
-<b>MISP Threat Intelligence Correlation:</b><br>
-• <b>IOC Hit:</b> <code>192.168.1.105</code> (Attacker C2)<br>
-• <b>Event Name:</b> <code>APT-TI-2026-04 — Cozy Bear Operation</code><br>
-• <b>Confidence:</b> High (94%) | Threat Level: 1 (High)<br>
-• <b>Associated C2 Infrastructure:</b> <code>cdn-update-sync.com</code>, <code>login.microsoft-auth-verify.com</code>.`;
-      } else if (lower.includes('weekly') || lower.includes('report') || lower.includes('summary')) {
-        resp = `<b>[Senior SOC Lead]</b><br>
-<b>Executive SOC Lab Operational Summary (Week 17, 2026):</b><br>
-• <b>Total Events Ingested:</b> 48,241 | <b>Alerts Generated:</b> 127<br>
-• <b>Critical Severity:</b> 9 | <b>High Severity:</b> 127 | <b>Open IRIS Cases:</b> 2<br>
-• <b>Mean Time to Detect (MTTD):</b> 1.4s | <b>Mean Time to Respond (MTTR):</b> 3.8s<br>
-• <b>Detection Coverage:</b> 78% of MITRE Enterprise matrix covered (13 production rules).`;
+<b>Investigation Summary: WIN-DC01</b> (172.20.0.10)<br>
+• <b>Severity:</b> <span style="color:#ef4444;font-weight:bold;">CRITICAL</span> (Score: 96/100)<br>
+• <b>Root Cause:</b> Process <code>mimikatz.exe</code> accessed LSASS with GrantedAccess <code>0x1010</code>.<br>
+• <b>Lateral Movement:</b> Overpass-the-Hash authentication attempted to <code>SRV-APP01</code>.<br>
+• <b>Recommended Action:</b> Isolate WIN-DC01 network adapter and invalidate Kerberos KRBTGT hash.`;
       } else {
-        resp = `<b>[SOC Lead Copilot]</b><br>
+        resp = `<b>[Senior SOC Lead]</b><br>
 Analyzed query: "<em>${msg}</em>"<br>
-• Active Agent: <code>${persona.toUpperCase()}</code><br>
-• Health Status: All 12 telemetry layers (OpenSearch, Zeek, Suricata, Vector, StackStorm) are actively streaming.<br>
-• Telemetry is healthy with zero ingestion backlog.`;
+• Active Persona: <code>${persona.toUpperCase()}</code><br>
+• OpenSearch Telemetry: Ingesting 842 EPS across 6 sensors (Sysmon, Zeek, Suricata, Auditd).<br>
+• Cluster Status: Green (2 Nodes, 0 Unassigned Shards).`;
       }
 
       botEl.innerHTML = resp;
@@ -536,67 +630,12 @@ Analyzed query: "<em>${msg}</em>"<br>
     }, 600);
   };
 
-  // ── Kiosk Mode Logic ────────────────────────────────────────────────────────
-  let kioskInterval = null;
-  let progressInterval = null;
-  let kioskSeconds = 20;
-  let kioskCountdown = kioskSeconds;
-
-  window.startKiosk = function() {
-    sessionStorage.setItem('soc_kiosk_active', 'true');
-    const bar = document.getElementById('socKioskBar');
-    if (bar) bar.classList.add('active');
-    
-    const currPage = window.location.pathname.split('/').pop() || 'index.html';
-    const label = document.getElementById('kioskPageLabel');
-    if (label) label.textContent = `Viewing: ${currPage} (Rotating in ${kioskCountdown}s)`;
-
-    const pBar = document.getElementById('kioskProgress');
-    if (pBar) pBar.style.width = '0%';
-
-    let elapsed = 0;
-    progressInterval = setInterval(() => {
-      elapsed++;
-      const pct = (elapsed / kioskSeconds) * 100;
-      if (pBar) pBar.style.width = `${pct}%`;
-      if (label) label.textContent = `Viewing: ${currPage} (Rotating in ${kioskSeconds - elapsed}s)`;
-    }, 1000);
-
-    kioskInterval = setTimeout(() => {
-      window.kioskNext();
-    }, kioskSeconds * 1000);
-  };
-
-  window.exitKiosk = function() {
-    sessionStorage.removeItem('soc_kiosk_active');
-    clearTimeout(kioskInterval);
-    clearInterval(progressInterval);
-    const bar = document.getElementById('socKioskBar');
-    if (bar) bar.classList.remove('active');
-  };
-
-  window.kioskNext = function() {
-    clearTimeout(kioskInterval);
-    clearInterval(progressInterval);
-    const currPage = window.location.pathname.split('/').pop() || '01_soc_overview.html';
-    let idx = KIOSK_PAGES.indexOf(currPage);
-    if (idx === -1) idx = 0;
-    const nextIdx = (idx + 1) % KIOSK_PAGES.length;
-    window.location.href = KIOSK_PAGES[nextIdx];
-  };
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      window.exitKiosk();
-    }
-  });
-
   window.showSocToast = function(msg) {
     let t = document.getElementById('socGlobalToast');
     if (!t) {
       t = document.createElement('div');
       t.id = 'socGlobalToast';
-      t.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#0f172a;border:1px solid #3b82f6;color:#fff;padding:12px 18px;border-radius:8px;font-size:12px;z-index:10000;box-shadow:0 6px 20px rgba(0,0,0,0.5);display:none;';
+      t.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#0f172a;border:1px solid #3b82f6;color:#fff;padding:12px 18px;border-radius:8px;font-size:12px;z-index:10010;box-shadow:0 6px 20px rgba(0,0,0,0.5);display:none;';
       document.body.appendChild(t);
     }
     t.innerHTML = msg;
@@ -605,16 +644,8 @@ Analyzed query: "<em>${msg}</em>"<br>
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      createCopilotUI();
-      if (sessionStorage.getItem('soc_kiosk_active') === 'true') {
-        window.startKiosk();
-      }
-    });
+    document.addEventListener('DOMContentLoaded', createCopilotUI);
   } else {
     createCopilotUI();
-    if (sessionStorage.getItem('soc_kiosk_active') === 'true') {
-      window.startKiosk();
-    }
   }
 })();
