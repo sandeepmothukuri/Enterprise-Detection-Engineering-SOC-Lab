@@ -31,10 +31,23 @@
       background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
       width: 540px; max-width: 90vw; padding: var(--space-5); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
-    .toast-popup {
-      position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent);
-      color: #fff; padding: 12px 18px; border-radius: 6px; font-size: 12px; z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;
+    .chart-container-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .chart-container-card .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
   </style>
 </head>
@@ -50,7 +63,7 @@
       </div>
     </div>
     <div class="sidebar-section">
-                  <ul class="sidebar-nav">
+            <ul class="sidebar-nav">
         <li class="sidebar-section-header" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px 4px;">Enterprise SOC Tiers</li>
         <li class="nav-item"><a href="01_soc_command_center.html" class="active"><span class="nav-icon">📊</span><span>01 SOC Command Center</span></a></li>
         <li class="nav-item"><a href="02_incident_operations.html"><span class="nav-icon">🚨</span><span>02 Incident Operations</span></a></li>
@@ -87,8 +100,8 @@
   </nav>
 
   <header class="topbar">
-    <div class="topbar-title"><span class="page-icon">📊</span> Tier 1 — SOC Command Center</div>
-    <span class="topbar-meta" id="last-update">Real-Time Telemetry Stream</span>
+    <div class="topbar-title"><span class="page-icon">📊</span> Tier 1 — SOC Command Center &amp; Threat Telemetry</div>
+    <span class="topbar-meta" id="last-update">Real-Time Sensor Ingestion Stream</span>
     <div class="topbar-right">
       <div class="ws-indicator">
         <div class="ws-dot connected" id="ws-dot"></div>
@@ -106,31 +119,99 @@
       <div class="kpi-card critical">
         <div class="kpi-label">Active Critical Alerts</div>
         <div class="kpi-value" id="kpi-crit">3</div>
-        <div class="kpi-sub">T1003.001, T1059.001, T1550.002</div>
+        <div class="kpi-sub">T1003.001 (LSASS), T1059.001 (PowerShell)</div>
       </div>
       <div class="kpi-card high">
         <div class="kpi-label">High Severity Triggers</div>
         <div class="kpi-value" id="kpi-high">8</div>
-        <div class="kpi-sub">Responder, Defender Disabled</div>
+        <div class="kpi-sub">T1557 Responder, T1562.001 Defender Off</div>
       </div>
       <div class="kpi-card medium">
         <div class="kpi-label">Total Events (24h)</div>
         <div class="kpi-value" id="kpi-total">48,291</div>
-        <div class="kpi-sub">Normalized via Vector VRL</div>
+        <div class="kpi-sub">Normalized via Vector VRL Ingestion</div>
       </div>
       <div class="kpi-card info">
-        <div class="kpi-label">Active Pipeline Sensors</div>
-        <div class="kpi-value">6 / 6</div>
-        <div class="kpi-sub">Sysmon, Zeek, Suricata, Auditd</div>
+        <div class="kpi-label">Pipeline Ingestion Rate</div>
+        <div class="kpi-value">842 EPS</div>
+        <div class="kpi-sub">6 Sensors Active · Zero Backlog</div>
       </div>
     </div>
 
-    <!-- Main Visual Panels -->
+    <!-- Graph Charts Row 1: Ingestion Timeline & Severity Breakdown -->
+    <div class="grid-2 mb-4">
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>📈 24h Multi-Sensor Telemetry Ingestion Timeline (EPS)</span>
+          <span class="badge badge-accent">soc-logs-*</span>
+        </div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>🎯 Alert Distribution by Severity Tier</span>
+          <span class="badge badge-critical">soc-alerts-*</span>
+        </div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="severityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph Charts Row 2: MITRE Tactics & Adversary Emulation Radar -->
+    <div class="grid-2 mb-4">
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>⚡ MITRE ATT&amp;CK Tactic Detection Frequency</span>
+          <span class="badge badge-info">13 Sigma Rules</span>
+        </div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="mitreBarChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>🕸️ Adversary Emulation &amp; Kill Chain Coverage Radar</span>
+          <span class="badge badge-low">Caldera &amp; Atomic Red Team</span>
+        </div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="killchainRadarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph Charts Row 3: Protocol Traffic & Autonomous AI Triage -->
+    <div class="grid-2 mb-4">
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>🌐 Network Traffic Protocols &amp; Anomaly Volume (Zeek)</span>
+          <span class="badge badge-medium">Zeek conn.log / dns.log</span>
+        </div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="protoFlowChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container-card">
+        <div class="card-title">
+          <span>🤖 CrewAI Autonomous Multi-Agent Triage Verdicts</span>
+          <span class="badge badge-low">Llama-3 (94.2% Acc)</span>
+        </div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="aiVerdictsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Operational Triage Stream -->
     <div class="grid-2-1 mb-4">
-      <!-- Live Incident & Alert Stream -->
       <div class="card">
         <div class="card-header" style="flex-wrap:wrap;gap:8px;">
-          <span class="card-title">🚨 Live Alert Triage Stream</span>
+          <span class="card-title">🚨 Real-Time Detection Alert Feed</span>
           <div style="display:flex;gap:6px;align-items:center;">
             <input type="text" id="feed-search" placeholder="Search alerts..." oninput="filterAlerts()" style="background:var(--bg-base);border:1px solid var(--border);color:var(--text-primary);padding:3px 8px;border-radius:4px;font-size:11px;width:120px;">
             <button class="filter-btn active" onclick="setSevFilter('all', this)">All</button>
@@ -142,49 +223,16 @@
         <div id="alert-feed" class="alert-feed" style="max-height:380px;overflow-y:auto;"></div>
       </div>
 
-      <!-- MITRE Tactics Heatmap Breakdown -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">⚡ MITRE ATT&CK Tactic Distribution</span>
+          <span class="card-title">🎯 Top Target Endpoints &amp; Victims</span>
         </div>
-        <div class="card-body">
-          <div class="chart-wrap" style="height:320px">
-            <canvas id="mitreChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lower Operational Grid -->
-    <div class="grid-3">
-      <div class="card">
-        <div class="card-header"><span class="card-title">📡 Sensor Pipeline Health</span></div>
         <div class="card-body-sm">
-          <div class="status-row"><span class="status-label">Zeek NSM (Network Tap)</span><span class="status-value"><span class="status-dot up"></span>Active · eth0</span></div>
-          <div class="status-row"><span class="status-label">Suricata 7.0 IDS/IPS</span><span class="status-value"><span class="status-dot up"></span>Active · 1,420 Rules</span></div>
-          <div class="status-row"><span class="status-label">Vector VRL Aggregator</span><span class="status-value"><span class="status-dot up"></span>842 EPS · Zero Drops</span></div>
-          <div class="status-row"><span class="status-label">OpenSearch Cluster</span><span class="status-value"><span class="status-dot up"></span>Green · 2 Nodes</span></div>
-          <div class="status-row"><span class="status-label">CrewAI Triage Engine</span><span class="status-value"><span class="status-dot up"></span>Ollama Llama-3 Active</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><span class="card-title">🎯 Top Targeted Endpoints</span></div>
-        <div class="card-body-sm">
-          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WIN-DC01.corp.local</span><span class="badge badge-critical">14 Alerts (LSASS)</span></div>
-          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">SRV-APP01.corp.local</span><span class="badge badge-high">6 Alerts (WMI)</span></div>
-          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WS-FIN-04.corp.local</span><span class="badge badge-high">5 Alerts (PS)</span></div>
-          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">LNX-PROXY01.dmz</span><span class="badge badge-medium">3 Alerts (Scan)</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><span class="card-title">⚡ Quick Operational Playbooks</span></div>
-        <div class="card-body-sm" style="display:flex;flex-direction:column;gap:8px;">
-          <a href="02_incident_operations.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">📋 Open DFIR-IRIS Incident Queue</a>
-          <a href="03_detection_engineering.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🛠️ Inspect 13 Sigma Rules</a>
-          <a href="05_threat_hunting.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🔎 Run Velociraptor VQL Hunt</a>
-          <a href="08_ai_soc.html" class="btn btn-secondary btn-sm" style="text-align:left;justify-content:flex-start;">🤖 View Autonomous AI Verdicts</a>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WIN-DC01.corp.local</span><span class="badge badge-critical">14 Alerts (LSASS / Auth)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">SRV-APP01.corp.local</span><span class="badge badge-high">6 Alerts (WMI / PsExec)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">WS-FIN-04.corp.local</span><span class="badge badge-high">5 Alerts (PowerShell Macro)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">LNX-PROXY01.dmz</span><span class="badge badge-medium">3 Alerts (DNS Tunnel / Recon)</span></div>
+          <div class="status-row"><span class="status-label" style="font-family:var(--font-mono)">SRV-SQL02.corp.local</span><span class="badge badge-low">1 Alert (Scheduled Task)</span></div>
         </div>
       </div>
     </div>
@@ -195,7 +243,7 @@
 <!-- Modal for Threat Simulation -->
 <div class="modal-overlay" id="sim-modal">
   <div class="modal-box">
-    <h3 style="margin-top:0;font-size:16px;">⚡ Adversary Emulation & Alert Injection</h3>
+    <h3 style="margin-top:0;font-size:16px;">⚡ Adversary Emulation &amp; Alert Injection</h3>
     <p style="color:var(--text-secondary);font-size:12px;">Trigger realistic attack telemetry to validate end-to-end detection and SIEM alerting pipelines.</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin:15px 0;">
       <button class="btn btn-secondary" onclick="simulateAttack('T1003.001', 'LSASS Memory Dump', 'critical', 'WIN-DC01')">🔴 Mimikatz LSASS Dump (T1003.001)</button>
@@ -211,6 +259,7 @@
 
 <div class="toast-popup" id="toast"></div>
 
+<script src="soc-copilot.js"></script>
 <script>
 let alerts = [
   { id: 1, time: "13:54:10 UTC", rule: "LSASS Memory Access & Dumping", mitre: "T1003.001", sev: "critical", host: "WIN-DC01", desc: "Mimikatz sekurlsa::logonpasswords requested 0x1010 access to lsass.exe" },
@@ -271,13 +320,6 @@ function closeSimModal() {
   document.getElementById('sim-modal').classList.remove('open');
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.innerText = msg;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3500);
-}
-
 function simulateAttack(mitre, rule, sev, host) {
   const newAlert = {
     id: Date.now(),
@@ -291,44 +333,183 @@ function simulateAttack(mitre, rule, sev, host) {
   alerts.unshift(newAlert);
   renderAlerts();
   closeSimModal();
-  showToast(`[+] Simulated ${rule} (${mitre}) injected successfully!`);
+  if (window.showSocToast) window.showSocToast(`[+] Simulated ${rule} (${mitre}) injected successfully!`);
 }
 
-// Initialize MITRE Chart
+// Initialize Charts
 window.addEventListener('DOMContentLoaded', () => {
   renderAlerts();
-  const ctx = document.getElementById('mitreChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
+
+  // Chart 1: 24h Ingestion Timeline
+  new Chart(document.getElementById('timelineChart').getContext('2d'), {
+    type: 'line',
     data: {
-      labels: ['Credential Access', 'Execution', 'Defense Evasion', 'Lateral Movement', 'Command & Control', 'Discovery', 'Persistence', 'Exfiltration'],
+      labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', 'Now'],
+      datasets: [
+        {
+          label: 'Sysmon (Windows)',
+          data: [210, 240, 290, 480, 520, 610, 580, 490, 540],
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Zeek (NSM Flows)',
+          data: [180, 190, 210, 340, 390, 410, 370, 310, 360],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.05)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Suricata (IDS)',
+          data: [15, 12, 18, 45, 85, 92, 60, 40, 55],
+          borderColor: '#f43f5e',
+          backgroundColor: 'rgba(244, 63, 94, 0.05)',
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9cb2d6', font: { size: 10 } } }
+      },
+      scales: {
+        x: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { color: '#1a3366' } }
+      }
+    }
+  });
+
+  // Chart 2: Severity Distribution Donut
+  new Chart(document.getElementById('severityChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Critical', 'High', 'Medium', 'Low', 'Informational'],
       datasets: [{
-        label: 'Detected Alerts',
-        data: [18, 14, 11, 8, 6, 5, 4, 3],
-        backgroundColor: ['#f43f5e', '#fb923c', '#fbbf24', '#f43f5e', '#38bdf8', '#10b981', '#a855f7', '#06b6d4'],
-        borderRadius: 4
+        data: [9, 28, 44, 85, 310],
+        backgroundColor: ['#f43f5e', '#fb923c', '#fbbf24', '#10b981', '#38bdf8']
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { position: 'right', labels: { color: '#9cb2d6', font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Chart 3: MITRE Tactics Horizontal Bar
+  new Chart(document.getElementById('mitreBarChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Credential Access', 'Execution', 'Lateral Movement', 'Defense Evasion', 'Command & Control', 'Discovery', 'Persistence', 'Exfiltration'],
+      datasets: [{
+        label: 'Detection Hits',
+        data: [18, 14, 11, 9, 7, 5, 4, 3],
+        backgroundColor: ['#f43f5e', '#fb923c', '#f43f5e', '#fbbf24', '#38bdf8', '#10b981', '#a855f7', '#06b6d4'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { color: '#1a3366' } },
+        y: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Chart 4: Kill Chain Radar Chart
+  new Chart(document.getElementById('killchainRadarChart').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: ['Recon', 'Initial Access', 'Execution', 'Persistence', 'PrivEsc', 'Defense Evasion', 'Cred Access', 'Lateral Move', 'C2', 'Exfil'],
+      datasets: [
+        {
+          label: 'Adversary Emulation Coverage (%)',
+          data: [85, 90, 100, 80, 75, 95, 100, 90, 85, 70],
+          borderColor: '#f43f5e',
+          backgroundColor: 'rgba(244, 63, 94, 0.2)',
+          pointBackgroundColor: '#f43f5e'
+        },
+        {
+          label: 'Automated Detection Efficacy (%)',
+          data: [90, 85, 100, 85, 80, 90, 100, 95, 90, 80],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          pointBackgroundColor: '#10b981'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9cb2d6', font: { size: 10 } } }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9cb2d6', font: { size: 10 } }
-        },
-        y: {
+        r: {
           grid: { color: '#1a3366' },
-          ticks: { color: '#9cb2d6', font: { size: 10 } }
+          angleLines: { color: '#1a3366' },
+          pointLabels: { color: '#9cb2d6', font: { size: 9 } },
+          ticks: { backdropColor: 'transparent', color: '#57709a', font: { size: 8 } }
         }
       }
     }
   });
+
+  // Chart 5: Protocol Flow
+  new Chart(document.getElementById('protoFlowChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['HTTPS/TLS', 'DNS', 'SMB/RPC', 'HTTP', 'SSH', 'LLMNR (Poisoned)'],
+      datasets: [{
+        label: 'Flow Events (k)',
+        data: [28.4, 14.2, 8.6, 4.1, 1.8, 0.9],
+        backgroundColor: ['#38bdf8', '#10b981', '#fb923c', '#fbbf24', '#a855f7', '#f43f5e'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#9cb2d6', font: { size: 10 } }, grid: { color: '#1a3366' } }
+      }
+    }
+  });
+
+  // Chart 6: Autonomous AI Triage Verdicts
+  new Chart(document.getElementById('aiVerdictsChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['True Positive Escalated', 'False Positive Suppressed', 'Benign Test Activity', 'Human Review Queue'],
+      datasets: [{
+        data: [14, 68, 42, 4],
+        backgroundColor: ['#f43f5e', '#10b981', '#38bdf8', '#fbbf24']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#9cb2d6', font: { size: 10 } } }
+      }
+    }
+  });
+
 });
 </script>
-  <script src="soc-copilot.js"></script>
 </body>
 </html>
