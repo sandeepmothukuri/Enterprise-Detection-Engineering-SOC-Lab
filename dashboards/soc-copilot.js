@@ -339,16 +339,17 @@
   `;
   document.head.appendChild(style);
 
-  // 8 Themes list
+  // 9 Complete SOC Enterprise Themes
   const THEMES = [
     { id: 'darkblue', name: '🌌 Deep Dark Blue', desc: 'Royal Navy / Default SOC Theme', bg: '#070d1e', surface: '#0c1530', accent: '#38bdf8', crit: '#f43f5e' },
     { id: 'oled', name: '🕶️ OLED Pitch-Blue', desc: 'Pure Pitch Black & Cyber Neon', bg: '#00030a', surface: '#020817', accent: '#00d2ff', crit: '#ff2a55' },
-    { id: 'obsidian', name: '🥷 Obsidian Stealth', desc: 'CrowdStrike / SentinelOne Minimalist', bg: '#0b0e14', surface: '#0f141c', accent: '#3b82f6', crit: '#ef4444' },
-    { id: 'indigo', name: '⚡ Linear Indigo', desc: 'Modern Vercel / Linear Glow', bg: '#08090d', surface: '#0e0f17', accent: '#6366f1', crit: '#f43f5e' },
+    { id: 'obsidian', name: '🥷 Obsidian Stealth', desc: 'CrowdStrike / SentinelOne Clean Minimalist', bg: '#0b0e14', surface: '#0f141c', accent: '#3b82f6', crit: '#ef4444' },
+    { id: 'indigo', name: '⚡ Linear Indigo', desc: 'Modern Vercel / Linear Purple Glow', bg: '#08090d', surface: '#0e0f17', accent: '#6366f1', crit: '#f43f5e' },
     { id: 'nordic', name: '🧊 Nordic Slate', desc: 'GitHub Dark / Arctic Navy', bg: '#0d1117', surface: '#161b22', accent: '#38bdf8', crit: '#f85149' },
-    { id: 'emerald', name: '📟 Cyber Emerald', desc: 'Matrix / Threat Hunter Green', bg: '#020905', surface: '#05150c', accent: '#00ff9d', crit: '#ff3366' },
-    { id: 'synthwave', name: '🔮 Synthwave Violet', desc: 'Darktrace Neon Violet Glow', bg: '#08040f', surface: '#10081e', accent: '#d946ef', crit: '#ff0055' },
-    { id: 'amber', name: '☀️ Solar Amber', desc: 'Splunk / Datadog Gold', bg: '#0a0804', surface: '#141008', accent: '#f59e0b', crit: '#ef4444' }
+    { id: 'emerald', name: '📟 Cyber Emerald', desc: 'Matrix / Threat Hunter Terminal Green', bg: '#020905', surface: '#05150c', accent: '#00ff9d', crit: '#ff3366' },
+    { id: 'synthwave', name: '🔮 Synthwave Violet', desc: 'Darktrace Neon Violet & Magenta', bg: '#08040f', surface: '#10081e', accent: '#d946ef', crit: '#ff0055' },
+    { id: 'amber', name: '☀️ Solar Amber', desc: 'Splunk / Datadog Gold Alert System', bg: '#0a0804', surface: '#141008', accent: '#f59e0b', crit: '#ef4444' },
+    { id: 'teal', name: '🌊 Arctic Teal', desc: 'Azure Sentinel Deep Cyan Security', bg: '#031114', surface: '#061b20', accent: '#06b6d4', crit: '#f43f5e' }
   ];
 
   // Kiosk Rotation List (9 Enterprise Tiers)
@@ -364,43 +365,57 @@
     '09_platform_health.html'
   ];
 
+  function renderThemeCardsHtml() {
+    const current = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
+    return THEMES.map(t => {
+      const isActive = t.id === current;
+      return `
+      <div class="soc-theme-card ${isActive ? 'active' : ''}" onclick="window.setSocTheme('${t.id}')" style="cursor:pointer;border:2px solid ${isActive ? 'var(--accent)' : 'var(--border)'};background:${isActive ? 'var(--bg-card-hover)' : 'var(--bg-card)'};">
+        <div style="font-weight:700;font-size:13px;color:var(--text-primary);display:flex;justify-content:space-between;align-items:center;">
+          <span>${t.name}</span>
+          ${isActive ? '<span style="color:var(--accent);font-size:11px;font-weight:700;">✓ Active</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${t.desc}</div>
+        <div class="soc-theme-swatches" style="display:flex;gap:4px;height:18px;border-radius:4px;overflow:hidden;margin-top:8px;">
+          <div class="soc-theme-swatch" style="flex:1;background:${t.bg};" title="Base: ${t.bg}"></div>
+          <div class="soc-theme-swatch" style="flex:1;background:${t.surface};" title="Surface: ${t.surface}"></div>
+          <div class="soc-theme-swatch" style="flex:1;background:${t.accent};" title="Accent: ${t.accent}"></div>
+          <div class="soc-theme-swatch" style="flex:1;background:${t.crit};" title="Alert: ${t.crit}"></div>
+        </div>
+      </div>
+    `}).join('');
+  }
+
   function createThemeModal() {
-    const modal = document.createElement('div');
+    let modal = document.getElementById('socThemeModal');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
     modal.className = 'soc-theme-modal';
     modal.id = 'socThemeModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:100005;';
+    
     modal.onclick = (e) => {
       if (e.target === modal) window.closeSocThemeModal();
     };
 
     const current = localStorage.getItem('soc_dashboard_theme') || 'darkblue';
 
-    const cardsHtml = THEMES.map(t => `
-      <div class="soc-theme-card ${t.id === current ? 'active' : ''}" onclick="window.setSocTheme('${t.id}')">
-        <div style="font-weight:700;font-size:13px;color:var(--text-primary);display:flex;justify-content:space-between;align-items:center;">
-          <span>${t.name}</span>
-          ${t.id === current ? '<span style="color:var(--accent);font-size:11px;">✓ Active</span>' : ''}
-        </div>
-        <div style="font-size:11px;color:var(--text-secondary);">${t.desc}</div>
-        <div class="soc-theme-swatches">
-          <div class="soc-theme-swatch" style="background:${t.bg};" title="Base: ${t.bg}"></div>
-          <div class="soc-theme-swatch" style="background:${t.surface};" title="Surface: ${t.surface}"></div>
-          <div class="soc-theme-swatch" style="background:${t.accent};" title="Accent: ${t.accent}"></div>
-          <div class="soc-theme-swatch" style="background:${t.crit};" title="Alert: ${t.crit}"></div>
-        </div>
-      </div>
-    `).join('');
-
     modal.innerHTML = `
-      <div class="soc-theme-modal-box">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <div class="soc-theme-modal-box" onclick="event.stopPropagation()" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;width:760px;max-width:95vw;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,0.9);color:var(--text-primary);">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;">
           <div>
-            <h3 style="margin:0;font-size:18px;color:var(--text-primary);">🎨 Choose SOC Platform Theme</h3>
-            <p style="margin:4px 0 0;font-size:12px;color:var(--text-secondary);">Select your preferred high-contrast theme. Persisted automatically across all dashboards.</p>
+            <h3 style="margin:0;font-size:18px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">🎨 Choose SOC Platform Theme</h3>
+            <p style="margin:4px 0 0;font-size:12px;color:var(--text-secondary);">Select your preferred high-contrast color system. Persisted automatically across all dashboards.</p>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="window.closeSocThemeModal()" style="font-size:16px;">✕</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.closeSocThemeModal()" style="font-size:16px;cursor:pointer;padding:4px 10px;">✕</button>
         </div>
-        <div class="soc-theme-grid" id="socThemeGrid">
-          ${cardsHtml}
+        <div class="soc-theme-grid" id="socThemeGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+          ${renderThemeCardsHtml()}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:14px;border-top:1px solid var(--border);">
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Active System Theme: <b id="socCurrentThemeLabel" style="color:var(--accent);">${current.toUpperCase()}</b></span>
+          <button class="btn btn-primary btn-sm" onclick="window.closeSocThemeModal()" style="padding:6px 18px;cursor:pointer;font-weight:600;">Done</button>
         </div>
       </div>
     `;
@@ -412,41 +427,49 @@
     if (!m) {
       createThemeModal();
       m = document.getElementById('socThemeModal');
+    } else {
+      const grid = document.getElementById('socThemeGrid');
+      if (grid) grid.innerHTML = renderThemeCardsHtml();
     }
-    m.classList.add('open');
+    if (m) {
+      m.classList.add('open');
+      m.style.display = 'flex';
+    }
   };
 
   window.closeSocThemeModal = function() {
     const m = document.getElementById('socThemeModal');
-    if (m) m.classList.remove('open');
+    if (m) {
+      m.classList.remove('open');
+      m.style.display = 'none';
+    }
   };
 
   window.setSocTheme = function(themeId) {
     document.documentElement.setAttribute('data-theme', themeId);
+    if (document.body) document.body.setAttribute('data-theme', themeId);
     localStorage.setItem('soc_dashboard_theme', themeId);
     
     // Refresh modal cards
     const grid = document.getElementById('socThemeGrid');
     if (grid) {
-      grid.innerHTML = THEMES.map(t => `
-        <div class="soc-theme-card ${t.id === themeId ? 'active' : ''}" onclick="window.setSocTheme('${t.id}')">
-          <div style="font-weight:700;font-size:13px;color:var(--text-primary);display:flex;justify-content:space-between;align-items:center;">
-            <span>${t.name}</span>
-            ${t.id === themeId ? '<span style="color:var(--accent);font-size:11px;">✓ Active</span>' : ''}
-          </div>
-          <div style="font-size:11px;color:var(--text-secondary);">${t.desc}</div>
-          <div class="soc-theme-swatches">
-            <div class="soc-theme-swatch" style="background:${t.bg};" title="Base: ${t.bg}"></div>
-            <div class="soc-theme-swatch" style="background:${t.surface};" title="Surface: ${t.surface}"></div>
-            <div class="soc-theme-swatch" style="background:${t.accent};" title="Accent: ${t.accent}"></div>
-            <div class="soc-theme-swatch" style="background:${t.crit};" title="Alert: ${t.crit}"></div>
-          </div>
-        </div>
-      `).join('');
+      grid.innerHTML = renderThemeCardsHtml();
     }
+    const label = document.getElementById('socCurrentThemeLabel');
+    if (label) label.textContent = themeId.toUpperCase();
 
-    window.showSocToast(`🎨 Theme Changed: <b>${themeId.toUpperCase()}</b>`);
+    window.showSocToast(`🎨 Theme Applied: <b>${themeId.toUpperCase()}</b>`);
   };
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const m = document.getElementById('socThemeModal');
+      if (m && m.style.display === 'flex') {
+        window.closeSocThemeModal();
+      }
+    }
+  });
 
   // ── Kiosk Mode Logic ────────────────────────────────────────────────────────
   let kioskTimeout = null;
