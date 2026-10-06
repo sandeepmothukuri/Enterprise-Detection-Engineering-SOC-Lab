@@ -588,9 +588,49 @@ Then inspect OpenSearch, detection output and relevant investigation tooling bef
 
 ## Enterprise SOC Dashboard Suite & Evidence
 
-The platform provides a comprehensive **9-Tier Enterprise SOC Operations Suite** alongside specialized forensic consoles. All dashboards adhere strictly to **Signal > Decoration**, utilizing the unified OpenSearch schema (`soc-logs-*`, `soc-alerts-*`, `soc-ai-*`, `soc-health-*`), responsive high-contrast NOC/SOC styling, and live drill-down capabilities.
+The platform provides **native standalone tool dashboards** running on dedicated ports alongside the unified **9-Tier Enterprise SOC Operations Suite**. All dashboards adhere strictly to **Signal > Decoration**, utilizing the unified OpenSearch schema (`soc-logs-*`, `soc-alerts-*`, `soc-ai-*`, `soc-health-*`), responsive high-contrast NOC/SOC styling, and live drill-down capabilities.
 
-> **Data Model & Schema Docs:** Detailed index contracts, field mappings, and metrics definitions are documented in [`docs/dashboard-data-model.md`](docs/dashboard-data-model.md) and [`docs/dashboard/`](docs/dashboard/).
+---
+
+### 🔑 Live Native Tool Dashboards & Verified Credentials
+
+| Native Tool & Dashboard | Direct Web URL | Username | Password | Operational Capabilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **🔍 OpenSearch Dashboards (SIEM)** | **[http://localhost:5601](http://localhost:5601)** | `admin` | `SocLabAdmin!2026#Secure` | • Native SIEM Web GUI<br>• Discover (`soc-logs-*`), Visualizations, Index Patterns<br>• 9 Pre-configured SOC Tiers (T1–T9) |
+| **⚔️ MITRE Caldera (Adversary Sim)** | **[http://localhost:8888](http://localhost:8888)** | `admin`<br>`red`<br>`blue` | `admin123`<br>`RedTeamPass123!`<br>`BlueTeamPass123!` | • Native Adversary Emulation Dashboard<br>• Operations, Abilities, Adversary Profiles, Agents<br>• MITRE ATT&CK Compass Heatmap |
+| **🦖 Velociraptor (EDR & Forensics)** | **[https://localhost:8889](https://localhost:8889)** | `admin` | `VelociraptorAdmin!2026#Secure` | • Native Velociraptor VQL GUI<br>• Endpoint Forensics, Process Tree, Memory Dumps<br>• Artifact Hunts & Live Client Telemetry |
+| **⚡ StackStorm SOAR** | **[http://localhost:9101](http://localhost:9101)** | `st2admin` | `StackStormAdmin!2026#Secure` | • Native SOAR Automation Engine<br>• Automated Playbooks, Action Workflows & Triggers |
+| **🤖 CrewAI Multi-Agent SOC API** | **[http://localhost:8500/docs](http://localhost:8500/docs)** | *(API Key)* | `soclab_ai_token` | • Native Multi-Agent Copilot GUI & Swagger UI<br>• Autonomous Tier-1/Tier-2 Alert Triage Engine |
+| **🧠 Ollama Local LLM Server** | **[http://localhost:11434](http://localhost:11434)** | *(Open)* | *(None)* | • Native LLaMA 3.2 3B Inference Engine<br>• Local Offline Reasoning & Triage |
+| **📡 Vector Telemetry Engine** | **[http://localhost:8686](http://localhost:8686)** | *(Open)* | *(None)* | • Native High-Throughput Log Pipeline<br>• Real-time EPS & Pipeline Health API |
+
+---
+
+### 📸 Live Native Tools Visual Showcase
+
+#### 1. 🔍 OpenSearch Dashboards (SIEM) — `http://localhost:5601`
+> **Credentials:** `admin` / `SocLabAdmin!2026#Secure`  
+> **Features:** Native SIEM Web GUI, Discover (`soc-logs-*`), Visualizations, Index Patterns, 9 Pre-configured SOC Tiers.
+
+![OpenSearch Dashboards SIEM](dashboards/screenshots/02_opensearch_siem.png)
+
+---
+
+#### 2. ⚔️ MITRE Caldera (Adversary Simulation) — `http://localhost:8888`
+> **Credentials:** `admin` / `admin123` | `red` / `RedTeamPass123!` | `blue` / `BlueTeamPass123!`  
+> **Features:** Native Adversary Emulation Dashboard, Operations, Abilities, Adversary Profiles, Agents, MITRE ATT&CK Compass Heatmap.
+
+![MITRE Caldera Adversary Emulation](dashboards/screenshots/07_caldera_attack.png)
+
+---
+
+#### 3. 🦖 Velociraptor (EDR & Live DFIR) — `https://localhost:8889`
+> **Credentials:** `admin` / `VelociraptorAdmin!2026#Secure`  
+> **Features:** Native Velociraptor VQL GUI, Endpoint Forensics, Process Tree, Memory Dumps, Artifact Hunts & Live Client Telemetry.
+
+![Velociraptor EDR & Forensics](dashboards/screenshots/09_velociraptor.png)
+
+---
 
 ### Core Enterprise SOC Operations Tiers (Tiers 1–9)
 
@@ -644,9 +684,6 @@ The platform provides a comprehensive **9-Tier Enterprise SOC Operations Suite**
 
 ### Specialized Deep-Dive Consoles & Tool Interfaces
 
-#### OpenSearch SIEM & Detection Engine
-![OpenSearch SIEM](dashboards/screenshots/02_opensearch_siem.png)
-
 #### Zeek Network Security Monitoring
 ![Zeek Network](dashboards/screenshots/03_zeek_network.png)
 
@@ -659,14 +696,8 @@ The platform provides a comprehensive **9-Tier Enterprise SOC Operations Suite**
 #### DFIR-IRIS Case Management
 ![DFIR-IRIS](dashboards/screenshots/06_iris_cases.png)
 
-#### MITRE Caldera Adversary Emulation
-![Caldera](dashboards/screenshots/07_caldera_attack.png)
-
 #### MISP Threat Intelligence Platform
 ![MISP](dashboards/screenshots/08_misp_ti.png)
-
-#### Velociraptor Live DFIR & VQL Hunts
-![Velociraptor](dashboards/screenshots/09_velociraptor.png)
 
 #### Red Team Responder Poisoning Evidence
 ![Responder](dashboards/screenshots/10_responder_redteam.png)
@@ -680,16 +711,16 @@ The platform provides a comprehensive **9-Tier Enterprise SOC Operations Suite**
 #### Malware Analysis & Memory Sandbox (YARA + Volatility)
 ![Malware Analysis](dashboards/screenshots/15_malware_analysis.png)
 
-#### MITRE D3FEND™ Countermeasure Matrix
+#### MITRE D3FEND Defensive Countermeasures Matrix
 ![MITRE D3FEND](dashboards/screenshots/16_d3fend_matrix.png)
 
-#### Enterprise Asset Inventory & EDR Health Radar
+#### Enterprise Asset Inventory & CMDB Crown Jewels
 ![Asset Inventory](dashboards/screenshots/17_asset_inventory.png)
 
-#### Live Threat Intelligence Feeds Hub
-![Threat Feeds Hub](dashboards/screenshots/18_threat_intel_feeds.png)
+#### Global Threat Intelligence Feeds Hub
+![Threat Intel Feeds](dashboards/screenshots/18_threat_intel_feeds.png)
 
-#### Live SOC Network Topology Graph
+#### SOC Network Topology & TAP Flow
 ![Network Topology](dashboards/screenshots/19_network_topology.png)
 
 ### Screenshot provenance
