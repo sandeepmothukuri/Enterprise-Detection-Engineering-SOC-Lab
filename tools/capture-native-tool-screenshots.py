@@ -55,33 +55,55 @@ def capture_opensearch(context):
     finally:
         page.close()
 
-def capture_caldera(context):
-    print("[*] Capturing MITRE Caldera (http://localhost:8888)...")
+def capture_caldera_user(browser, username, password, output_filename, is_main=False):
+    print(f"[*] Capturing MITRE Caldera for user '{username}' (http://localhost:8888)...")
+    context = browser.new_context(
+        viewport={"width": 1680, "height": 1050},
+        device_scale_factor=1,
+        ignore_https_errors=True
+    )
     page = context.new_page()
     try:
         # Caldera login
         page.goto("http://localhost:8888/login", wait_until="networkidle", timeout=30000)
         time.sleep(1)
         
+        # Fill credentials
         if page.query_selector('input[name="username"]') or page.query_selector('input[type="text"]'):
-            print("    Logging into MITRE Caldera...")
-            page.fill('input[name="username"], input[type="text"]', "admin")
-            page.fill('input[name="password"], input[type="password"]', "admin123")
+            print(f"    Entering credentials for {username}...")
+            page.fill('input[name="username"], input[type="text"]', username)
+            page.fill('input[name="password"], input[type="password"]', password)
             page.click('button[type="submit"], input[type="submit"]')
             page.wait_for_load_state("networkidle", timeout=30000)
-            time.sleep(2)
+            time.sleep(3)
             
-        # Navigate to Caldera main navigation / compass / operations
         page.goto("http://localhost:8888/", wait_until="networkidle", timeout=30000)
-        time.sleep(3)
+        time.sleep(2)
+        try:
+            page.evaluate("openNav()")
+            time.sleep(1)
+        except Exception:
+            pass
         
-        target_file = OUT / "07_caldera_attack.png"
+        target_file = OUT / output_filename
         page.screenshot(path=str(target_file), full_page=False)
-        print(f"[+] Saved Caldera screenshot: {target_file}")
+        print(f"[+] Saved Caldera ({username}) screenshot: {target_file}")
+        
+        if is_main:
+            main_target = OUT / "07_caldera_attack.png"
+            page.screenshot(path=str(main_target), full_page=False)
+            print(f"[+] Saved Caldera hero screenshot: {main_target}")
     except Exception as e:
-        print(f"[-] Caldera capture failed: {e}")
+        print(f"[-] Caldera capture failed for {username}: {e}")
     finally:
         page.close()
+        context.close()
+
+def capture_caldera(browser):
+    # Capture admin, red, and blue authenticated views
+    capture_caldera_user(browser, "admin", "admin123", "07_caldera_admin.png", is_main=True)
+    capture_caldera_user(browser, "red", "RedTeamPass123!", "07_caldera_red.png")
+    capture_caldera_user(browser, "blue", "BlueTeamPass123!", "07_caldera_blue.png")
 
 def capture_velociraptor(context):
     print("[*] Capturing Velociraptor EDR (https://localhost:8889)...")
@@ -114,7 +136,7 @@ def main():
         )
         
         capture_opensearch(context)
-        capture_caldera(context)
+        capture_caldera(browser)
         capture_velociraptor(context)
         
         browser.close()

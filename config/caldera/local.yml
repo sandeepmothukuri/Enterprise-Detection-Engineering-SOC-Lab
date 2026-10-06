@@ -8,6 +8,7 @@ exfil_dir: /tmp/caldera-exfil
 # Users — change passwords in production
 users:
   red:
+    admin: "admin123"          # administrator / red team
     red: "RedTeamPass123!"     # red team operator
   blue:
     blue: "BlueTeamPass123!"   # blue team / SOC observer

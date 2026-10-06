@@ -617,10 +617,21 @@ The platform provides **native standalone tool dashboards** running on dedicated
 ---
 
 #### 2. ⚔️ MITRE Caldera (Adversary Simulation) — `http://localhost:8888`
-> **Credentials:** `admin` / `admin123` | `red` / `RedTeamPass123!` | `blue` / `BlueTeamPass123!`  
-> **Features:** Native Adversary Emulation Dashboard, Operations, Abilities, Adversary Profiles, Agents, MITRE ATT&CK Compass Heatmap.
+> **Verified Role Credentials:**
+> - **Administrator View:** `admin` / `admin123`
+> - **Red Team Operator:** `red` / `RedTeamPass123!`
+> - **Blue Team Defender:** `blue` / `BlueTeamPass123!`
+>
+> **Capabilities:** Native Adversary Emulation Dashboard, Operations, Abilities, Adversary Profiles, Agents, ATT&CK Compass Heatmap, Defense Response Plugins.
 
-![MITRE Caldera Adversary Emulation](dashboards/screenshots/07_caldera_attack.png)
+##### 🛡️ MITRE Caldera — Administrator Dashboard (`admin`)
+![MITRE Caldera Administrator Dashboard](dashboards/screenshots/07_caldera_admin.png)
+
+##### 🔴 MITRE Caldera — Red Team Adversary Operations (`red`)
+![MITRE Caldera Red Team Operator](dashboards/screenshots/07_caldera_red.png)
+
+##### 🔵 MITRE Caldera — Blue Team Defensive Monitoring (`blue`)
+![MITRE Caldera Blue Team Defender](dashboards/screenshots/07_caldera_blue.png)
 
 ---
 
