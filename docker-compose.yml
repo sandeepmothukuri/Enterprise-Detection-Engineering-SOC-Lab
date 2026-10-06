@@ -225,9 +225,10 @@ services:
 # LAYER 5 — STACKSTORM SOAR
 # ================================================================
   stackstorm:
-    image: stackstorm/stackstorm:3.8.1
+    image: stackstorm/st2:latest
     container_name: soc-stackstorm
     hostname: stackstorm
+    command: ["bash", "-c", "st2ctl start && tail -f /dev/null"]
     <<: *restart
     depends_on: [st-mongo, st-rabbitmq]
     ports:
@@ -253,7 +254,7 @@ services:
       soc-net: { ipv4_address: 172.20.0.51 }
 
   st-rabbitmq:
-    image: rabbitmq:3.13-management-alpine
+    image: rabbitmq:3-alpine
     container_name: soc-st-rabbitmq
     volumes: [st-mq:/var/lib/rabbitmq]
     networks:
@@ -347,7 +348,9 @@ services:
 # LAYER 8 — VELOCIRAPTOR DFIR
 # ================================================================
   velociraptor:
-    image: wlambert/velociraptor:latest
+    build:
+      context: ./config/velociraptor
+      dockerfile: Dockerfile
     container_name: soc-velociraptor
     hostname: velociraptor
     <<: *restart
@@ -357,7 +360,7 @@ services:
       - "${VELOCIRAPTOR_CLIENT_PORT:-8002}:8000"
     volumes:
       - velociraptor-data:/velociraptor
-      - ./config/velociraptor:/etc/velociraptor:ro
+      - ./config/velociraptor:/etc/velociraptor
     networks:
       soc-net: { ipv4_address: 172.20.0.80 }
     logging: *logging
