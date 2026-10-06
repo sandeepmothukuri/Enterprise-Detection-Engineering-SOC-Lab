@@ -625,12 +625,15 @@ The platform provides **native standalone tool dashboards** running on dedicated
 > **Capabilities:** Native Adversary Emulation Dashboard, Operations, Abilities, Adversary Profiles, Agents, ATT&CK Compass Heatmap, Defense Response Plugins.
 
 ##### 🛡️ MITRE Caldera — Administrator Dashboard (`admin`)
+*Caldera Server Configurations & Plugin Settings Console (Host/Port, API Keys, SSH Tunnels, Obfuscators, Exfil Endpoints).*
 ![MITRE Caldera Administrator Dashboard](dashboards/screenshots/07_caldera_admin.png)
 
 ##### 🔴 MITRE Caldera — Red Team Adversary Operations (`red`)
+*Caldera Red Team Adversary Profiles & Emulation Attack Chain (Alice 2.0 TTPs: Recon, Powerkatz Credential Access, SMB Lateral Movement, WMI Execution).*
 ![MITRE Caldera Red Team Operator](dashboards/screenshots/07_caldera_red.png)
 
 ##### 🔵 MITRE Caldera — Blue Team Defensive Monitoring (`blue`)
+*Caldera Blue Team Protection Console with Defender Operations, Incident Response Plugins (Gameboard, Debrief, Training), and Defensive Fact Sources.*
 ![MITRE Caldera Blue Team Defender](dashboards/screenshots/07_caldera_blue.png)
 
 ---
