@@ -22,32 +22,62 @@ def capture_opensearch(context):
     print("[*] Capturing OpenSearch Dashboards (http://localhost:5601)...")
     page = context.new_page()
     try:
-        # Navigate to login or home
+        # Navigate to login
+        print("    Navigating to OpenSearch login...")
         page.goto("http://localhost:5601/app/login", wait_until="networkidle", timeout=30000)
-        time.sleep(1)
+        time.sleep(2)
         
         # Check if login form exists
-        if page.query_selector('input[type="text"]') or page.query_selector('input[name="username"]'):
-            print("    Logging into OpenSearch Dashboards...")
-            page.fill('input[type="text"], input[name="username"]', "admin")
-            page.fill('input[type="password"], input[name="password"]', "SocLabAdmin!2026#Secure")
-            page.click('button[type="submit"]')
+        user_input = page.query_selector('input[data-test-subj="user-name"], input[type="text"], input[name="username"]')
+        if user_input:
+            print("    Entering OpenSearch Dashboards admin credentials...")
+            page.fill('input[data-test-subj="user-name"], input[type="text"], input[name="username"]', "admin")
+            page.fill('input[data-test-subj="password"], input[type="password"], input[name="password"]', "SocLabAdmin!2026#Secure")
+            page.click('button[data-test-subj="submit"], button[type="submit"], button.euiButton--fill')
+            time.sleep(4)
             page.wait_for_load_state("networkidle", timeout=30000)
             time.sleep(2)
             
-        # Navigate to 01 SOC Command Center Dashboard or Discover
-        page.goto("http://localhost:5601/app/dashboards#/view/soc-dashboard-command-center", wait_until="networkidle", timeout=30000)
-        time.sleep(4)
+        print(f"    Current OpenSearch URL: {page.url}")
+        
+        # Check and handle "Select your tenant" modal if present via JS
+        try:
+            print("    Dismissing tenant selection modal via JS...")
+            page.evaluate("""() => {
+                const btn = document.querySelector('[data-test-subj="confirm-tenant"], .euiModalFooter button.euiButton--fill, button[type="submit"]');
+                if (btn) btn.click();
+            }""")
+            time.sleep(3)
+        except Exception as tenant_err:
+            print(f"    Tenant modal check: {tenant_err}")
+            
+        # Navigate to Discover SIEM Event Telemetry Console with 30-day time range
+        discover_url = "http://localhost:5601/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now))"
+        print(f"    Navigating to Discover SIEM Console: {discover_url}...")
+        page.goto(discover_url, timeout=30000)
+        time.sleep(5)
+        
+        # Check if tenant modal popped up again
+        try:
+            page.evaluate("""() => {
+                const btn = document.querySelector('[data-test-subj="confirm-tenant"], .euiModalFooter button.euiButton--fill');
+                if (btn) btn.click();
+            }""")
+            time.sleep(2)
+        except Exception:
+            pass
+            
+        # Wait for log records and histogram to render
+        time.sleep(6)
         
         target_file = OUT / "02_opensearch_siem.png"
         page.screenshot(path=str(target_file), full_page=False)
-        print(f"[+] Saved OpenSearch screenshot: {target_file}")
+        print(f"[+] Saved OpenSearch SIEM screenshot: {target_file}")
     except Exception as e:
         print(f"[-] OpenSearch capture failed: {e}")
-        # Fallback to home
         try:
-            page.goto("http://localhost:5601/app/home", wait_until="networkidle", timeout=15000)
-            time.sleep(2)
+            page.goto("http://localhost:5601/app/home", timeout=15000)
+            time.sleep(3)
             page.screenshot(path=str(OUT / "02_opensearch_siem.png"))
             print(f"[+] Saved OpenSearch fallback screenshot.")
         except Exception as e2:
